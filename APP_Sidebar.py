@@ -74,7 +74,7 @@ def Sidebar_Diretorios_(st, lista_projeto, qt_col):
 	# 2. ADICIONA BANCO (SEM DUPLICAR)
 	banco_arquivos = ler_CONTROLE_ARQUIVOS()
 	for nome_arq, caminho, conteudo, ext in banco_arquivos:
-		if sincronizar_estrutura(caminho) == False:# verifica se o aruivo esta no ".virtual_tcbt" / "Arvore_projeto.json"
+		if sincronizar_estrutura(caminho) == False:# verifica se o aruivo esta no ".virto_stream" / "Arvore_projeto.json"
 			if se_CONTROLE_ARQUIVOS(caminho, None):
 					todos_abertos.append((nome_arq, caminho, "banco"))
 
@@ -165,7 +165,7 @@ def Sidebar_Diretorios(st, lista_projeto, qt_col):
 	# 2. ADICIONA BANCO (SEM DUPLICAR)
 	banco_arquivos = ler_CONTROLE_ARQUIVOS()
 	for nome_arq, caminho, conteudo, ext in banco_arquivos:
-		if sincronizar_estrutura(caminho) == False:# verifica se o aruivo esta no ".virtual_tcbt" / "Arvore_projeto.json"
+		if sincronizar_estrutura(caminho) == False:# verifica se o aruivo esta no ".virto_stream" / "Arvore_projeto.json"
 			if se_CONTROLE_ARQUIVOS(caminho, None):
 					todos_abertos.append((nome_arq, caminho, "banco"))
 

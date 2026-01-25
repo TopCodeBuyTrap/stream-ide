@@ -1,3 +1,5 @@
+import json
+
 from APP_SUB_Controle_Driretorios import _DIRETORIO_EXECUTAVEL_, _DIRETORIO_PROJETOS_, _DIRETORIO_PROJETO_ATUAL_
 from APP_SUB_Funcitons import saudacao_por_hora_sistema
 from Banco_dados import ler_CUSTOMIZATION_coluna, ler_B_ARQUIVOS_RECENTES
@@ -116,17 +118,18 @@ def Carregamento_BancoDados_Temas(st):
 	    overflow: hidden !important;
 	}}
 	
-    div {{                                                          /* VALORES SELCBOX SUBHEADERS */
+    P {{                                                          /* VALORES SELCBOX SUBHEADERS */
         color: {COR_MENU} !important;
-        font-family: {FONTE_CAMPO} !important;
+        font-family: {FONTE_MENU} !important;
         font-size: {TAM_MENU}px !important;
+ 
 
         
     }}
     
     [data-testid="stMarkdown"] p {{                               /* MARKDOWS E WRITES */
         color: {COR_CAMPO} !important;
-        font-size: {TAM_CAMPO}px !important;
+        font-size: {FONTE_MENU}px !important;
         text-decoration: underline dotted !important;
         font-style: italic !important;
         
@@ -143,13 +146,12 @@ def Carregamento_BancoDados_Temas(st):
     input {{                                                        /* PARA TODOS OS INPUTS */ 
         color: {COR_CAMPO} !important;
         font-family: {FONTE_CAMPO} !important;
-        font-size: {TAM_CAMPO}px !important;
+        font-size: {FONTE_MENU}px !important;
     }}
     
     div[data-testid="stButton"] button {{                               /* Botões */
         background-color: {FUNDO_OUTROS} !important;
         font-family: {FONTE_MENU} !important;
-        font-size: {TAM_MENU}px !important;
         min-height: 10px !important;
         border-radius: {RADIO}px !important;
         border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important;   
@@ -165,13 +167,24 @@ def Carregamento_BancoDados_Temas(st):
 	}}
 	
 	div[data-testid="stForm"] {{                                            /* FORM  FORMULARIO */
+        background-color: {FUNDO_OUTROS} !important;
+	
        padding: none !important;
        padding-top: 0% !important;
        padding-bottom: 0% !important;
 
 	}}
-	
-	div[data-testid="stColumn"] {{                                            /* FORM  FORMULARIO */
+	[data-testid="stFormSubmitButton"] [data-testid="stBaseButton-primaryFormSubmit"] {{    /* FORM  BOTAO */
+       padding-top: 0% !important;
+       padding-left: 0% !important;
+       padding-right: 0% !important;
+       padding-bottom: 0% !important;
+		color: {COR_CAMPO} !important;
+		border-radius: {RADIO}px !important;
+		border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important;
+
+	}}
+	div[data-testid="stColumn"] {{                                            /* COLUNAS st.columns() */
        padding-top: 0% !important;
        padding-left: 0% !important;
        padding-right: 0% !important;
@@ -210,7 +223,7 @@ def Carregamento_BancoDados_Temas(st):
 	
 	
 	input[type="checkbox"]:checked + div {{                                 /* checkbox MARCADO */
-	    background-color: {PASSR_COR} !important;
+	    background-color: {FUNDO_OUTROS } !important;
 	}}
     
    [data-testid="stColorPicker"] {{                                           /* COLOR PICK */ 
@@ -230,7 +243,7 @@ def Carregamento_BancoDados_Temas(st):
         background-color: {FUNDO_OUTROS} !important;
         color: {COR_CAMPO} !important;
         font-family: {FONTE_CAMPO} !important;
-        font-size: {TAM_CAMPO}px !important;
+        font-size: {FONTE_MENU}px !important;
         border-radius: {RADIO}px !important;
         border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important;
     }}
@@ -239,7 +252,7 @@ def Carregamento_BancoDados_Temas(st):
         background-color: {FUNDO_OUTROS} !important;
         color: {COR_CAMPO} !important;
         font-family: {FONTE_CAMPO} !important;
-        font-size: {TAM_CAMPO}px !important;
+        font-size: {FONTE_MENU}px !important;
         border-radius: {RADIO}px !important;
         border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important;
     }}
@@ -251,7 +264,7 @@ def Carregamento_BancoDados_Temas(st):
         font-size: {TAM_MENU}px !important;
     }}
 
-    [data-testid="stExpander"] {{                                               /* SELCTBOX */ 
+    [data-testid="stExpander"] {{                                               /* EXPANDER */ 
         background-color: {FUNDO_OUTROS} !important;
         color: {COR_MENU} !important;
         border-radius: 0px !important;
@@ -292,6 +305,9 @@ def Carregamento_BancoDados_Temas(st):
         background-color: {THEMA_APP1} !important;
         height: 110% !important;
         margin-top: 0% !important;
+        margin-left: -0% !important;
+        
+        border: {BORDA+1}px solid {THEMA_APP2} !important;
     }}
 
     [data-testid="stSidebarCollapseButton"] {{                                  /* BOTÃO DO SIDEBAR DE CIMA >> */
@@ -314,7 +330,7 @@ def Carregamento_BancoDados_Temas(st):
     div[data-testid="stVerticalBlock"][class*="st-key-Bra-o_Sidebar"] {{ /* MENU de botao POUPAP - AO LADO DO SIDEBAR */
         background-color: {THEMA_APP1} !important;
 	    position: absolute !important;
-	    top: 7% !important;  /* Alinha no topo do sidebar */
+	    top: 3% !important;  /* Alinha no topo do sidebar */
 		left: 40% !important;
 	    border-radius: {RADIO}px !important;
 	    border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important;
@@ -369,13 +385,15 @@ def Carregamento_BancoDados_Temas(st):
     }}
     
     [data-testid="stCustomComponentV1"] {{                                      /* EDITORES DE CODIGOS */
-		background-color: {THEMA_APP1} !important;
+		background-color: {FUNDO_OUTROS} !important;
 		border-radius: {RADIO}px !important;
 		border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important; 
+		
     }}
 
     div[data-testid="stVerticalBlock"][class*="st-key-menu_lado_sidebar"] {{             /* stVerticalBlock st-key-menu_lado_sidebar st-emotion-cache-1gz5zxc e12zf7d53 */
-        background-color: {THEMA_APP1} !important;
+        background-color: {THEMA_APP1} !important; 
+        
     }}
     
     div[data-testid="stButton"][class*="st-key-nome_da_sua_key"] {{             /* CONTAINERS */
@@ -392,7 +410,7 @@ def Carregamento_BancoDados_Temas(st):
     	
 	[data-baseweb="base-input"] textarea  {{
 	    background-color: black !important;  /* Fundo do input */
-	    color: {COR_CAMPO}  !important;             /* Cor do texto */
+	    color: white  !important;             /* Cor do texto */
 	    border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important;
 	}}
     
@@ -401,13 +419,13 @@ def Carregamento_BancoDados_Temas(st):
 	    color: {COR_CAMPO}  !important;             /* Cor do texto */
 	    border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important;
         font-family: {FONTE_CAMPO} !important;
-        font-size: {TAM_CAMPO}px !important;
+        font-size: {FONTE_MENU}px !important;
 	}}
     
     div[data-testid="stVerticalBlock"][class*="st-key-Preview st-emotion-cache-1gz5zxc e12zf7d53"] {{  /* PREVIEWS  */
         background-color: {THEMA_APP2} !important;
         position: fixed !important;
-        bottom: 1.7% !important;
+        bottom: 1.9% !important;
         padding-left:0% !important;
         right: 0% !important;
         z-index: 99999 !important;
@@ -429,7 +447,7 @@ def Carregamento_BancoDados_Temas(st):
     div[data-testid="stVerticalBlock"][class*="st-key-Terminal_cmd st-emotion-cache-1gz5zxc e12zf7d53"] {{         /*  TERMINAL  */
         background-color: {THEMA_APP2} !important;
         position: fixed !important;
-        bottom: 1.7% !important;
+        bottom: 1.9% !important;
         padding-left:0% !important;
         right: 0% !important;
         z-index: 9999 !important;
@@ -452,71 +470,111 @@ def Carregamento_BancoDados_Temas(st):
 		import ast
 		import os
 		from datetime import datetime
-		dados = ast.literal_eval(dados_str)
-
-		pastas = dados.get("pastas", 0)
-		arquivos = dados.get("arquivos", 0)
-
-		extensoes = dados.get("extensao", {})
-		extensoes_str = " / ".join(f"{v}{k}" for k, v in extensoes.items())
-
-		datas = dados.get("datas", [])
-		if datas:
-			criado_raw = datas[0].get("criado", "-")
-			modificado_raw = datas[0].get("modificado", "-")
-
-			try:
-				criado = datetime.strptime(criado_raw[:19], "%Y-%m-%d %H:%M:%S").strftime("%d/%m/%Y")
-			except:
-				criado = criado_raw  # se não der pra converter, mantém o valor original
-
-			try:
-				modificado = datetime.strptime(modificado_raw[:19], "%Y-%m-%d %H:%M:%S").strftime("%d/%m/%Y")
-			except:
-				modificado = modificado_raw
-		else:
-			criado = "-"
-			modificado = "-"
+		pastas = 0
+		arquivos = 0
+		extensoes = {}
+		criado = "-"
+		modificado = "-"
+		versoes_str = ""
 
 		try:
-			versoes = dados.get("versoes", [])
-			versoes_str = " / ".join(
-				", ".join(v) if isinstance(v, (set, list, tuple)) else str(v)
-				for v in versoes
-			)
-		except TypeError:
-			versoes = ''
-			versoes_str = ''
-		return f"""
-	<span style="color:{COR_CAMPO}; margin-left:8px;">{versoes_str}</span>
+			# Tenta diferentes métodos de parsing
+			dados = None
+
+			# 1. Tenta ast.literal_eval primeiro (mais seguro)
+			try:
+				dados = ast.literal_eval(dados_str)
+			except (ValueError, SyntaxError):
+				pass
+
+			# 2. Se falhar, tenta json.loads
+			if dados is None:
+				try:
+					dados = json.loads(dados_str)
+				except:
+					pass
+
+			# 3. Se ainda falhar, tenta converter de str para dict simples
+			if dados is None and dados_str.strip():
+				try:
+					# Remove aspas extras se for string simples
+					cleaned_str = dados_str.strip().strip("'\"")
+					dados = ast.literal_eval(f"{{ {cleaned_str} }}")
+				except:
+					pass
+
+			# Se conseguiu parsear os dados
+			if isinstance(dados, dict):
+				pastas = dados.get("pastas", 0)
+				arquivos = dados.get("arquivos", 0)
+				extensoes = dados.get("extensao", {})
+				versoes = dados.get("versoes", [])
+
+				# Formata extensões
+				extensoes_str = " / ".join(f"{v}{k}" for k, v in extensoes.items())
+
+				# Formata versões
+				if versoes:
+					versoes_str = " / ".join(
+						", ".join(v) if isinstance(v, (set, list, tuple)) else str(v)
+						for v in versoes
+					)
+
+				# Processa datas
+				datas = dados.get("datas", [])
+				if datas and isinstance(datas, list) and len(datas) > 0:
+					data_info = datas[0]
+					criado_raw = data_info.get("criado", "-")
+					modificado_raw = data_info.get("modificado", "-")
+
+					# Converte datas
+					try:
+						if isinstance(criado_raw, str) and len(criado_raw) >= 19:
+							criado = datetime.strptime(criado_raw[:19], "%Y-%m-%d %H:%M:%S").strftime("%d/%m/%Y")
+					except:
+						criado = criado_raw if criado_raw != "-" else "-"
+
+					try:
+						if isinstance(modificado_raw, str) and len(modificado_raw) >= 19:
+							modificado = datetime.strptime(modificado_raw[:19], "%Y-%m-%d %H:%M:%S").strftime(
+								"%d/%m/%Y")
+					except:
+						modificado = modificado_raw if modificado_raw != "-" else "-"
+
+
+			return f"""
+	<span style="color: orange;">{versoes_str}</span>
 	<span style="opacity:0.1;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
-	<span style="color:{COR_MENU}; font-weight:700; opacity:0.85;">📚{saudacao_por_hora_sistema()} </span>
+	<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">📚{saudacao_por_hora_sistema()} </span>
 	<span>{NOME_USUARIO} !</span>
 	<span style="opacity:0.1;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
-	<span style="color:{COR_MENU}; font-weight:700; opacity:0.85;">Custom atual:</span>
+	<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">Custom atual:</span>
 	<span style="font-weight:500;"> {NOME_CUSTOM} </span>
 	<span style="opacity:0.1;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
-	<span style="color:{COR_MENU}; font-weight:700; opacity:0.85;">Projeto :material/content_paste:</span>
+	<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">Projeto :material/content_paste:</span>
 	<span style="font-weight:500;"> {os.path.basename(Pasta_Projeto_Atual)} </span>
 	<span style="opacity:0.1;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
-	<span style="color:{COR_MENU}; font-weight:700; opacity:0.85;">Criado:</span>
+	<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">Criado:</span>
 	<span>{criado}</span>
 	<span style="opacity:0.1;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
-	<span style="color:{COR_MENU}; font-weight:700; opacity:0.85;">Modificado:</span>
+	<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">Modificado:</span>
 	<span>{modificado}</span>
 	<span style="opacity:0.1;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
-	<span style="color:{COR_MENU}; font-weight:700; opacity:0.85;"> Projeto Com:&nbsp;&nbsp;</span>
-	<span style="color:{COR_MENU}; font-weight:700; opacity:0.85;">:material/folder:</span>
-	<span >{pastas}</span>
+	<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;"> Projeto Com:&nbsp;&nbsp;</span>
+	<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">:material/folder:</span>
+	<span>{pastas}</span>
 	<span style="opacity:0.1;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
-	<span style="color:{COR_MENU}; font-weight:700; opacity:0.85;">:material/insert_drive_file:</span>
-	<span >{arquivos}</span>
+	<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">:material/insert_drive_file:</span>
+	<span>{arquivos}</span>
 	<span style="opacity:0.1;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
-	<span style="color:{COR_MENU}; font-weight:700; opacity:0.85;">:material/dynamic_feed:&nbsp;</span>
+	<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">:material/dynamic_feed:&nbsp;</span>
 	<span>{extensoes_str.lower().replace('/','&nbsp;')}</span>
 
 
 	"""
+		except Exception:
+			# Em caso de erro total, usa valores padrão
+			pass
 
 	@st.cache_data(ttl=30)  # Cache de 30s - ajustável
 	def gerar_footer_html():
@@ -526,20 +584,19 @@ def Carregamento_BancoDados_Temas(st):
 	TOP_CAB = f"""
 	<style>
 	.footer {{
-	    position: fixed !important;
-	    bottom: -2% !important;
-	    left: 0 !important;
-	    right: 0 !important;
-	    height: 20px !important;
-	    background: {THEMA_APP1} !important;
-	    z-index: 99999999 !important;
-	    display: flex !important;
-	    align-items: center !important;
-	    gap: 14px !important;
-	    padding: 20px !important;
-	    color: white !important;
-	    font-size: 13px !important;
-	    white-space: nowrap !important;
+		position: fixed !important;
+		bottom: -2% !important;
+		left: 0 !important;
+		right: 0 !important;
+		height: 20px !important;
+		background: {THEMA_APP1} !important;
+		z-index: 9!important;
+		display: flex !important;
+		align-items: center !important;
+		padding: 20px !important;
+		color: white !important;
+		white-space: nowrap !important;
+	    
 	    
 	}}
 	</style>

@@ -56,13 +56,33 @@ preview do editor de código com o python, que está instalado na venv
 
 
 # para criar o executavel:
-streamlit-desktop-app build app_.py `
-  --name tcbt_stream_ide `
+streamlit-desktop-app build APP_.py `
+  --name Stream_IDE `
   --streamlit-options --theme.base=dark `
   --pyinstaller-options `
     --onedir --noconsole --noconfirm `
-    --collect-all streamlit `
 
+
+streamlit-desktop-app build APP_.py \
+  --name Stream_IDE \
+  --streamlit-options --theme.base=dark \
+  --pyinstaller-options --onedir --noconsole --noconfirm \
+  --add-data ".arquivos;.arquivos" \
+  --add-data "Abertura_TCBT.py;." \
+  --add-data "APP_Editor_Run_Preview.py;." \
+  --add-data "APP_Htmls.py;." \
+  --add-data "APP_Menus.py;." \
+  --add-data "APP_Sidebar.py;." \
+  --add-data "APP_SUB_Controle_Driretorios.py;." \
+  --add-data "APP_SUB_Customizar.py;." \
+  --add-data "APP_SUB_Funcitons.py;." \
+  --add-data "APP_SUB_Janela_Explorer.py;." \
+  --add-data "APP_Terminal.py;." \
+  --add-data "Banco_dados.py;." \
+  --add-data "Base_Dados.db;." \
+  --add-data "run_app.py;." \
+  --add-data "style.css;." \
+  --add-data "SUB_Traduz_terminal.py;."
 
 nao coloquei
   --icon icon.ico `
@@ -70,5 +90,4 @@ nao coloquei
 
     --add-data "logo.png;." `
     --add-data "qrcode.png;."
-
 

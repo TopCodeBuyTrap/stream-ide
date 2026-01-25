@@ -1,4 +1,5 @@
-import os
+import json
+import subprocess
 import textwrap
 from pathlib import Path
 
@@ -8,6 +9,11 @@ from typing import List, Dict, Any, Optional
 
 
 from APP_SUB_Controle_Driretorios import _DIRETORIO_PROJETO_ATUAL_
+# ===== FIX WINDOWS: NÃO ABRIR CMD / POWERSHELL =====
+STARTUPINFO = subprocess.STARTUPINFO()
+STARTUPINFO.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+STARTUPINFO.wShowWindow = subprocess.SW_HIDE
+CREATE_FLAGS = subprocess.CREATE_NO_WINDOW
 
 
 
@@ -274,24 +280,12 @@ def gerar_nome_unico(pasta_base: Path, nome_desejado: str) -> Path:
 
 
 
-from pathlib import Path
-import json
 
 # -------------------------------
 # 1️⃣ Sincroniza estrutura do projeto corretamente
 # -------------------------------
 
-from pathlib import Path
-import os
-import os
-import subprocess
-from collections import defaultdict
-from datetime import datetime
-from pathlib import Path
-import os
-import subprocess
-from collections import defaultdict
-from datetime import datetime
+
 
 def contar_estrutura(caminho_base):
     caminho_base = Path(caminho_base).resolve()
@@ -300,7 +294,7 @@ def contar_estrutura(caminho_base):
         ".venv",
         "venv",
         "env",
-        ".virtual_tcbt",
+        ".virto_stream",
         ".tox",
         ".nox",
         "__pypackages__"
@@ -333,8 +327,11 @@ def contar_estrutura(caminho_base):
                 versao = subprocess.check_output(
                     [str(python_exec), "--version"],
                     stderr=subprocess.STDOUT,
-                    text=True
+                    text=True,
+                    startupinfo=STARTUPINFO,
+                    creationflags=CREATE_FLAGS
                 ).strip()
+
             except Exception:
                 versao = None
 
@@ -397,7 +394,7 @@ def resumo_pasta(caminho_pasta):
         ".venv",
         "venv",
         "env",
-        ".virtual_tcbt",
+        ".virto_stream",
         ".tox",
         ".nox",
         "__pypackages__",
@@ -435,14 +432,14 @@ def resumo_pasta(caminho_pasta):
 
 def sincronizar_estrutura(caminho_arquivo=None):
     """
-    Varre o projeto em pasta_base e salva JSON dentro de .virtual_tcbt
+    Varre o projeto em pasta_base e salva JSON dentro de .virto_stream
     SE caminho_arquivo: PRIMEIRO verifica JSON, SE NÃO acha → varre filesystem
     """
 
     pasta_base = Path(_DIRETORIO_PROJETO_ATUAL_())
     nome_projeto = pasta_base.name
     caminho_raiz_absoluto = str(pasta_base)
-    json_dir = pasta_base / ".virtual_tcbt"
+    json_dir = pasta_base / ".virto_stream"
     json_dir.mkdir(parents=True, exist_ok=True)
     json_path = json_dir / "Arvore_projeto.json"
 
@@ -451,7 +448,7 @@ def sincronizar_estrutura(caminho_arquivo=None):
     estrutura["pastas"].append(caminho_raiz_absoluto)
 
     for root, dirs, files in os.walk(pasta_base):
-        dirs[:] = [d for d in dirs if d != ".virtual_tcbt"]
+        dirs[:] = [d for d in dirs if d != ".virto_stream"]
         pasta_rel = str(Path(root).relative_to(pasta_base))
 
         if pasta_rel != "." and pasta_rel not in estrutura["pastas"]:

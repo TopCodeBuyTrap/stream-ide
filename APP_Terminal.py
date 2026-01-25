@@ -9,12 +9,19 @@ import queue
 from APP_SUB_Controle_Driretorios import _DIRETORIO_PROJETO_ATUAL_
 
 
+# ===== FIX WINDOWS: NÃO ABRIR CMD / POWERSHELL =====
+STARTUPINFO = subprocess.STARTUPINFO()
+STARTUPINFO.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+STARTUPINFO.wShowWindow = subprocess.SW_HIDE
+CREATE_FLAGS = subprocess.CREATE_NO_WINDOW
+
+
 def get_prompt():
     try:
         Pasta_RAIZ_projeto = _DIRETORIO_PROJETO_ATUAL_()
         Pasta_RAIZ_projeto = Path(Pasta_RAIZ_projeto)
 
-        venv_path = Pasta_RAIZ_projeto / ".virtual_tcbt"
+        venv_path = Pasta_RAIZ_projeto / ".virto_stream"
         venv_name = venv_path.name if venv_path.exists() else ""
 
         caminho_completo = str(Pasta_RAIZ_projeto)
@@ -33,7 +40,7 @@ def get_prompt():
 def executar_comando(cmd: str) -> str:
     try:
         Pasta_RAIZ_projeto = Path(_DIRETORIO_PROJETO_ATUAL_())
-        venv_path = Pasta_RAIZ_projeto / ".virtual_tcbt"
+        venv_path = Pasta_RAIZ_projeto / ".virto_stream"
         activate_script = venv_path / "Scripts" / "Activate.ps1"
 
         if venv_path.exists():
@@ -60,7 +67,14 @@ def executar_comando(cmd: str) -> str:
                 f"Remove-Module PSReadLine -ErrorAction SilentlyContinue; cd '{Pasta_RAIZ_projeto}'; {cmd}"
             ]
 
-        result = subprocess.run(ps_cmd, capture_output=True, text=True, timeout=30)
+        result = subprocess.run(
+            ps_cmd,
+            capture_output=True,
+            text=True,
+            timeout=30,
+            startupinfo=STARTUPINFO,
+            creationflags=CREATE_FLAGS
+        )
 
         saida = (result.stdout or "") + (result.stderr or "")
         resultado_final = saida
@@ -86,8 +100,11 @@ def get_powershell_banner():
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            text=True
+            text=True,
+            startupinfo=STARTUPINFO,
+            creationflags=CREATE_FLAGS
         )
+
         proc.stdin.write("exit\n")
         proc.stdin.flush()
         stdout, _ = proc.communicate()
@@ -122,7 +139,9 @@ def run_command_async(comando, aba_nome):
              stdout=subprocess.PIPE,
              stderr=subprocess.STDOUT,
              text=True,
-             bufsize=1
+             bufsize=1,
+              startupinfo=STARTUPINFO,
+              creationflags=CREATE_FLAGS
           )
           for line in iter(process.stdout.readline, ''):
              q.put(line)

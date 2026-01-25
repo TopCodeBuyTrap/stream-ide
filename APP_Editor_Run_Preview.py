@@ -34,7 +34,6 @@ def Editor_Simples(col1,Top4,ColunaSelect, Caminho, THEMA_EDITOR, EDITOR_TAM_MEN
                     f.write('# Novo arquivo criado\n')
                 nomes_validos.append(os.path.basename(caminho))
         return nomes_validos
-
     nomes_abas = chec_se_arq_do_projeto(Caminho)
 
     # -------------------------------------------------------------------- RUN ÚNICO (FORA DAS TABS)
@@ -88,7 +87,7 @@ def Editor_Simples(col1,Top4,ColunaSelect, Caminho, THEMA_EDITOR, EDITOR_TAM_MEN
             key="select_run_unico",
             label_visibility="collapsed",
         )
-    with st.form('ola'):
+    with st.form('ola',border=False):
         for im in range(0, len(Caminho), qt_col):
             cols = st.columns(qt_col)
             for j, caminho in enumerate(Caminho[im:im + qt_col]):
@@ -138,7 +137,7 @@ def Editor_Simples(col1,Top4,ColunaSelect, Caminho, THEMA_EDITOR, EDITOR_TAM_MEN
     codigo = _[content_key]
 
     with ColunaRun:
-        if st.button(F"▶️ Executar", key=f"executar_{idx}"):
+        if st.button(F"▶️", key=f"executar_{idx}",shortcut='Ctrl+Enter'):
             # Limpa output anterior
             st.session_state.output = f"🔄 Executando {ativo}...\n\n"
 
@@ -157,7 +156,7 @@ def Editor_Simples(col1,Top4,ColunaSelect, Caminho, THEMA_EDITOR, EDITOR_TAM_MEN
             ).start()
             st.rerun()
 
-    if colStop.button(F"⏹️ Parar", key=f"parar_{idx}"):
+    if colStop.button(F"⏹️", key=f"parar_{idx}",shortcut='Ctrl+Space'):
         st.session_state.thread_running = False
         st.session_state.output += "\n⏹️ Execução interrompida\n"
 
@@ -182,7 +181,7 @@ def Editor_Simples(col1,Top4,ColunaSelect, Caminho, THEMA_EDITOR, EDITOR_TAM_MEN
         expander_key = f"exec_{arquivo_selecionado_nome}"
 
         if expander_key not in st.session_state:  # manter o expender sempre no estado que o usuario deixar aberto / fechado
-            st.session_state[expander_key] = True
+            st.session_state[expander_key] = False
         # :material/code:
         with st.expander(f' **{arquivo_selecionado_nome}** :material/directions_bike:'.replace('Executando - None', ''),
                          expanded=st.session_state[expander_key]
@@ -223,8 +222,7 @@ def Editor_Simples(col1,Top4,ColunaSelect, Caminho, THEMA_EDITOR, EDITOR_TAM_MEN
                     st.session_state.input_queue.put(user_input)
                     st.session_state.output += f"> {user_input}\n"
                     st.rerun()
-            else:
-                st.info("▶️ Clique 'Executar' em uma aba para começar")
+
 
         # Auto-refresh enquanto rodando
         if st.session_state.thread_running:
@@ -239,4 +237,25 @@ def Editor_Simples(col1,Top4,ColunaSelect, Caminho, THEMA_EDITOR, EDITOR_TAM_MEN
         arquivo_selecionado_conteudo
     )
 
+'''
+Fonte principal (texto normal): #D6D6D6
+Fonte secundária (labels, hints): #9A9A9A
 
+Background: #000000
+
+Menu: #1C1C1C
+
+Botões: #3A1C4A
+
+Cinza muito escuro: #1A1A1A
+Cinza escuro: #333333
+
+Azul escuro antigo: #001A4D
+
+Verde escuro antigo: #004D1A
+Amarelo escuro antigo: #7A6A00
+
+Roxo escuro antigo: #3D005C
+Ciano escuro antigo: #004D4D
+
+Marrom escuro antigo: #4A2A0A'''

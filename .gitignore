@@ -1,32 +1,20 @@
-# Prerequisites
-*.d
-
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
+dist
+build
+_Criar_Exec
+__pycache__
+Banco_Predefinitions.py
+Base_Dados_PreDefinidos.db
+LICENSE
+Stream_IDE.spec
+README.md
+.git
+.gitattributes
+.gitignore
+.idea
+.venv
+_Criar_Exec.py
+Bacup_Cod
+APP_Chats_IA.py
+Base_Dados.db
+Base_Dados.sqbpro
+Base_Dados_PreDefinidos.sqbpro

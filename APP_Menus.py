@@ -5,7 +5,6 @@ from pathlib import Path
 from time import sleep
 
 import streamlit
-from code_editor import code_editor
 
 from APP_SUB_Funcitons import Criar_Arquivo_TEXTO, data_sistema, resumo_pasta, limpar_CASH, Button_Nao_Fecha, Alerta
 from APP_SUB_Janela_Explorer import listar_pythons_windows, Apagar_Arquivos, Janela_PESQUIZA_PASTAS_ARQUIVOS, \
@@ -17,6 +16,16 @@ from APP_SUB_Controle_Driretorios import _DIRETORIO_EXECUTAVEL_, _DIRETORIO_PROJ
 
 # Pega a pasta Downloads do usuário
 default_download = os.path.join(os.path.expanduser("~"), "Downloads")
+
+
+
+# ===== FIX WINDOWS: NÃO ABRIR JANELA DE CONSOLE =====
+STARTUPINFO = subprocess.STARTUPINFO()
+STARTUPINFO.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+STARTUPINFO.wShowWindow = subprocess.SW_HIDE
+CREATE_NO_WINDOW = subprocess.CREATE_NO_WINDOW
+
+
 
 # Lista de fontes para campos (inputs, selects, botões) - fontes de programação
 FONTES_TEXTO = ["Helvetica", "Arial", "Verdana", "Tahoma", "Times New Roman", "Georgia", "Comic Sans MS",
@@ -393,8 +402,9 @@ blinker                   1.9.0'''
                                       THEMA_APP1, THEMA_APP2,
                                       FONTE_MENU, FONTE_TAM_MENU, FONTE_COR_MENU,
                                       FONTE_CAMPO, FONTE_TAM_CAMPO, FONTE_COR_CAMPO,
-                                      1, 6, '', '', '',
-                                      '', 'ATIVO')
+                                      0, 3, '', '#04061a',
+                                  '',0,'ATIVO')
+
                     ATUAL_CUSTOMIZATION_nome(NOME_CUSTOM)
                 except Exception as e:
                     st.error(f"❌ Erro ao salvar: {str(e)}")
@@ -406,8 +416,8 @@ blinker                   1.9.0'''
                                   THEMA_APP1, THEMA_APP2,
                                   FONTE_MENU, FONTE_TAM_MENU, FONTE_COR_MENU,
                                   FONTE_CAMPO, FONTE_TAM_CAMPO, FONTE_COR_CAMPO,
-                                  1, 6, '', '', '',
-                                  '', 'ATIVO')
+                                  0, 3, '', 	'#04061a',
+                                  '',0,'ATIVO')
 
                 ATUAL_CUSTOMIZATION_nome(NOME_CUSTOM)
             st.session_state.dialog_criar_customizar = False
@@ -482,10 +492,10 @@ def Cria_Arquivos(st):
                     #esc_A_CONTROLE_ARQUIVOS(nome_final,Caminho_Absoluto,linguagem,extensao,"","CRIADO")
 
                     st.success(f"Arquivo criado: {nome_final}")
+                    st.session_state["Cria_Arquivos_state"] = False
                     st.rerun()
                 else:
                     st.warning('🤔 Uai de um Nome Né!')
-
 
 def Abrir_Projeto(st):
     st1, st2 = st.columns([8, 1])
@@ -655,6 +665,9 @@ def Cria_Projeto(st):
             else:
                 st.warning('Dê um nome ao template?')
 
+            st.session_state["Cria_Projeto_state"] = False
+            st.rerun()
+
     st.divider()
 
     # =========================
@@ -679,7 +692,7 @@ def Cria_Projeto(st):
             return
 
         projeto_path = Path(caminho_base) / nome_projeto.replace(" ", "_")
-        venv_path = projeto_path / ".virtual_tcbt"
+        venv_path = projeto_path / ".virto_stream"
         python_base = pythons[python_selecionado]
         esc_A_CONTROLE_PROJETOS(Path(caminho_base) / nome_projeto.replace(" ", "_"),python_selecionado,data_sistema(),
                                 0,0, 'Criado Com TcbT!')
@@ -707,6 +720,7 @@ def Cria_Projeto(st):
             subprocess.run(
                 [python_base, "-m", "venv", str(venv_path)],
                 check=True,
+                startupinfo=STARTUPINFO,
                 creationflags=CREATE_NO_WINDOW)
 
             python_venv = (
@@ -720,6 +734,7 @@ def Cria_Projeto(st):
             subprocess.run(
                 [str(python_venv), "-m", "pip", "install", "--upgrade", "pip"],
                 check=True,
+                startupinfo=STARTUPINFO,
                 creationflags=CREATE_NO_WINDOW)
 
             # 4️⃣ Criar arquivos do usuário
@@ -751,6 +766,194 @@ def Cria_Projeto(st):
             log("❌ Erro inesperado")
         st.exception(e)
 
+def Cria_Projeto_pouppap(st):
+    from Banco_Predefinitions import listar_templates, salvar_template, carregar_template
+    st.session_state.setdefault("dialog_criar_projeto", True)
+    @st.dialog("Criar 1° Projeto ")
+    def menu_principal():
+        st1, st2 = st.columns([8, 1])
+        st1.subheader("Criar Novo Projeto:")
+        if st2.button("X", key="Cria_Projeto"):
+            st.session_state["Cria_Projeto_state"] = False
+            st.rerun()
+        st.write("'Henriq colocar para instalar modulos pre configurados!'")
+        if "abas" not in st.session_state:
+            st.session_state.abas = ["Terminal"]
+
+        if "contador_local" not in st.session_state:
+            st.session_state.contador_local = 0
+
+        def abrir_nova_aba():
+            st.session_state.contador_local += 1
+            nome = f"Local {st.session_state.contador_local}"
+            st.session_state.abas.append(nome)
+            st.rerun()
+
+        def fechar_aba(nome):
+            if nome != "Terminal":
+                st.session_state.abas.remove(nome)
+                st.rerun()
+
+        # =========================
+        # DADOS DO PROJETO
+        caminho_base = st.text_input("**Criar em:**", _DIRETORIO_PROJETOS_())
+        nome_projeto = st.text_input("Nome do projeto")
+        # =========================
+        # ARQUIVOS INICIAIS
+        with st.expander("📁 Arquivos iniciais do projeto", expanded=False):
+
+            if "arquivos_projeto" not in st.session_state:
+                st.session_state.arquivos_projeto = [
+                    {
+                        "nome": "main.py",
+                        "conteudo": "# Arquivo principal\n\nif __name__ == '__main__':\n    print('Projeto iniciado')\n"
+                    }
+                ]
+
+            templates = listar_templates()
+            template_sel = st.selectbox(
+                "Template salvo",
+                ["(novo)"] + templates
+            )
+
+            if template_sel != "(novo)":
+                st.session_state.arquivos_projeto = carregar_template(template_sel)
+
+            for i, arq in enumerate(st.session_state.arquivos_projeto):
+                st.markdown(f"**Arquivo {i + 1}**")
+                col1, col2 = st.columns([4, 1])
+
+                arq["nome"] = col1.text_input(
+                    "Nome do arquivo",
+                    arq["nome"],
+                    key=f"nome_arq_{i}"
+                )
+
+                if col2.button("🗑", key=f"del_arq_{i}"):
+                    st.session_state.arquivos_projeto.pop(i)
+                    st.rerun()
+
+                arq["conteudo"] = st.text_area(
+                    "Conteúdo",
+                    arq["conteudo"],
+                    height=150,
+                    key=f"cont_arq_{i}"
+                )
+
+            if st.button("➕ Adicionar arquivo"):
+                st.session_state.arquivos_projeto.append(
+                    {"nome": "", "conteudo": ""}
+                )
+                st.rerun()
+
+            nome_template = st.text_input("Salvar como template")
+            if st.button("💾 Salvar template"):
+                if nome_template.strip() and template_sel != '':
+                    salvar_template(str(nome_template).title(), st.session_state.arquivos_projeto)
+                    st.success("Template salvo com sucesso!")
+                else:
+                    st.warning('Dê um nome ao template?')
+
+        st.divider()
+
+        # =========================
+        # CRIAÇÃO DO PROJETO
+        # =========================
+        pythons = listar_pythons_windows()
+
+        if not pythons:
+            st.error("Nenhum Python encontrado em AppData")
+            return
+
+        python_selecionado = st.selectbox(
+            "Python base do projeto",
+            list(pythons.keys()),
+            index=0
+        )
+
+        if st.button("✅ Confirmar criação"):
+
+            if not nome_projeto.strip():
+                st.error("Nome do projeto inválido")
+                return
+
+            projeto_path = Path(caminho_base) / nome_projeto.replace(" ", "_")
+            venv_path = projeto_path / ".virto_stream"
+            python_base = pythons[python_selecionado]
+            esc_A_CONTROLE_PROJETOS(Path(caminho_base) / nome_projeto.replace(" ", "_"), python_selecionado,
+                                    data_sistema(),
+                                    0, 0, 'Criado Com TcbT!')
+
+            progresso = st.progress(0)
+            log_area = st.empty()
+
+            logs = []
+
+            def log(msg, pct=None):
+                logs.append(msg)
+                log_area.code("\n".join(logs), language="bash")
+                if pct is not None:
+                    progresso.progress(pct)
+
+            try:
+                # 1️⃣ Criar pasta do projeto
+                log("📁 Criando pasta do projeto...", 5)
+                projeto_path.mkdir(parents=True, exist_ok=False)
+
+                # 2️⃣ Criar ambiente virtual
+                log("🐍 Criando ambiente virtual...", 25)
+                CREATE_NO_WINDOW = 0x08000000
+
+                subprocess.run(
+                    [python_base, "-m", "venv", str(venv_path)],
+                    check=True,
+                    startupinfo=STARTUPINFO,
+                    creationflags=CREATE_NO_WINDOW)
+
+                python_venv = (
+                    venv_path / "Scripts" / "python.exe"
+                    if sys.platform == "win32"
+                    else venv_path / "bin" / "python"
+                )
+
+                # 3️⃣ Atualizar pip
+                log("⬆️ Atualizando pip...", 50)
+                subprocess.run(
+                    [str(python_venv), "-m", "pip", "install", "--upgrade", "pip"],
+                    check=True,
+                    startupinfo=STARTUPINFO,
+                    creationflags=CREATE_NO_WINDOW)
+
+                # 4️⃣ Criar arquivos do usuário
+                log("📝 Criando arquivos do projeto...", 75)
+                for arq in st.session_state.arquivos_projeto:
+                    if arq["nome"].strip():
+                        caminho = projeto_path / arq["nome"]
+                        caminho.parent.mkdir(parents=True, exist_ok=True)
+                        caminho.write_text(arq["conteudo"], encoding="utf-8")
+                        log(f"   ✔ {arq['nome']}")
+
+                # 5️⃣ Finalização
+                log("✅ Projeto criado com sucesso!", 100)
+                st.success(f"🎉 Projeto criado com sucesso usando {python_selecionado}")
+
+                st.session_state.dialog_criar_projeto = False
+                st.cache_data.clear()
+                st.cache_resource.clear()
+                st.rerun()
+            except FileExistsError:
+                log("❌ Erro: o projeto já existe")
+                st.error("O projeto já existe")
+
+            except subprocess.CalledProcessError as e:
+                log("❌ Erro ao criar ambiente virtual ou instalar dependências")
+                st.exception(e)
+
+            except Exception as e:
+                log("❌ Erro inesperado")
+            st.exception(e)
+    if st.session_state.dialog_criar_projeto:
+        menu_principal()
 
 
 

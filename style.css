@@ -42,7 +42,7 @@
 
     section[data-testid='stSidebar'] {
         height: 100%;
-        min-width: 10px !important;
+        min-width: 12px !important;
         width: 95px !important;
         transform:translateX(0px);
         position: relative;

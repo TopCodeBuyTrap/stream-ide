@@ -1,20 +1,3 @@
-import streamlit as st
-from datetime import datetime
-from APP_Editor_Run_Preview import Editor_Simples
-
-from APP_SUB_Customizar import Customization
-from APP_SUB_Funcitons import Identificar_linguagem, escreve, chec_se_arq_do_projeto, contar_estrutura, \
-    Button_Nao_Fecha, data_sistema, resumo_pasta, limpar_CASH, Linha_Sep
-from APP_SUB_Janela_Explorer import listar_arquivos_e_pastas, Open_Explorer, Abrir_Arquivo_Select_Tabs
-from APP_Sidebar import Sidebar_Diretorios
-from Banco_dados import ler_A_CONTROLE_PROJETOS, ler_B_ARQUIVOS_RECENTES, ATUAL_B_ARQUIVOS_RECENTES, \
-    se_B_ARQUIVOS_RECENTES, esc_B_ARQUIVOS_RECENTES, Del_B_ARQUIVOS_RECENTES, ler_A_CONTROLE_ABSOLUTO, \
-    Del_A_CONTROLE_ABSOLUTO, Del_CUSTOMIZATION, esc_A_CONTROLE_PROJETOS
-from APP_SUB_Controle_Driretorios import _DIRETORIO_EXECUTAVEL_, _DIRETORIO_PROJETOS_, _DIRETORIO_PROJETO_ATUAL_
-
-import os
-from pathlib import Path
-from APP_Terminal import Terminal
 
 
 def select_arquivo_recente(col2):
@@ -78,7 +61,7 @@ def select_arquivo_recente(col2):
 
     if "projeto_idx" not in st.session_state:
         st.session_state.projeto_idx = 0
-        col2.write("LOG: seleção inicial definida")
+        st.toast("seleção inicial definida".title())
 
     selecionado = st.selectbox(
         "Projetos recentes",
@@ -91,7 +74,7 @@ def select_arquivo_recente(col2):
         st.session_state.ultimo_idx = selecionado
 
     if selecionado != st.session_state.ultimo_idx:
-        col2.write("LOG: projeto trocado")
+        st.toast("projeto trocado".title())
         st.session_state.ultimo_idx = selecionado
 
     item = dados[selecionado]
@@ -104,30 +87,30 @@ def select_arquivo_recente(col2):
 def app():
 
     global arquivo_selecionado_caminho, arquivo_selecionado_nome, arquivo_selecionado_conteudo
-    LOG = []
-    # USO
+    try:
+        pjt = ler_A_CONTROLE_PROJETOS()[-1]
+        caminho = pjt[0]
+        versao = pjt[1]
+        data = pjt[2]
 
-    pjt = ler_A_CONTROLE_PROJETOS()[-1]
-    caminho = pjt[0]
-    versao =  pjt[1]
-    data =   pjt[2]
+        if se_B_ARQUIVOS_RECENTES(caminho) == False:
+            Del_B_ARQUIVOS_RECENTES()
+            esc_B_ARQUIVOS_RECENTES(Path(caminho), str(contar_estrutura(caminho)))
+    except IndexError: pass
 
-    if se_B_ARQUIVOS_RECENTES(caminho) == False:
-        Del_B_ARQUIVOS_RECENTES()
-        esc_B_ARQUIVOS_RECENTES(Path(caminho), str(contar_estrutura(caminho)))
-        LOG.append(f'Escaneando a Estrutura da Pasta e Arquivos!')
-
-    #st.code()
     if len(ler_B_ARQUIVOS_RECENTES()) == 0:
         st.button('Entar')
-        from APP_Menus import Cria_Projeto
+        from APP_Menus import Cria_Projeto_pouppap
         footer_container = st.container(border=True)
         with footer_container:
             st.write('Seja Bem Vindo Ordinario/a !')
             st.image(IMAGEM_LOGO)
-        Cria_Projeto(st)
+        Cria_Projeto_pouppap(st)
 
     else:
+
+
+
         with st.container(border=True, key='MenuTopo'):
             Top1,Top2 ,Top3 ,Top4,Top5,Top6,Top7,Top8= st.columns([.4,.4,.4,.4,2,1,.5,1])
         with Top6:
@@ -185,6 +168,8 @@ def app():
 
 
         if len(Arq_Selec_Diretorios) > 0:
+            from APP_Editor_Run_Preview import Editor_Simples
+
             try:
                 with col2:
                     arquivos_abertos_nomes, arquivos_abertos_caminhos, arquivo_selecionado_nome, arquivo_selecionado_caminho,arquivo_selecionado_conteudo\
@@ -218,6 +203,22 @@ def app():
 
 #---------------------------
 if __name__ == "__main__":
+    import streamlit as st
+    from datetime import datetime
+
+    from APP_SUB_Customizar import Customization
+    from APP_SUB_Funcitons import Identificar_linguagem, escreve, chec_se_arq_do_projeto, contar_estrutura, \
+        Button_Nao_Fecha, data_sistema, resumo_pasta, limpar_CASH, Linha_Sep
+    from APP_SUB_Janela_Explorer import listar_arquivos_e_pastas, Open_Explorer, Abrir_Arquivo_Select_Tabs
+    from APP_Sidebar import Sidebar_Diretorios
+    from Banco_dados import ler_A_CONTROLE_PROJETOS, ler_B_ARQUIVOS_RECENTES, ATUAL_B_ARQUIVOS_RECENTES, \
+        se_B_ARQUIVOS_RECENTES, esc_B_ARQUIVOS_RECENTES, Del_B_ARQUIVOS_RECENTES, ler_A_CONTROLE_ABSOLUTO, \
+        Del_A_CONTROLE_ABSOLUTO, Del_CUSTOMIZATION, esc_A_CONTROLE_PROJETOS
+    from APP_SUB_Controle_Driretorios import _DIRETORIO_EXECUTAVEL_, _DIRETORIO_PROJETOS_, _DIRETORIO_PROJETO_ATUAL_
+
+    import os
+    from pathlib import Path
+    from APP_Terminal import Terminal
     st.set_page_config(page_title="IDE Python Streamlit", layout="wide")
 
     if 'config_absoluta_ok' not in st.session_state:

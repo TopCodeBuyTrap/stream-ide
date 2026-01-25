@@ -478,50 +478,8 @@ init_db()
 
 
 
-if len(ler_CUSTOMIZATION()) == 0:
-	default_download = os.path.join(os.path.expanduser("~"), "Downloads")
-	esc_CUSTOMIZATION(
-		'Padrão',
-		'HenriqLs',
-		default_download,
-		r'.arquivos\logo_.png',
-
-		'dracula',
-		15,
-
-		"chaos",
-		14,
-
-		"terminal",
-		13,
-
-		'#04061a',
-		'#24283b',
-        'JetBrains Mono',
-        13,
-		'#0022ff',
-
-		'Fira Code',
-		13,
-		'#A86E04',
-
-
-		0,
-		3,
-
-		'',
-
-		'',
-		'',
-		'',
-
-		'ATIVO')
-
-
 '''Descrição do Banco de Dados do Projeto
-
 O banco de dados do projeto é baseado em SQLite e tem como objetivo centralizar configurações globais, controle de projetos, estado atual de execução, arquivos manipulados e personalização do ambiente do usuário. Ele é composto atualmente por cinco tabelas principais.
-
 A tabela A_CONTROLE_ABSOLUTO é responsável pelas configurações globais do sistema. Ela armazena caminhos e credenciais essenciais para o funcionamento da aplicação. A coluna DIRETORIO_PROGRAMA define onde o sistema (IDE/DE) está instalado. DIRETORIO_PROJETOS indica a pasta padrão onde os projetos do usuário serão criados ou armazenados. DIRETORIOS_BACKUP guarda o local destinado a backups. DIRETORIO_OLLAMA e VERSAO_OLLAMA são usadas para integração com modelos locais (como Ollama). As colunas CHAVE_GPT e LOGUIN_GPT permitem futura integração com serviços de IA externos, como ChatGPT.
 
 A tabela A_CONTROLE_PROJETOS funciona como um registro histórico e operacional dos projetos. Cada vez que um projeto é criado ou aberto, ele é registrado nessa tabela. A coluna DIRETORIO_TRABALHANDO identifica o projeto. VERSION armazena a versão da linguagem ou ambiente utilizado (Python ou outra). DATA registra quando o projeto foi criado ou acessado. DIRETORIOS e ARQUIVOS armazenam contagens estruturais do projeto, e OBS é usada para observações gerais.
