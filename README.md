@@ -1,5 +1,5 @@
-# 🛡️ TcbT Stream-IDE v0.0.1
-**A IDE Python mais completa em Streamlit!** 🎮
+# 🛡️ Stream-IDE v0.0.1 `{TcbT}
+**Uma IDE Python mais em Streamlit!** 🎮
 
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.38-blue)](https://streamlit.io)
 [![Python](https://img.shields.io/badge/Python-3.8+-green)](https://python.org) 
@@ -9,7 +9,7 @@
 
 ## 🚀 Executável 60MB (Download)
 
-💾 TcbT-Stream-IDE-v0.0.1.exe  
+💾 Stream-IDE-v0.0.1.exe  
 📦 60MB - 100% OFFLINE  
 🖥️ Windows 10/11  
 ⚡ Editor Ace + Terminal + Projetos
@@ -33,7 +33,7 @@
 
 ## 🧩 Sobre o projeto
 
-O **Virto Stream IDE** é uma IDE/Editor de código completo feito em **Streamlit**. Ele roda direto no navegador e permite criar, editar e executar projetos Python de forma prática. Todo o estado da IDE é persistido em **SQLite**, garantindo que:
+O ** Stream IDE** é uma IDE/Editor de código completo feito em **Streamlit**. Ele roda direto no computador sem usar navegador e permite criar, editar e executar projetos Python de forma prática. Todo o estado da IDE é persistido em **SQLite**, garantindo que:
 
 - As configurações globais do sistema sejam salvas.  
 - O histórico de projetos e arquivos recentes seja mantido.  
@@ -62,6 +62,23 @@ Arquiteturalmente, ele está separado em módulos:
 ### 2️⃣ Desenvolvimento
 ```bash
 git clone https://github.com/TopCodeBuyTrap/stream-ide
-cd stream-ide
+
+#cd stream-ide
 pip install -r requirements.txt
 streamlit run APP_Editor_Run_Preview.py
+
+
+💡 Por que este projeto existe
+
+Na real, eu fiz este projeto porque eu precisava de uma IDE só pra mim.
+O PyCharm estava me dando muito problema: o terminal não aparecia direito, estava lento, não fazia cópia de arquivos, executava devagar e com lag. Então eu pensei: “vou fazer um editor/IDE só pra mim que funcione do jeito que eu quero.”
+
+Comecei com a ideia de um editor pessoal, mas fui gostando do processo: entender como funcionava o terminal, o preview, como criar projetos e gerenciar ambientes virtuais. Mas, chegando em alguns pontos, comecei a enfrentar lags e problemas que sozinho não consigo resolver totalmente.
+
+Então, a ideia agora é abrir para colaboração. Quero que outras pessoas profissionais ou entusiastas possam ajudar, melhorar o código, sugerir ideias, adicionar funcionalidades.
+Se você se interessar, pode entrar em contato comigo na descrição do projeto, e a gente pode fazer isso crescer juntos como open source.
+
+Basicamente:
+Começou como um editor pessoal para Python.
+Evoluiu para uma IDE completa em Streamlit.
+Agora está aberto para colaboração e melhorias.
