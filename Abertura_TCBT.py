@@ -162,7 +162,7 @@ def Abertura():
 
 					esc_A_CONTROLE_ABSOLUTO(
 						str(diretorio_programa),
-						str(diretorio_projetos_input),
+						str(diretorio_projetos_input), # problema se usuario abrir a janela e nao escolher nada, vem none
 						str(diretorio_backup),
 						diretorio_ollama or "",
 						versao_ollama or "",

@@ -2,6 +2,8 @@ import os
 import sys
 from streamlit.web import cli as stcli
 
+port=8515
+
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
     try:
@@ -14,7 +16,7 @@ def resource_path(relative_path):
 
 if __name__ == '__main__':
     # Config Streamlit com tema dark
-    os.environ['STREAMLIT_SERVER_PORT'] = '8501'
+    os.environ['STREAMLIT_SERVER_PORT'] = f'{port}'
     os.environ['STREAMLIT_SERVER_HEADLESS'] = 'true'
     os.environ['STREAMLIT_THEME_BASE'] = 'dark'
 
@@ -23,7 +25,7 @@ if __name__ == '__main__':
 
     sys.argv = [
         'streamlit', 'run', app_path, 
-        '--server.port=8501',
+        f'--server.port={port}',
         '--server.headless=true',
         '--theme.base=dark',
         '--global.developmentMode=false'

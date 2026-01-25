@@ -1,11 +1,12 @@
-instalações e mosulos e pendencias para oprojeto
+                INSTALAÇÕES PENDÊNCIAS E MÓDULOS DO PROJETO
 
-# atualiza o gerenciador de pacotes, setuptools e wheel essenciais para instalação de pacotes
+# Atualiza o gerenciador de pacotes, setuptools e wheel essenciais para instalação de pacotes:
 python.exe -m pip install --upgrade pip
 python -m pip install --upgrade setuptools wheel
 
-# ---------------------------- criar app para executavel em pc
+# ---------------------------- Criar app para executavel em pc
 pip install streamlit-desktop-app
+
 name: streamlit-desktop-app
 version: 0.3.3
 summary: easily convert streamlit apps into standalone desktop applications.
@@ -15,6 +16,7 @@ author-email: ohtamans@gmail.com
 
 # ---------------------------- Editor de Codigos
 pip install streamlit_ace
+
 Name: streamlit-ace
 Version: 0.1.1
 Summary: Ace editor component for Streamlit.
@@ -22,11 +24,11 @@ Home-page: https://share.streamlit.io/okld/streamlit-gallery/main?p=ace-editor
 Author: okld
 License: MIT
 
-# ---------------------------- rodar
+# ---------------------------- Rodar
 streamlit run app_.py
 
 
-# falta implemtar :
+# FALTA IMPLEMENTAR:
 1. salvar arquivos automaticamente
 todo código que o usuário digitar deve ser salvo automaticamente em uma pasta específica.
 essa pasta vai armazenar todos os arquivos de todos os projetos que o usuário criar.
@@ -63,31 +65,9 @@ streamlit-desktop-app build APP_.py `
     --onedir --noconsole --noconfirm `
 
 
-streamlit-desktop-app build APP_.py \
-  --name Stream_IDE \
-  --streamlit-options --theme.base=dark \
-  --pyinstaller-options --onedir --noconsole --noconfirm \
-  --add-data ".arquivos;.arquivos" \
-  --add-data "Abertura_TCBT.py;." \
-  --add-data "APP_Editor_Run_Preview.py;." \
-  --add-data "APP_Htmls.py;." \
-  --add-data "APP_Menus.py;." \
-  --add-data "APP_Sidebar.py;." \
-  --add-data "APP_SUB_Controle_Driretorios.py;." \
-  --add-data "APP_SUB_Customizar.py;." \
-  --add-data "APP_SUB_Funcitons.py;." \
-  --add-data "APP_SUB_Janela_Explorer.py;." \
-  --add-data "APP_Terminal.py;." \
-  --add-data "Banco_dados.py;." \
-  --add-data "Base_Dados.db;." \
-  --add-data "run_app.py;." \
-  --add-data "style.css;." \
-  --add-data "SUB_Traduz_terminal.py;."
+
 
 nao coloquei
   --icon icon.ico `
-
-
     --add-data "logo.png;." `
-    --add-data "qrcode.png;."
 

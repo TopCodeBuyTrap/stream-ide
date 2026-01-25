@@ -219,7 +219,7 @@ if __name__ == "__main__":
     import os
     from pathlib import Path
     from APP_Terminal import Terminal
-    st.set_page_config(page_title="IDE Python Streamlit", layout="wide")
+    st.set_page_config(page_title="Stream-IDE", layout="wide")
 
     if 'config_absoluta_ok' not in st.session_state:
         st.session_state.config_absoluta_ok = False
