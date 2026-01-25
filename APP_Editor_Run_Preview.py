@@ -74,19 +74,7 @@ def Editor_Simples(col1,Top4,ColunaSelect, Caminho, THEMA_EDITOR, EDITOR_TAM_MEN
         finally:
             sys.stdout = old_stdout
 
-    c1,c2 = ColunaSelect.columns([3, 7])
-    with c1:
-        if st.button('🗑️', key="botao_apagar_arquivos"):
-            st.warning("Funcionalidade de apagar em desenvolvimento")
-            st.rerun()
 
-    with c2:
-        aba_escolhida = st.selectbox(
-            "Arquivo",
-            nomes_abas,
-            key="select_run_unico",
-            label_visibility="collapsed",
-        )
     with st.form('ola',border=False):
         for im in range(0, len(Caminho), qt_col):
             cols = st.columns(qt_col)
@@ -113,6 +101,19 @@ def Editor_Simples(col1,Top4,ColunaSelect, Caminho, THEMA_EDITOR, EDITOR_TAM_MEN
                             _.arquivo_ativo_idx = idx_arquivo
                             st.rerun()
 
+    c1, c2 = ColunaSelect.columns([3, 7])
+    with c1:
+        if st.button(f'🗑️{nome_curto(nome,5)}', key="botao_apagar_arquivos"):
+            st.warning("Funcionalidade de apagar em desenvolvimento")
+            st.rerun()
+
+    with c2:
+        aba_escolhida = st.selectbox(
+            "Arquivo",
+            nomes_abas,
+            key="select_run_unico",
+            label_visibility="collapsed",
+        )
 
     idx = _.arquivo_ativo_idx
     caminho = Caminho[idx]

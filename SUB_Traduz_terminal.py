@@ -1,5 +1,4 @@
 
-
 def traduzir_saida(saida: str) -> str:
     for en, pt in TRANSLATE_MAP().items():
         saida = saida.replace(en, pt)

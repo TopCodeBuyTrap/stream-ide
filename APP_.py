@@ -119,7 +119,7 @@ def app():
 
 
         with st.container(border=True, key='MenuTopo'):
-            Top1,Top2 ,Top3 ,Top4,Top5,Top6,Top7,Top8= st.columns([.4,.4,.4,.4,2,1,1,1])
+            Top1,Top2 ,Top3 ,Top4,Top5,Top6,Top7,Top8= st.columns([.4,.4,.4,.4,2,1.4,.8,1])
 
         with Top7:
             checar_atualizacao(Top7)

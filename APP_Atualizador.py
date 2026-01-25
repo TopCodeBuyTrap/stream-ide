@@ -17,38 +17,38 @@ def versao_atual():
 	vfile = get_app_root() / "version.txt"
 	return vfile.read_text().strip() if vfile.exists() else "0.0.0"
 
-
 def checar_atualizacao(Coluna):
-	"""Checa versão e mostra botão se tiver update"""
-	app_root = get_app_root()
+	import threading
+	if "update_check_done" not in st.session_state:
+		st.session_state.update_check_done = False
+		st.session_state.tem_update = False
+		st.session_state.versao_nova = None
 
-	# ✅ CRIA version.txt na RAIZ automaticamente
-	version_file = app_root / "version.txt"
-	if not version_file.exists():
-		version_file.write_text("0.0.0")
+	def check_async():
+		try:
+			resp = requests.get(
+				"https://raw.githubusercontent.com/TopCodeBuyTrap/stream-ide/main/LATEST_VERSION.txt",
+				timeout=2
+			)
+			if resp.status_code == 200:
+				versao_local = versao_atual()
+				versao_nova = resp.text.strip()
+				if versao_nova > versao_local:
+					st.session_state.tem_update = True
+					st.session_state.versao_nova = versao_nova
+		except:
+			pass
+		st.session_state.update_check_done = True
 
-	versao_local = versao_atual()
+	if not st.session_state.update_check_done:
+		threading.Thread(target=check_async, daemon=True).start()
 
-	try:
-		# ✅ URL EXATA do SEU arquivo (MAIÚSCULO)
-		resp = requests.get("https://raw.githubusercontent.com/TopCodeBuyTrap/stream-ide/main/LATEST_VERSION.txt",
-		                    timeout=5)
-
-		if resp.status_code != 200:
-			st.toast("ℹ️ latest_version.txt não encontrado")
-			return
-
-		versao_nova = resp.text.strip()
-
-		if versao_nova > versao_local:
-			if Coluna.button(f"🔄 ATUALIZAR v{versao_nova}", use_container_width=True):
-				atualizar_tudo(versao_nova)
-		else:
-			st.toast("✅ App atualizado")
-
-	except:
-		st.toast("ℹ️ Sem internet para checar updates")
-
+	if st.session_state.tem_update:
+		if Coluna.button(
+			f"🔄 ATUALIZAR v{st.session_state.versao_nova}",
+			use_container_width=True
+		):
+			atualizar_tudo(st.session_state.versao_nova)
 
 def atualizar_tudo(nova_versao):
 	"""Faz update completo"""
