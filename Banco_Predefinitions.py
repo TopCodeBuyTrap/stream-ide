@@ -32,6 +32,15 @@ def init_db():
             data_atualizacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+	"""Cria tabela de versões"""
+	c.execute("""
+	    CREATE TABLE IF NOT EXISTS versoes (
+	        id INTEGER PRIMARY KEY AUTOINCREMENT,
+	        nome TEXT UNIQUE,
+	        data_instalacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	        info_extra TEXT
+	    )
+	""")
 
 	conn.commit()
 	c.close()
@@ -116,6 +125,43 @@ def carregar_config_atual():
 		except (json.JSONDecodeError, ValueError):
 			return None
 	return None
+
+
+
+def salvar_versao(nome, info_extra=None):
+    """Salva nova versão ou atualiza info_extra se já existir"""
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute("""
+        INSERT OR REPLACE INTO versoes (nome, info_extra)
+        VALUES (?, ?)
+    """, (nome, info_extra))
+    conn.commit()
+    c.close()
+    conn.close()
+
+
+def listar_versoes():
+    """Retorna lista de nomes de versões"""
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute("SELECT nome FROM versoes ORDER BY id ASC")
+    nomes = [i[0] for i in c.fetchall()]
+    c.close()
+    conn.close()
+    return nomes
+
+
+def ultima_versao():
+    """Retorna a última versão instalada"""
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute("SELECT nome FROM versoes ORDER BY id DESC LIMIT 1")
+    row = c.fetchone()
+    c.close()
+    conn.close()
+    return row[0] if row else "0.0.0"
+
 
 
 # Inicializa banco
