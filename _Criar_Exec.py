@@ -6,7 +6,7 @@ root_dir = Path(".")
 # Lista pra controlar o que incluir
 itens_para_ignorar = {
 	"APP_.py", "dist", "build", "_Criar_Exec", "__pycache__",
-	"Banco_Predefinitions.py", "Base_Dados_PreDefinidos.db",
+	"Base_Dados.db", "Base_Dados_PreDefinidos.db",
 	"INSTALL", "LICENSE", "Stream_IDE.spec", "README.md",
 	"streamide.spec", ".git", ".gitattributes", ".gitignore",
 	".idea", ".venv","_Criar_Exec.py", ""
@@ -53,4 +53,3 @@ for item in itens_para_incluir:
 
 comando_final = " `\n".join(cmd_parts)
 print(comando_final)
-

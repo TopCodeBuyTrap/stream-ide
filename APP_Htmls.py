@@ -114,7 +114,7 @@ def Carregamento_BancoDados_Temas(st):
 
 
 	/* CONTEÚDO CENTRAL */
-	section[data-testid="stMain"] {{ /* REMOVER SCROLL */
+	section[data-testid="stMain2"] {{ /* REMOVER SCROLL */
 	    overflow: hidden !important;
 	}}
 	

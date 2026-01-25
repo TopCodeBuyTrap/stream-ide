@@ -1,4 +1,7 @@
+from APP_Atualizador import checar_atualizacao
 
+
+#-----------------------------------------------------------------------------------
 
 def select_arquivo_recente(col2):
     st.sidebar.image('.arquivos/logo_.png',width=100)
@@ -85,6 +88,10 @@ def select_arquivo_recente(col2):
 
 
 def app():
+    # =====================================================
+    # COLOQUE ISSO NO **INÍCIO** do seu app(), ANTES de tudo:
+
+    # =====================================================
 
     global arquivo_selecionado_caminho, arquivo_selecionado_nome, arquivo_selecionado_conteudo
     try:
@@ -112,15 +119,22 @@ def app():
 
 
         with st.container(border=True, key='MenuTopo'):
-            Top1,Top2 ,Top3 ,Top4,Top5,Top6,Top7,Top8= st.columns([.4,.4,.4,.4,2,1,.5,1])
+            Top1,Top2 ,Top3 ,Top4,Top5,Top6,Top7,Top8= st.columns([.4,.4,.4,.4,2,1,1,1])
+
+        with Top7:
+            checar_atualizacao(Top7)
+
         with Top6:
             Ttp1,Ttp2 = st.columns(2) # Botão de run e stop
+
         with Top3:
             Trm1,Trm2 = st.columns([2,8])
             Trm1.write(':material/terminal:')
+
         with Top4:
             Prw1, Prw2 = st.columns([2, 8])
             Prw1.write(':material/directions_bike:')
+
         from APP_Menus import Abrir_Menu
         #Abrir_Menu(st)
         # ============================================================= MENU SUPERIOR
