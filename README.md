@@ -5,36 +5,63 @@
 [![Python](https://img.shields.io/badge/Python-3.8+-green)](https://python.org) 
 [![Windows](https://img.shields.io/badge/Windows-10/11-blue)](https://microsoft.com)
 
-## 🚀 **Executável 60MB (Download)**
+---
 
-💾 TcbT-Stream-IDE-v0.0.1.exe
-📦 60MB - 100% OFFLINE
-🖥️ Windows 10/11
+## 🚀 Executável 60MB (Download)
+
+💾 TcbT-Stream-IDE-v0.0.1.exe  
+📦 60MB - 100% OFFLINE  
+🖥️ Windows 10/11  
 ⚡ Editor Ace + Terminal + Projetos
 
-## ✨ **O que tem dentro:**
+---
+
+## ✨ O que tem dentro
 
 | **EDITOR** | **EXPLORER** | **TERMINAL** | **PROJETOS** |
 |------------|--------------|--------------|--------------|
-| Ace 27 temas | Recursivo | PowerShell | Venv auto |
-| Análise AST | Sync JSON | Multi-abas | Histórico |
-| Score código | Checkbox | Detecta venv | SQLite |
+| Ace 27 temas | Navegador de pastas | PowerShell multi-abas | Venv automático |
+| Análise AST | Sync JSON | Histórico de saída | Histórico de projetos |
+| Score de código | Checkbox de arquivos | Detecta venv | Banco SQLite integrado |
 
 | **CUSTOM** | **BANCO** | **DESKTOP** |
 |------------|-----------|-------------|
-| 20+ vars | 5 tabelas | PyInstaller |
-| Multi-user | Persistente | .exe 60MB |
+| 20+ variáveis de personalização | 5 tabelas SQLite | PyInstaller .exe 60MB |
+| Multi-user | Persistente | Rodando offline |
 
-## 📦 **Como usar:**
+---
 
-### **1. Executável (FÁCIL)**
-↓ Baixe TcbT-Stream-IDE-v0.0.1.exe  
+## 🧩 Sobre o projeto
+
+O **Virto Stream IDE** é uma IDE/Editor de código completo feito em **Streamlit**. Ele roda direto no navegador e permite criar, editar e executar projetos Python de forma prática. Todo o estado da IDE é persistido em **SQLite**, garantindo que:
+
+- As configurações globais do sistema sejam salvas.  
+- O histórico de projetos e arquivos recentes seja mantido.  
+- O projeto ativo seja sempre identificado.  
+- Os arquivos abertos possam ser acessados novamente sem depender do sistema de arquivos.  
+- O perfil de interface do usuário seja carregado com temas, cores, fontes e layout.
+
+Arquiteturalmente, ele está separado em módulos:
+
+- `APP_Editor_Run_Preview.py` → Editor principal, execução de código.  
+- `APP_Terminal.py` → Terminal multi-abas integrado.  
+- `Banco_dados.py` → Funções SQLite para persistência.  
+- `APP_SUB_Funcitons.py` → Funções auxiliares de editor.  
+- `APP_SUB_Janela_Explorer.py` → Abrir arquivos e gerenciar abas.  
+- `APP_SUB_Controle_Driretorios.py` → Gerencia diretórios e projeto ativo.
+
+---
+
+## 📦 Como usar
+
+### 1️⃣ Executável (FÁCIL)
+↓ Baixe `TcbT-Stream-IDE-v0.0.1.exe`  
 → Clique 2x  
-→ IDE PROFISSIONAL!
+→ IDE PROFISSIONAL pronta para uso!
 
-### **2. Desenvolvimento**
+### 2️⃣ Desenvolvimento
 ```bash
 git clone https://github.com/TopCodeBuyTrap/stream-ide
 cd stream-ide
 pip install -r requirements.txt
-streamlit run main.py
+streamlit run APP_Editor_Run_Preview.py
