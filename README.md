@@ -63,11 +63,7 @@ Arquiteturalmente, ele está separado em módulos:
 ```bash
 git clone https://github.com/TopCodeBuyTrap/stream-ide
 
-#cd stream-ide
-pip install -r requirements.txt
-streamlit run APP_Editor_Run_Preview.py
-
-
+--------
 💡 Por que este projeto existe
 
 Na real, eu fiz este projeto porque eu precisava de uma IDE só pra mim.
