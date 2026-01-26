@@ -1,4 +1,23 @@
-from APP_Atualizador import checar_atualizacao
+
+# Adicione este bloco NO INÍCIO do seu arquivo APP_.py e outros arquivos principais
+# Isso corrige o erro "ModuleNotFoundError" quando roda o executável
+
+import sys
+import os
+from pathlib import Path
+
+# Detecta se está rodando como executável (frozen) ou script python normal
+if getattr(sys, 'frozen', False):
+    # Se for executável, a pasta raiz é onde está o .exe
+    app_root = Path(sys.executable).parent.absolute()
+
+    # Adiciona a pasta _internal ao caminho de busca do Python
+    sys.path.append(str(app_root / "_internal"))
+    sys.path.append(str(app_root))
+else:
+    # Se for script normal
+    app_root = Path(__file__).parent.absolute()
+    sys.path.append(str(app_root))
 
 
 #-----------------------------------------------------------------------------------
@@ -122,6 +141,7 @@ def app():
             Top1,Top2 ,Top3 ,Top4,Top5,Top6,Top7,Top8= st.columns([.4,.4,.4,.4,2,1.4,.8,1])
 
         with Top7:
+            from APP_Atualizador import checar_atualizacao
             checar_atualizacao(Top7)
 
         with Top6:

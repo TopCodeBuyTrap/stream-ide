@@ -17,106 +17,92 @@ def get_app_root():
 
 
 def checar_atualizacao(Coluna):
-	versao_local = ultima_versao()  # ✅ SÓ BANCO
+	versao_local = ultima_versao()
 
 	try:
-		Coluna.write("🔍 Verificando...")
-		resp = requests.get(
-			"https://raw.githubusercontent.com/TopCodeBuyTrap/stream-ide/main/LATEST_VERSION.txt",
-			timeout=5
-		)
+		# Adiciona timestamp para evitar cache do request
+		url = f"https://raw.githubusercontent.com/TopCodeBuyTrap/stream-ide/main/LATEST_VERSION.txt?t={int(time.time())}"
+		resp = requests.get(url, timeout=5)
 
 		if resp.status_code == 200:
 			versao_nova = resp.text.strip()
 			Coluna.write(f"🌐 GitHub: v{versao_nova} | Banco: v{versao_local}")
 
 			if versao_nova > versao_local:
-				Coluna.error(f"🔔 UPDATE v{versao_nova}")
-				if Coluna.button(f"🚀 ATUALIZAR v{versao_nova}", use_container_width=True):
+				Coluna.error(f"🔔 NOVA VERSÃO DISPONÍVEL: v{versao_nova}")
+				if Coluna.button(f"🚀 ATUALIZAR AGORA (v{versao_nova})", use_container_width=True):
 					atualizar_tudo(versao_nova)
 				return
 			else:
-				Coluna.success(f"✅ v{versao_local} ATUAL")
+				Coluna.success(f"✅ Seu App está atualizado (v{versao_local})")
 		else:
-			Coluna.info(f"📱 Banco: v{versao_local}")
+			Coluna.info(f"📱 Versão Local: v{versao_local}")
 
-	except:
-		Coluna.info(f"📱 Banco: v{versao_local}")
+	except Exception as e:
+		Coluna.warning(f"Sem conexão: {e}")
+		Coluna.info(f"📱 Versão Local: v{versao_local}")
 
 
 def atualizar_tudo(nova_versao):
 	app_root = get_app_root()
 	versao_antiga = ultima_versao()
 
-	# ✅ 1º SALVA BANCO
+	# 1. SALVA BANCO
 	salvar_versao(nova_versao)
-	st.success(f"✅ BANCO v{nova_versao}")
+	st.sidebar.success(f"✅ BANCO v{nova_versao}")
 
-	# 2. FORÇA DELEÇÃO _internal (PyInstaller bug)
-	st.info("🗑️ FORÇANDO deleção _internal...")
-	internal_path = app_root / "_internal"
-
-	# TENTA VÁRIAS VEZES (Windows trava)
-	for i in range(5):
-		try:
-			if internal_path.exists():
-				shutil.rmtree(internal_path, ignore_errors=True)
-				time.sleep(0.5)
-			break
-		except:
-			st.warning(f"Tentativa {i + 1}/5...")
-			time.sleep(1)
-
-	# 3. BACKUP
-	backup_dir = app_root / f"backup_v{versao_antiga}"
-	shutil.copytree(app_root, backup_dir)
-
-	# 4. BAIXA + EXTRAI
+	# 2. DOWNLOAD + EXTRAI
 	zip_url = "https://github.com/TopCodeBuyTrap/stream-ide/archive/refs/heads/main.zip"
 	zip_path = app_root / "update.zip"
 
-	resp = requests.get(zip_url, timeout=30)
+	resp = requests.get(zip_url, timeout=60)
 	with open(zip_path, "wb") as f:
 		f.write(resp.content)
 
-	os.makedirs(app_root / "temp", exist_ok=True)
+	temp_dir = app_root / "temp_update"
+	shutil.rmtree(temp_dir, ignore_errors=True)
 	with zipfile.ZipFile(zip_path, "r") as z:
-		z.extractall(app_root / "temp")
+		z.extractall(temp_dir)
 
-	temp_dir = app_root / "temp" / "stream-ide-main"
-	internal_temp = temp_dir / "_internal"
+	github_root = temp_dir / "stream-ide-main"
+	internal_dest = app_root / "_internal"
 
-	# ✅ 5. MOVE _internal NOVO (força overwrite)
-	st.info("🔄 MOVENDO _internal NOVO...")
-	if internal_temp.exists():
-		shutil.move(str(internal_temp), str(internal_path))
-		st.success("✅ _internal SOBRESCRITO!")
-	else:
-		st.error("❌ _internal NÃO ACHA NO GITHUB!")
+	# ✅ 3. DELETA _internal VELHO (força Windows)
+	st.sidebar.info("🗑️ Limpando _internal antigo...")
+	if internal_dest.sidebar.exists():
+		for i in range(3):
+			try:
+				shutil.rmtree(internal_dest)
+				break
+			except:
+				time.sleep(0.5)
 
-	# 6. style.css + imagens (igual)
-	css_file = temp_dir / "style.css"
-	if css_file.exists():
-		shutil.copy2(css_file, app_root / "style.css")
+	# ✅ 4. COPIA TODOS ARQUIVOS do GitHub PRA _internal/
+	st.sidebar.info("🔄 Copiando arquivos PRA _internal/...")
 
-	arquivos_temp = temp_dir / ".arquivos"
-	if arquivos_temp.exists():
-		for img in arquivos_temp.rglob("*"):
-			if img.is_file() and img.suffix.lower() in [".png", ".jpg", ".jpeg", ".gif", ".svg", ".ico"]:
-				rel = img.relative_to(arquivos_temp)
-				dest = app_root / ".arquivos" / rel
-				dest.parent.mkdir(parents=True, exist_ok=True)
-				shutil.copy2(img, dest)
+	for item in github_root.rglob("*"):
+		if item.is_file():
+			# Calcula destino DENTRO de _internal/
+			rel_path = item.relative_to(github_root)
+			dest_path = internal_dest / rel_path
 
-	# 7. LIMPA
+			# Cria pastas se necessário
+			dest_path.parent.mkdir(parents=True, exist_ok=True)
+
+			# COPIA!
+			shutil.copy2(item, dest_path)
+			st.sidebar.write(f"✅ {rel_path}")
+
+	# 5. style.css pra RAIZ
+	if (github_root / "style.css").exists():
+		shutil.copy2(github_root / "style.css", app_root / "style.css")
+
+	# 6. LIMPA
 	os.remove(zip_path)
-	shutil.rmtree(app_root / "temp")
+	shutil.rmtree(temp_dir)
 
-	st.success(f"🎉 ARQUIVOS ATUALIZADOS v{nova_versao}")
-	st.balloons()
-	st.info("⚠️ FECHE O APP e ABRA DE NOVO!")
-
-	# PyInstaller PRECISA fechar completamente
-	import sys
+	st.sidebar.success(f"🎉 TUDO em _internal/ v{nova_versao}!")
+	st.sidebar.balloons()
+	st.sidebar.warning("🔄 FECHE e REABRA!")
 	time.sleep(3)
 	sys.exit(0)
