@@ -237,38 +237,44 @@ def app():
 
 #---------------------------
 if __name__ == "__main__":
-    import streamlit as st
-    from datetime import datetime
+    try:
+        import streamlit as st
+        from datetime import datetime
 
-    from APP_SUB_Customizar import Customization
-    from APP_SUB_Funcitons import Identificar_linguagem, escreve, chec_se_arq_do_projeto, contar_estrutura, \
-        Button_Nao_Fecha, data_sistema, resumo_pasta, limpar_CASH, Linha_Sep
-    from APP_SUB_Janela_Explorer import listar_arquivos_e_pastas, Open_Explorer, Abrir_Arquivo_Select_Tabs
-    from APP_Sidebar import Sidebar_Diretorios
-    from Banco_dados import ler_A_CONTROLE_PROJETOS, ler_B_ARQUIVOS_RECENTES, ATUAL_B_ARQUIVOS_RECENTES, \
-        se_B_ARQUIVOS_RECENTES, esc_B_ARQUIVOS_RECENTES, Del_B_ARQUIVOS_RECENTES, ler_A_CONTROLE_ABSOLUTO, \
-        Del_A_CONTROLE_ABSOLUTO, Del_CUSTOMIZATION, esc_A_CONTROLE_PROJETOS
-    from APP_SUB_Controle_Driretorios import _DIRETORIO_EXECUTAVEL_, _DIRETORIO_PROJETOS_, _DIRETORIO_PROJETO_ATUAL_
+        from APP_SUB_Customizar import Customization
+        from APP_SUB_Funcitons import Identificar_linguagem, escreve, chec_se_arq_do_projeto, contar_estrutura, \
+            Button_Nao_Fecha, data_sistema, resumo_pasta, limpar_CASH, Linha_Sep
+        from APP_SUB_Janela_Explorer import listar_arquivos_e_pastas, Open_Explorer, Abrir_Arquivo_Select_Tabs
+        from APP_Sidebar import Sidebar_Diretorios
+        from Banco_dados import ler_A_CONTROLE_PROJETOS, ler_B_ARQUIVOS_RECENTES, ATUAL_B_ARQUIVOS_RECENTES, \
+            se_B_ARQUIVOS_RECENTES, esc_B_ARQUIVOS_RECENTES, Del_B_ARQUIVOS_RECENTES, ler_A_CONTROLE_ABSOLUTO, \
+            Del_A_CONTROLE_ABSOLUTO, Del_CUSTOMIZATION, esc_A_CONTROLE_PROJETOS
+        from APP_SUB_Controle_Driretorios import _DIRETORIO_EXECUTAVEL_, _DIRETORIO_PROJETOS_, _DIRETORIO_PROJETO_ATUAL_
 
-    import os
-    from pathlib import Path
-    from APP_Terminal import Terminal
-    st.set_page_config(page_title="Stream-IDE", layout="wide")
+        import os
+        from pathlib import Path
+        from APP_Terminal import Terminal
+        st.set_page_config(page_title="Stream-IDE", layout="wide")
 
-    if 'config_absoluta_ok' not in st.session_state:
-        st.session_state.config_absoluta_ok = False
+        if 'config_absoluta_ok' not in st.session_state:
+            st.session_state.config_absoluta_ok = False
 
-    # 🔹 SE JÁ TEM CONFIG → ENTRA DIRETO NA IDE
-    if len(ler_A_CONTROLE_ABSOLUTO()) > 0 or st.session_state.config_absoluta_ok:
-        from APP_Htmls import Carregamento_BancoDados_Temas
-        (IMAGEM_LOGO, NOME_CUSTOM, NOME_USUARIO, COR_CAMPO, COR_MENU, THEMA_EDITOR, EDITOR_TAM_MENU,THEMA_PREVIEW,PREVIEW_TAM_MENU,
-         THEMA_TERMINAL,TERMINAL_TAM_MENU,TOP_CAB,FONTE_MENU,FONTE_CAMPO) = Carregamento_BancoDados_Temas(st)
-        app( )
+        # 🔹 SE JÁ TEM CONFIG → ENTRA DIRETO NA IDE
+        if len(ler_A_CONTROLE_ABSOLUTO()) > 0 or st.session_state.config_absoluta_ok:
+            from APP_Htmls import Carregamento_BancoDados_Temas
+            (IMAGEM_LOGO, NOME_CUSTOM, NOME_USUARIO, COR_CAMPO, COR_MENU, THEMA_EDITOR, EDITOR_TAM_MENU,THEMA_PREVIEW,PREVIEW_TAM_MENU,
+             THEMA_TERMINAL,TERMINAL_TAM_MENU,TOP_CAB,FONTE_MENU,FONTE_CAMPO) = Carregamento_BancoDados_Temas(st)
 
-    # 🔹 SENÃO → MOSTRA ABERTURA
-    else:
-        from Abertura_TCBT import Abertura
-        Del_CUSTOMIZATION()
+            app( )
 
-        if Abertura() == True:
-            st.rerun()
+        # 🔹 SENÃO → MOSTRA ABERTURA
+        else:
+            from Abertura_TCBT import Abertura
+            Del_CUSTOMIZATION()
+
+            if Abertura() == True:
+                st.rerun()
+    except Exception as e:
+        st.error(f"🚨 ERRO: {e}")
+        st.warning("🔄 **FECHE e REABRA o programa**")
+

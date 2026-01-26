@@ -16,7 +16,7 @@ def get_app_root():
 	return Path(__file__).parent.parent.absolute()
 
 
-def checar_atualizacao(Coluna):
+def checar_atualizacao_Automatica(Coluna):
 	versao_local = ultima_versao()
 
 	try:
@@ -26,11 +26,11 @@ def checar_atualizacao(Coluna):
 
 		if resp.status_code == 200:
 			versao_nova = resp.text.strip()
-			Coluna.write(f"🌐 GitHub: v{versao_nova} | Banco: v{versao_local}")
 
 			if versao_nova > versao_local:
-				Coluna.error(f"🔔 NOVA VERSÃO DISPONÍVEL: v{versao_nova}")
-				if Coluna.button(f"🚀 ATUALIZAR AGORA (v{versao_nova})", use_container_width=True):
+				Coluna.toast(f"🌐 GitHub: v{versao_nova} | Banco: v{versao_local} DISPONÍVEL!")
+
+				if Coluna.button(f" ATUALIZAR (v{versao_nova})", use_container_width=True):
 					atualizar_tudo(versao_nova)
 				return
 			else:
@@ -41,6 +41,34 @@ def checar_atualizacao(Coluna):
 	except Exception as e:
 		Coluna.warning(f"Sem conexão: {e}")
 		Coluna.info(f"📱 Versão Local: v{versao_local}")
+
+
+def checar_atualizacao(Coluna):
+	# ✅ BOTÃO MANUAL SEMPRE VISÍVEL
+	if Coluna.button("🔍 VERIFICAR ATUALIZAÇÃO", use_container_width=True):
+		versao_local = ultima_versao()
+
+		try:
+			url = f"https://raw.githubusercontent.com/TopCodeBuyTrap/stream-ide/main/LATEST_VERSION.txt?t={int(time.time())}"
+			resp = requests.get(url, timeout=5)
+
+			if resp.status_code == 200:
+				versao_nova = resp.text.strip()
+
+				if versao_nova > versao_local:
+					Coluna.toast(f"🔔 **NOVA VERSÃO v{versao_nova} DISPONÍVEL**")
+					if Coluna.button(f"🚀 ATUALIZAR v{versao_nova}", use_container_width=True):
+						atualizar_tudo(versao_nova)
+				else:
+					Coluna.success(f"✅ App atualizado (v{versao_local})")
+			else:
+				Coluna.info(f"📱 v{versao_local}")
+		except Exception as e:
+			Coluna.warning(f"Erro: {e}")
+	else:
+		# Só mostra versão atual quando NÃO clica
+		versao_local = ultima_versao()
+		Coluna.info(f"📱 v{versao_local}")
 
 
 def atualizar_tudo(nova_versao):
@@ -67,9 +95,9 @@ def atualizar_tudo(nova_versao):
 	github_root = temp_dir / "stream-ide-main"
 	internal_dest = app_root / "_internal"
 
-	# ✅ 3. DELETA _internal VELHO (força Windows)
-	st.sidebar.info("🗑️ Limpando _internal antigo...")
-	if internal_dest.sidebar.exists():
+	# ✅ 3. DELETA _internal VELHO (CORRIGIDO)
+	st.sidebar.info("🗑️ Limpando _internal...")
+	if internal_dest.exists():  # ← CORRIGIDO!
 		for i in range(3):
 			try:
 				shutil.rmtree(internal_dest)
@@ -77,31 +105,30 @@ def atualizar_tudo(nova_versao):
 			except:
 				time.sleep(0.5)
 
-	# ✅ 4. COPIA TODOS ARQUIVOS do GitHub PRA _internal/
-	st.sidebar.info("🔄 Copiando arquivos PRA _internal/...")
+	# ✅ 4. COPIA TODOS ARQUIVOS PRA _internal/
+	st.sidebar.info("🔄 Copiando 74 arquivos...")
+	contador = 0
 
 	for item in github_root.rglob("*"):
 		if item.is_file():
-			# Calcula destino DENTRO de _internal/
 			rel_path = item.relative_to(github_root)
 			dest_path = internal_dest / rel_path
-
-			# Cria pastas se necessário
 			dest_path.parent.mkdir(parents=True, exist_ok=True)
-
-			# COPIA!
 			shutil.copy2(item, dest_path)
-			st.sidebar.write(f"✅ {rel_path}")
+			contador += 1
+
+	st.sidebar.success(f"✅ {contador} arquivos copiados!")
 
 	# 5. style.css pra RAIZ
 	if (github_root / "style.css").exists():
 		shutil.copy2(github_root / "style.css", app_root / "style.css")
+		st.sidebar.success("✅ style.css OK")
 
 	# 6. LIMPA
 	os.remove(zip_path)
 	shutil.rmtree(temp_dir)
 
-	st.sidebar.success(f"🎉 TUDO em _internal/ v{nova_versao}!")
+	st.sidebar.success(f"🎉 ATUALIZADO v{nova_versao}!")
 	st.sidebar.balloons()
 	st.sidebar.warning("🔄 FECHE e REABRA!")
 	time.sleep(3)

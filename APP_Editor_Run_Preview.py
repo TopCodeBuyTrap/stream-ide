@@ -5,7 +5,7 @@ import threading
 import queue
 import os, time
 
-from APP_SUB_Funcitons import Identificar_linguagem, Button_Nao_Fecha, Sinbolos
+from APP_SUB_Funcitons import Identificar_linguagem, Button_Nao_Fecha, Sinbolos, Anotations_Editor, Marcadores_Editor
 from APP_SUB_Janela_Explorer import Abrir_Arquivo_Select_Tabs
 
 
@@ -131,6 +131,8 @@ def Editor_Simples(col1,Top4,ColunaSelect, Caminho, THEMA_EDITOR, EDITOR_TAM_MEN
         font_size=EDITOR_TAM_MENU,
         height=850,
         auto_update=True,
+        annotations=Anotations_Editor(_[content_key]),
+        markers=Marcadores_Editor(_[content_key]),
         wrap=True,
         key=f"ace_editor_{idx}"
     )
