@@ -16,59 +16,31 @@ def get_app_root():
 	return Path(__file__).parent.parent.absolute()
 
 
-def checar_atualizacao_Automatica(Coluna):
+
+def checar_atualizacao(Coluna):
+	# ✅ DESABILITA SSL VERIFICATION (PyInstaller fix)
 	versao_local = ultima_versao()
 
 	try:
-		# Adiciona timestamp para evitar cache do request
 		url = f"https://raw.githubusercontent.com/TopCodeBuyTrap/stream-ide/main/LATEST_VERSION.txt?t={int(time.time())}"
-		resp = requests.get(url, timeout=5)
+
+		# FIX SSL PyInstaller
+		resp = requests.get(url, timeout=5, verify=False)
 
 		if resp.status_code == 200:
 			versao_nova = resp.text.strip()
 
 			if versao_nova > versao_local:
-				Coluna.toast(f"🌐 GitHub: v{versao_nova} | Banco: v{versao_local} DISPONÍVEL!")
-
-				if Coluna.button(f" ATUALIZAR (v{versao_nova})", use_container_width=True):
+				Coluna.toast(f"🔔 NOVA VERSÃO v{versao_nova}")
+				if Coluna.button(f"🚀 ATUALIZAR v{versao_nova}", use_container_width=True):
 					atualizar_tudo(versao_nova)
-				return
 			else:
-				Coluna.success(f"✅ Seu App está atualizado (v{versao_local})")
+				Coluna.success(f"✅ v{versao_local}")
 		else:
-			Coluna.info(f"📱 Versão Local: v{versao_local}")
-
+			Coluna.error("GitHub offline")
 	except Exception as e:
-		Coluna.warning(f"Sem conexão: {e}")
-		Coluna.info(f"📱 Versão Local: v{versao_local}")
+		Coluna.code(f"Erro: {e}")
 
-
-def checar_atualizacao(Coluna):
-	# ✅ BOTÃO MANUAL SEMPRE VISÍVEL
-	if Coluna.button("🔍 VERIFICAR ATUALIZAÇÃO", use_container_width=True):
-		versao_local = ultima_versao()
-
-		try:
-			url = f"https://raw.githubusercontent.com/TopCodeBuyTrap/stream-ide/main/LATEST_VERSION.txt?t={int(time.time())}"
-			resp = requests.get(url, timeout=5)
-
-			if resp.status_code == 200:
-				versao_nova = resp.text.strip()
-
-				if versao_nova > versao_local:
-					Coluna.toast(f"🔔 **NOVA VERSÃO v{versao_nova} DISPONÍVEL**")
-					if Coluna.button(f"🚀 ATUALIZAR v{versao_nova}", use_container_width=True):
-						atualizar_tudo(versao_nova)
-				else:
-					Coluna.success(f"✅ App atualizado (v{versao_local})")
-			else:
-				Coluna.info(f"📱 v{versao_local}")
-		except Exception as e:
-			Coluna.warning(f"Erro: {e}")
-	else:
-		# Só mostra versão atual quando NÃO clica
-		versao_local = ultima_versao()
-		Coluna.info(f"📱 v{versao_local}")
 
 
 def atualizar_tudo(nova_versao):

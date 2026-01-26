@@ -1,0 +1,532 @@
+INSTALL
+# ---------------------------- Atualiza o gerenciador de pacotes, setuptools e wheel:
+python.exe -m pip install --upgrade pip
+python -m pip install --upgrade setuptools wheel
+
+# ---------------------------- Criar app para executavel em pc:
+pip install streamlit-desktop-app   version: 0.3.3
+home-page: https://github.com/ohtaman/streamlit-desktop-app
+
+# ---------------------------- Editor de Codigos
+pip install streamlit_ace   Version: 0.1.1
+Home-page: https://share.streamlit.io/okld/streamlit-gallery/main?p=ace-editor
+
+# ---------------------------- Rodar
+streamlit run app_.py
+
+# ----------------------------Para criar o executavel:
+streamlit-desktop-app build APP_.py `
+  --name Stream_IDE `
+  --streamlit-options --theme.base=dark `
+  --pyinstaller-options `
+    --onedir --noconsole --noconfirm `
+
+# ----------------------------  Stream-IDE / StreamIDE
+GitHub: https://github.com/TopCodeBuyTrap/stream-ide
+Youtube: https://youtu.be/w04XjMlDvGA
+
+# Arquivos---- :
+|-- APP_.py ----:
+Este arquivo é o cérebro da aplicação. Ele não implementa funcionalidades isoladas, mas coordena todas elas. É responsável por fluxo, estado, navegação, persistência e integração entre módulos. Qualquer falha aqui compromete toda a IDE.
+
+# Adicione este bloco NO INÍCIO do seu arquivo APP_.py e outros arquivos principais
+# Isso corrige o erro "ModuleNotFoundError" quando roda o executável
+
+import sys
+import os
+from pathlib import Path
+
+# Detecta se está rodando como executável (frozen) ou script python normal
+if getattr(sys, 'frozen', False):
+    # Se for executável, a pasta raiz é onde está o .exe
+    app_root = Path(sys.executable).parent.absolute()
+
+    # Adiciona a pasta _internal ao caminho de busca do Python
+    sys.path.append(str(app_root / "_internal"))
+    sys.path.append(str(app_root))
+else:
+    # Se for script normal
+    app_root = Path(__file__).parent.absolute()
+    sys.path.append(str(app_root))
+
+
+#-----------------------------------------------------------------------------------
+
+def select_arquivo_recente(col2):
+    st.sidebar.image('.arquivos/logo_.png',width=100)
+
+
+    registros = ler_A_CONTROLE_PROJETOS()
+    if not registros:
+        return None, None, None
+
+    # registros =
+    # (DIRETORIO_TRABALHANDO, VERSION, DATA, DIRETORIOS, ARQUIVOS, OBS)
+    ordenar_por = st.selectbox(
+        "Ordenar por:",
+        ["Último usado", "Data", "Versão", "Ordem alfabética (agrupado)"],
+        key="ordenacao_recente",label_visibility='collapsed'
+    )
+
+    dados = []
+    for r in registros:
+        caminho, versao, data = r[0], r[1], r[2]
+        dados.append({
+            "caminho": caminho,
+            "nome": os.path.basename(caminho),
+            "versao": versao,
+            "data": data
+        })
+
+    if ordenar_por == "Último usado":
+        dados = sorted(
+            dados,
+            key=lambda x: x["data"] or "",
+            reverse=True
+        )
+
+    elif ordenar_por == "Data":
+        dados = sorted(
+            dados,
+            key=lambda x: datetime.fromisoformat(x["data"]) if x["data"] else datetime.min,
+            reverse=True
+        )
+
+    elif ordenar_por == "Versão":
+        dados = sorted(
+            dados,
+            key=lambda x: (x["versao"] or "").lower()
+        )
+
+    elif ordenar_por == "Ordem alfabética (agrupado)":
+        grupos = {}
+        for d in dados:
+            grupos.setdefault(d["nome"], []).append(d)
+
+        dados = []
+        for nome in sorted(grupos.keys(), key=str.lower):
+            grupo = sorted(
+                grupos[nome],
+                key=lambda x: datetime.fromisoformat(x["data"]) if x["data"] else datetime.min
+            )
+            dados.extend(grupo)
+
+    if "projeto_idx" not in st.session_state:
+        st.session_state.projeto_idx = 0
+        st.toast("seleção inicial definida".title())
+
+    selecionado = st.selectbox(
+        "Projetos recentes",
+        options=range(len(dados)),
+        format_func=lambda i: dados[i]["nome"],
+        key="projeto_idx",label_visibility='collapsed'
+    )
+
+    if "ultimo_idx" not in st.session_state:
+        st.session_state.ultimo_idx = selecionado
+
+    if selecionado != st.session_state.ultimo_idx:
+        st.toast("projeto trocado".title())
+        st.session_state.ultimo_idx = selecionado
+
+    item = dados[selecionado]
+    if st.button(f'Acesar',use_container_width=True):
+        data = contar_estrutura(item["caminho"])
+        versao_set = data["versoes"][0]
+        esc_A_CONTROLE_PROJETOS(str(item["caminho"]), list(versao_set)[0], data_sistema(), data["pastas"], data["arquivos"] , '')
+
+
+def app():
+    # =====================================================
+    # COLOQUE ISSO NO **INÍCIO** do seu app(), ANTES de tudo:
+
+    # =====================================================
+
+    global arquivo_selecionado_caminho, arquivo_selecionado_nome, arquivo_selecionado_conteudo
+    try:
+        pjt = ler_A_CONTROLE_PROJETOS()[-1]
+        caminho = pjt[0]
+        versao = pjt[1]
+        data = pjt[2]
+
+        if se_B_ARQUIVOS_RECENTES(caminho) == False:
+            Del_B_ARQUIVOS_RECENTES()
+            esc_B_ARQUIVOS_RECENTES(Path(caminho), str(contar_estrutura(caminho)))
+    except IndexError: pass
+
+    if len(ler_B_ARQUIVOS_RECENTES()) == 0:
+        st.button('Entar')
+        from APP_Menus import Cria_Projeto_pouppap
+        footer_container = st.container(border=True)
+        with footer_container:
+            st.write('Seja Bem Vindo Ordinario/a !')
+            st.image(IMAGEM_LOGO)
+        Cria_Projeto_pouppap(st)
+
+    else:
+
+
+
+        with st.container(border=True, key='MenuTopo'):
+            Top1,Top2 ,Top3 ,Top4,Top5,Top6,Top7,Top8= st.columns([.4,.4,.4,.4,2,1.4,.8,1])
+
+        with Top7:
+            from APP_Atualizador import checar_atualizacao
+            checar_atualizacao(Top7)
+
+        with Top6:
+            Ttp1,Ttp2 = st.columns(2) # Botão de run e stop
+
+        with Top3:
+            Trm1,Trm2 = st.columns([2,8])
+            Trm1.write(':material/terminal:')
+
+        with Top4:
+            Prw1, Prw2 = st.columns([2, 8])
+            Prw1.write(':material/directions_bike:')
+
+        from APP_Menus import Abrir_Menu
+        #Abrir_Menu(st)
+        # ============================================================= MENU SUPERIOR
+        if Top2.button(":material/refresh:",icon='♻️',help='limpar os caches do app'.title()):
+            limpar_CASH()
+        st.markdown('<style>' + open('./style.css').read() + '</style>', unsafe_allow_html=True)
+
+        #--------------------------------------------------------------------- MENUS DE EDIÇÃO E CRIAÇÃO DE ARQUIVOS
+        from  APP_Menus import  Abrir_Menu,Custom
+        Pasta_Executavel = _DIRETORIO_EXECUTAVEL_()
+        Pasta_Todos_Projetos = _DIRETORIO_PROJETOS_()
+        Pasta_Projeto_Atual = caminho
+        Meus_Arquivos = listar_arquivos_e_pastas(Pasta_Projeto_Atual)
+
+        # Exemplo de uso
+        with Top1:
+            btnt = Button_Nao_Fecha(':material/folder_open:'+":material/keyboard_double_arrow_left:",
+            ':material/folder:' + ':material/keyboard_double_arrow_right:', key="botao_diretorio")
+        if btnt:
+            col1, col2 = st.columns([1.2, 7])
+            vl = 400
+            with col1.container(border=True, width=vl,key='menu_lado_sidebar',height=800):
+                # :material/settings:  :material/emoji_symbols:
+                Abrir_Menu(st)
+
+                select_arquivo_recente(st)
+
+                if NOME_CUSTOM != 'Padrão':
+                    btcst = Button_Nao_Fecha(f'**{NOME_CUSTOM}** - :material/build:' + ":material/keyboard_double_arrow_up:",
+                                            f"**{NOME_CUSTOM}** - :material/build:" + ':material/keyboard_double_arrow_down:',
+                                            key="bBotao_recustomizar")
+                    if btcst:
+                        Customization(st,NOME_CUSTOM)
+        else:
+            col1, col2 = st.columns([.2, 9])
+        #------------------z--------------------------------------------------- SIDIBAR LATERAL
+        with st.sidebar:
+            caminho_completo = Pasta_Projeto_Atual  # Ex: "C:\\Users\\henri\\PycharmProjects\\IDE_TOP"
+            unidade = os.path.splitdrive(caminho_completo)[0]  # Ex: "C:"
+            nome_pasta = os.path.basename(caminho_completo)
+            Arq_Selec_Nomes, Arq_Selec_Diretorios = Sidebar_Diretorios(st, Meus_Arquivos, 7)
+
+        if Top8.button(f':material/search: {os.path.join(nome_pasta)}',use_container_width=True, type="secondary"):
+            Open_Explorer(Pasta_Projeto_Atual)
+
+
+        if len(Arq_Selec_Diretorios) > 0:
+            from APP_Editor_Run_Preview import Editor_Simples
+
+            try:
+                with col2:
+                    arquivos_abertos_nomes, arquivos_abertos_caminhos, arquivo_selecionado_nome, arquivo_selecionado_caminho,arquivo_selecionado_conteudo\
+                    = Editor_Simples(col1,Prw2,Top5,Arq_Selec_Diretorios,THEMA_EDITOR, EDITOR_TAM_MENU,Ttp2,Ttp1,)
+            except UnicodeDecodeError:
+                st.warning('Arquivo não Reconhecido GmeOver!')
+
+
+
+            Tab1, Tab2 = st.columns([.4, 9])
+            val = ''
+            with Tab2.container(border=True, key='Terminal_cmd', width=900):
+                with Trm2:
+                    altura_term = st.slider( ':material/terminal:', value=300, min_value=200, max_value=800, step=300,label_visibility='collapsed')
+                with st.expander(f":material/terminal: Terminal: {val}"):
+                    Terminal(altura_term,THEMA_TERMINAL, TERMINAL_TAM_MENU)
+
+            # --------------------------------------------------------------------- BUSCAR ARQUIVO SELECIONADO
+            if arquivo_selecionado_caminho and os.path.isfile(arquivo_selecionado_caminho):
+                caminho = Path(arquivo_selecionado_caminho)
+                nome_sem_extensao = caminho.stem
+                extensao_arquivo = caminho.suffix
+                nome_arquivo = caminho.name
+
+                # Se for imagem, mostra no container
+                if extensao_arquivo.lower() in ('.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp'):
+                    footer_container = Tab2.container(border=True, key="meu_container_unico")
+                    with footer_container:
+                        st.image(caminho, caption=f"🖼️ {caminho.name}")
+
+
+#---------------------------
+if __name__ == "__main__":
+    try:
+        import streamlit as st
+        from datetime import datetime
+
+        from APP_SUB_Customizar import Customization
+        from APP_SUB_Funcitons import Identificar_linguagem, escreve, chec_se_arq_do_projeto, contar_estrutura, \
+            Button_Nao_Fecha, data_sistema, resumo_pasta, limpar_CASH, Linha_Sep
+        from APP_SUB_Janela_Explorer import listar_arquivos_e_pastas, Open_Explorer, Abrir_Arquivo_Select_Tabs
+        from APP_Sidebar import Sidebar_Diretorios
+        from Banco_dados import ler_A_CONTROLE_PROJETOS, ler_B_ARQUIVOS_RECENTES, ATUAL_B_ARQUIVOS_RECENTES, \
+            se_B_ARQUIVOS_RECENTES, esc_B_ARQUIVOS_RECENTES, Del_B_ARQUIVOS_RECENTES, ler_A_CONTROLE_ABSOLUTO, \
+            Del_A_CONTROLE_ABSOLUTO, Del_CUSTOMIZATION, esc_A_CONTROLE_PROJETOS
+        from APP_SUB_Controle_Driretorios import _DIRETORIO_EXECUTAVEL_, _DIRETORIO_PROJETOS_, _DIRETORIO_PROJETO_ATUAL_
+
+        import os
+        from pathlib import Path
+        from APP_Terminal import Terminal
+        st.set_page_config(page_title="Stream-IDE", layout="wide")
+
+        if 'config_absoluta_ok' not in st.session_state:
+            st.session_state.config_absoluta_ok = False
+
+        # 🔹 SE JÁ TEM CONFIG → ENTRA DIRETO NA IDE
+        if len(ler_A_CONTROLE_ABSOLUTO()) > 0 or st.session_state.config_absoluta_ok:
+            from APP_Htmls import Carregamento_BancoDados_Temas
+            (IMAGEM_LOGO, NOME_CUSTOM, NOME_USUARIO, COR_CAMPO, COR_MENU, THEMA_EDITOR, EDITOR_TAM_MENU,THEMA_PREVIEW,PREVIEW_TAM_MENU,
+             THEMA_TERMINAL,TERMINAL_TAM_MENU,TOP_CAB,FONTE_MENU,FONTE_CAMPO) = Carregamento_BancoDados_Temas(st)
+
+            app( )
+
+        # 🔹 SENÃO → MOSTRA ABERTURA
+        else:
+            from Abertura_TCBT import Abertura
+            Del_CUSTOMIZATION()
+
+            if Abertura() == True:
+                st.rerun()
+    except Exception as e:
+        st.error(f"🚨 ERRO: {e}")
+        st.warning("🔄 **FECHE e REABRA o programa**")
+
+
+|-- Abertura_TCBT.py ----:
+Este arquivo é um BLOQUEIO DE SEGURANÇA do sistema. Sem ele, a IDE poderia iniciar sem diretórios válidos, sem banco configurado e sem temas. Ele garante que o ambiente esteja 100% consistente antes de liberar qualquer funcionalidade de edição ou execução.
+
+|-- APP_Menus.py ----:
+Este arquivo é: – controlador de menus – orquestrador de fluxos – integrador UI ↔ sistema ↔ banco
+Ele não renderiza o editor, mas controla tudo que acontece ao redor dele. É o cérebro operacional da IDE.
+
+|-- APP_Htmls.py ----:
+Este arquivo não é apenas estético.
+Ele controla:
+Identidade visual
+Experiência do usuário
+Organização de layout
+Performance (cache)
+Integração entre banco, estado e UI
+Qualquer mudança aqui impacta diretamente toda a aplicação Streamlit.
+É um arquivo crítico e estrutural do projeto.
+
+|-- APP_Atualizador.py ----:
+APP_Atualizador.py
+Este arquivo implementa o mecanismo completo de autoatualização da aplicação quando distribuída tanto como código-fonte quanto como executável empacotado (PyInstaller).
+
+Função checar_atualizacao(Coluna):
+Responsável por verificar se existe uma versão mais recente disponível no repositório GitHub.
+– Lê a versão local persistida no banco usando ultima_versao().
+– Consulta o arquivo LATEST_VERSION.txt no GitHub com cache-busting via timestamp.
+– Desativa verificação SSL para evitar falhas em executáveis PyInstaller.
+– Compara versões como string.
+– Se houver versão nova, exibe notificação e botão de atualização na coluna recebida.
+– Se estiver atualizado, informa sucesso.
+– Em caso de falha de rede ou exceção, exibe erro técnico.
+
+Função atualizar_tudo(nova_versao):
+Executa o processo completo de atualização da aplicação.
+
+Etapa 1 – Persistência:
+Salva a nova versão no banco de dados antes da atualização física, garantindo consistência de estado.
+
+Etapa 2 – Download:
+Baixa o ZIP do branch main do repositório GitHub e grava como update.zip no diretório raiz da aplicação.
+
+Etapa 3 – Extração:
+Extrai o conteúdo do ZIP em um diretório temporário (temp_update).
+
+Etapa 4 – Limpeza controlada:
+Remove o diretório _internal antigo, com tentativas repetidas para contornar bloqueios de arquivo comuns em Windows.
+
+Etapa 5 – Substituição de código:
+Copia recursivamente todos os arquivos do repositório extraído para o diretório _internal, preservando estrutura e metadados. Esse diretório representa o núcleo executável da IDE.
+
+Etapa 6 – Arquivos especiais:
+Copia style.css para a raiz da aplicação quando presente, garantindo consistência visual após a atualização.
+
+Etapa 7 – Finalização:
+Remove arquivos temporários, exibe feedback visual no sidebar, solicita reinício manual da aplicação e encerra o processo com sys.exit(0).
+
+Papel arquitetural:
+Este módulo é o atualizador oficial da IDE. Ele permite distribuição contínua sem reinstalação, centraliza controle de versão, resolve diferenças entre execução empacotada e em desenvolvimento, e protege a integridade do ambiente do usuário durante upgrades.
+
+|-- APP_Sidebar.py ----:
+Ele é o núcleo de navegação da IDE
+– Unifica árvore física do projeto + arquivos persistidos no banco
+– Controla estado visual complexo (pastas abertas, arquivos ativos, origem)
+– Resolve duplicação, sincronização e descarte de arquivos
+– Tem duas implementações: uma com pills e outra com checkbox
+– É fundamental para manter coerência entre UI, filesystem e banco
+
+|-- APP_Editor_Run_Preview.py ----:
+Este arquivo é o coração funcional da IDE. Ele integra edição, execução, I/O interativo e visualização de saída em um único fluxo contínuo, simulando o comportamento de uma IDE desktop dentro das limitações do Streamlit.
+
+|-- APP_Terminal.py ----:
+Este arquivo implementa um terminal PowerShell realista e funcional, com execução assíncrona, suporte a virtualenv, múltiplas abas e streaming de saída. Ele elimina a necessidade de terminal externo e fecha o ciclo de IDE completo (editor + run + terminal do sistema) dentro do Streamlit.
+
+|-- APP_SUB_Controle_Driretorios.py ----:
+O arquivo APP_SUB_Controle_Driretorios.py centraliza a resolução dos diretórios
+principais da aplicação, fornecendo funções que retornam o caminho do executável,
+da pasta de projetos e do projeto atualmente ativo, com base em informações
+armazenadas no banco de dados, usando um fallback seguro quando não há projeto
+selecionado.
+
+|-- APP_SUB_Customizar.py ----:
+O arquivo APP_SUB_Customizar.py implementa a tela de configurações da aplicação.
+Ele lê do banco as preferências visuais do usuário (tamanhos, fontes, cores e
+temas), exibe essas opções em formulários do Streamlit e salva as alterações
+quando o usuário confirma, aplicando-as imediatamente à interface da IDE.
+
+|-- APP_SUB_Funcitons.py ----:
+O arquivo APP_SUB_Funcitons.py reúne funções utilitárias centrais da IDE, cobrindo análise de código, apoio visual ao editor, métricas de qualidade, manipulação de arquivos e leitura da estrutura do projeto.
+
+Ele faz, em resumo:
+– analisa código Python via AST para gerar anotações, alertas e marcadores no editor
+– calcula um score de qualidade do código para uso em dashboard
+– identifica linguagem por extensão e cria arquivos de texto
+– percorre a pasta do projeto para mapear estrutura, estatísticas e ambientes Python
+– sincroniza a árvore do projeto em um JSON interno
+– fornece funções auxiliares de UI (alertas, botões persistentes, separadores)
+– gerencia ícones de arquivos, nomes únicos e valida se arquivos pertencem ao projeto
+
+É o arquivo de apoio funcional que sustenta editor, navegador de arquivos,
+dashboard e validações internas da aplicação.
+
+|-- APP_SUB_Janela_Explorer.py ----:
+O arquivo APP_SUB_Janela_Explorer.py implementa o explorador de arquivos e
+pastas da IDE, responsável por navegação, seleção e manipulação básica do
+filesystem dentro da interface Streamlit.
+
+Ele faz, de forma objetiva:
+– lista pastas e arquivos sem sair do diretório atual
+– permite navegar entre diretórios, voltar, pesquisar por nome e abrir caminhos
+– mantém o estado de pastas abertas e arquivos selecionados via session_state
+– permite criar novas pastas pelo painel
+– abre arquivos para leitura, apaga arquivos e abre a pasta no Explorer do
+Windows
+– fornece uma janela de seleção reutilizável para arquivos ou pastas
+– inclui utilidades auxiliares (IDs seguros, download de imagem, detecção de
+instalações Python no Windows)
+
+|-- Banco_dados.py ----:
+O módulo Banco_dados.py é responsável por toda a camada de acesso a dados do
+sistema. Ele utiliza SQLite como mecanismo de persistência local e centraliza
+configurações globais, histórico de projetos, estado atual de execução, controle
+de arquivos abertos e personalização da interface.
+
+Arquiteturalmente, este módulo funciona como a “fonte única da verdade” da
+aplicação. Nenhum outro script mantém estado crítico em memória de forma
+definitiva; tudo que precisa persistir ou ser compartilhado entre módulos passa
+por este banco.
+
+A inicialização é automática. A função init_db() cria todas as tabelas
+necessárias caso ainda não existam, garantindo que o sistema sempre inicie em um
+estado válido, mesmo na primeira execução.
+
+A tabela A_CONTROLE_ABSOLUTO armazena as configurações globais do sistema.
+Ela define onde o programa está instalado, onde os projetos ficam armazenados,
+diretórios de backup, integração com Ollama, versão do modelo, além de campos
+reservados para credenciais de IA externa. Esse registro representa o “ambiente
+base” da aplicação.
+
+A tabela A_CONTROLE_PROJETOS registra o histórico e os metadados dos
+projetos. Cada projeto aberto ou criado é persistido com informações como
+diretório de trabalho, versão do ambiente, data, quantidade de pastas, arquivos
+e observações. Ela não representa o projeto ativo, mas sim o catálogo de
+projetos conhecidos pelo sistema.
+
+A tabela B_ARQUIVOS_RECENTES é o elemento central de estado operacional.
+Ela representa qual projeto está ativo no momento. Esse design evita dependência
+de variáveis globais ou passagem direta de estado entre módulos, o que é
+especialmente relevante em aplicações Streamlit. Normalmente existe apenas um
+registro relevante nessa tabela, que é substituído quando o projeto ativo muda.
+
+A tabela CONTROLE_ARQUIVOS mantém o controle de arquivos abertos ou
+carregados, inclusive arquivos externos ao projeto atual. Ela permite armazenar
+conteúdo, caminho absoluto e extensão, viabilizando leitura, edição e reaproveito
+sem depender constantemente do sistema de arquivos.
+
+A tabela CUSTOMIZATION concentra toda a personalização visual e funcional
+do usuário. Ela define temas, fontes, cores, tamanhos, bordas, opções visuais,
+logo e preferências gerais. Apenas um perfil permanece ativo por vez, controlado
+pela coluna OBS, o que simplifica a aplicação de estilos globais.
+
+As funções do módulo seguem um padrão consistente:
+– esc_* para escrita ou inserção
+– ler_* para leitura
+– Del_* para exclusão
+– ATUAL_* para atualização incremental ou direta
+– se_* para verificações de existência ou condição
+
+Esse padrão torna o código previsível, facilita manutenção e reduz erros de uso.
+
+Em termos de arquitetura, o banco separa claramente:
+– configuração global
+– histórico de projetos
+– estado atual de execução
+– arquivos em uso
+– perfil de interface
+
+Essa separação reduz acoplamento entre módulos, melhora escalabilidade e permite
+que novos recursos sejam adicionados sem reestruturação profunda.
+
+Este módulo é, portanto, a base estrutural do sistema. Qualquer falha ou mudança
+aqui impacta toda a aplicação, o que justifica a centralização, o controle de
+concorrência simples e o uso consistente de transações.
+
+|-- Banco_Predefinitions.py ----:
+Este módulo é responsável por armazenar e recuperar dados pré-definidos do
+sistema, separados do banco principal. Ele funciona como um repositório de
+configurações reutilizáveis, layouts e versões da aplicação.
+
+O arquivo cria e gerencia um banco SQLite independente
+(Base_Dados_PreDefinidos.db), usado para persistir informações que não pertencem
+ao estado dinâmico do projeto, mas sim a predefinições estruturais e históricas
+do sistema.
+
+A tabela templates armazena modelos reutilizáveis de arquivos. Cada template
+possui um nome único e um conjunto de arquivos serializados em JSON, permitindo
+carregar estruturas prontas de projeto ou código.
+
+A tabela config_layout guarda a última configuração de layout da interface.
+Ela registra a ordem dos containers, o tipo de layout, o modo de altura e os
+pesos das colunas. Sempre que uma configuração é salva, ela substitui a anterior,
+permitindo restaurar o último layout válido ao reiniciar a aplicação.
+
+A tabela versoes mantém o histórico de versões instaladas ou utilizadas pelo
+sistema. Ela permite identificar a versão atual, listar versões anteriores e
+associar informações adicionais a cada versão.
+
+As funções seguem uma separação clara:
+– salvar e carregar templates
+– salvar e carregar configuração de layout atual
+– registrar, listar e identificar a última versão do sistema
+
+A inicialização do banco é automática na importação do módulo, garantindo que as
+tabelas existam antes de qualquer operação.
+
+Em resumo, este módulo isola predefinições, layout da interface e controle de
+versões, mantendo esses dados fora do banco operacional principal e facilitando
+manutenção, restauração de estado e evolução da aplicação.
+
+|-- SUB_Traduz_terminal.py ----:
+|-- style.css ----:
+

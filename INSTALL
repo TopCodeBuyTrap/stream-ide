@@ -63,11 +63,11 @@ streamlit-desktop-app build APP_.py `
   --streamlit-options --theme.base=dark `
   --pyinstaller-options `
     --onedir --noconsole --noconfirm `
+    --icon icon.ico `
 
 
 
 
 nao coloquei
-  --icon icon.ico `
     --add-data "logo.png;." `
 

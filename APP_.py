@@ -234,7 +234,9 @@ def app():
                     with footer_container:
                         st.image(caminho, caption=f"🖼️ {caminho.name}")
 
-
+        else:
+            with col2:
+                st.image('.arquivos/simbolo.png',caption='By TopCodeBuyTrap')
 #---------------------------
 if __name__ == "__main__":
     try:
@@ -254,7 +256,7 @@ if __name__ == "__main__":
         import os
         from pathlib import Path
         from APP_Terminal import Terminal
-        st.set_page_config(page_title="Stream-IDE", layout="wide")
+        st.set_page_config(page_title="Stream-IDE", layout="wide",page_icon='icon.ico')
 
         if 'config_absoluta_ok' not in st.session_state:
             st.session_state.config_absoluta_ok = False
