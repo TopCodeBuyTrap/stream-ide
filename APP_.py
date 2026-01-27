@@ -6,6 +6,7 @@ import sys
 import os
 from pathlib import Path
 
+
 # Detecta se está rodando como executável (frozen) ou script python normal
 if getattr(sys, 'frozen', False):
     # Se for executável, a pasta raiz é onde está o .exe
@@ -107,6 +108,8 @@ def select_arquivo_recente(col2):
 
 
 def app():
+    from Banco_Predefinitions import ultima_versao
+
     # =====================================================
     # COLOQUE ISSO NO **INÍCIO** do seu app(), ANTES de tudo:
 
@@ -138,11 +141,12 @@ def app():
 
 
         with st.container(border=True, key='MenuTopo'):
-            Top1,Top2 ,Top3 ,Top4,Top5,Top6,Top7,Top8= st.columns([.4,.4,.4,.4,2,1.4,.8,1])
+            Top1,Top2 ,Top3 ,Top4,Top5,Top6,Top7,Top8= st.columns([.4,.4,.4,.4,2,1.4,1,.7])
 
-        with Top7:
+        with Top8:
             from APP_Atualizador import checar_atualizacao
-            checar_atualizacao(Top7)
+            if Button_Nao_Fecha('🔃 :material/queue_play_next:',f'🔂 :material/queue_play_next: {ultima_versao()}','Atualizar_versão'):
+                checar_atualizacao()
 
         with Top6:
             Ttp1,Ttp2 = st.columns(2) # Botão de run e stop
@@ -158,7 +162,7 @@ def app():
         from APP_Menus import Abrir_Menu
         #Abrir_Menu(st)
         # ============================================================= MENU SUPERIOR
-        if Top2.button(":material/refresh:",icon='♻️',help='limpar os caches do app'.title()):
+        if Top2.button(":material/delete_sweep:",icon='♻️',help='limpar os caches do app'.title()):
             limpar_CASH()
         st.markdown('<style>' + open('./style.css').read() + '</style>', unsafe_allow_html=True)
 
@@ -197,7 +201,7 @@ def app():
             nome_pasta = os.path.basename(caminho_completo)
             Arq_Selec_Nomes, Arq_Selec_Diretorios = Sidebar_Diretorios(st, Meus_Arquivos, 7)
 
-        if Top8.button(f':material/search: {os.path.join(nome_pasta)}',use_container_width=True, type="secondary"):
+        if Top7.button(f':material/search: {os.path.join(nome_pasta)} :material/folder_open:',use_container_width=True, type="secondary"):
             Open_Explorer(Pasta_Projeto_Atual)
 
 

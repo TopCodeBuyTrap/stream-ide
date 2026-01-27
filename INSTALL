@@ -25,7 +25,7 @@ Author: okld
 License: MIT
 
 # ---------------------------- Rodar
-streamlit run app_.py
+streamlit run modelo.py
 
 
 # FALTA IMPLEMENTAR:
@@ -51,23 +51,22 @@ usar o terminal, fazer eh usar o o dos ou sei lá o que que é que tá usando aq
 preview do editor de código com o python, que está instalado na venv
 
 4. criar botao traduzir terminal
-
 5. colocar o chat de ias
-
 6. Implementar github e atualização automatica
 
 
 # para criar o executavel:
 streamlit-desktop-app build APP_.py `
-  --name Stream_IDE `
-  --streamlit-options --theme.base=dark `
-  --pyinstaller-options `
+    --name Stream_IDE `
+    --streamlit-options --theme.base=dark `
+    --pyinstaller-options `
     --onedir --noconsole --noconfirm `
+    --collect - data certifi `
     --icon icon.ico `
 
 
 
 
-nao coloquei
-    --add-data "logo.png;." `
+# Importante colocar --collect-data certifi
+Porque o requests depende do certifi para validar conexões HTTPS.
 

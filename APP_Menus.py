@@ -579,7 +579,7 @@ def Abrir_Menu(st):
                     Custom(st)
 
     except streamlit.errors.StreamlitDuplicateElementKey as e:
-        Alerta(st,f'Mano/a ocê Deixou 2 Botões Clicado! \nPtqp...')
+        Alerta(st,f'Mano/a YOU Deixou 2 Botões Clicado! \nPtqp...')
 
 def Cria_Projeto(st):
     from Banco_Predefinitions import listar_templates, salvar_template, carregar_template
@@ -772,7 +772,7 @@ def Cria_Projeto_pouppap(st):
     @st.dialog("Criar 1° Projeto ")
     def menu_principal():
         st1, st2 = st.columns([8, 1])
-        st1.subheader("Criar Novo Projeto:")
+        #st1.subheader("Criar Novo Projeto:")
         if st2.button("X", key="Cria_Projeto"):
             st.session_state["Cria_Projeto_state"] = False
             st.rerun()

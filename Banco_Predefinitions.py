@@ -162,6 +162,30 @@ def ultima_versao():
     conn.close()
     return row[0] if row else "0.0.0"
 
+def versao_nova_atualizada():
+    """Retorna a última versão instalada"""
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute("SELECT nome FROM versoes ORDER BY id DESC LIMIT 1")
+    row = c.fetchone()
+    c.close()
+    conn.close()
+    return row
+
+def atualizar_info_versao(nome_versao, info_extra): # Criei para estar analisando ver se tem versão nova, mas aí eu desisti, porque o programa fica atualizando toda hora.
+    """Atualiza o campo info_extra de uma versão existente"""
+    conn = get_conn()
+    c = conn.cursor()
+
+    c.execute("""
+        UPDATE versoes
+        SET info_extra = ?
+        WHERE nome = ?
+    """, (info_extra, nome_versao))
+
+    conn.commit()
+    c.close()
+    conn.close()
 
 
 # Inicializa banco
