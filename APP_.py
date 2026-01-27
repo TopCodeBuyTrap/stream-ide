@@ -24,7 +24,6 @@ else:
 #-----------------------------------------------------------------------------------
 
 def select_arquivo_recente(col2):
-    st.sidebar.image('.arquivos/logo_.png',width=100)
 
 
     registros = ler_A_CONTROLE_PROJETOS()
@@ -108,6 +107,7 @@ def select_arquivo_recente(col2):
 
 
 def app():
+
     from Banco_Predefinitions import ultima_versao
 
     # =====================================================
@@ -133,7 +133,7 @@ def app():
         footer_container = st.container(border=True)
         with footer_container:
             st.write('Seja Bem Vindo Ordinario/a !')
-            st.image(IMAGEM_LOGO)
+            st.image('.arquivos/simbolo.png')
         Cria_Projeto_pouppap(st)
 
     else:
@@ -141,11 +141,11 @@ def app():
 
 
         with st.container(border=True, key='MenuTopo'):
-            Top1,Top2 ,Top3 ,Top4,Top5,Top6,Top7,Top8= st.columns([.4,.4,.4,.4,2,1.4,1,.7])
+            Top1,Top2 ,Top3 ,Top4,Top5,Top6,Top7,Top8= st.columns([.4,.4,.4,.4,2,1.4,1,.4])
 
         with Top8:
             from APP_Atualizador import checar_atualizacao
-            if Button_Nao_Fecha('🔃 :material/queue_play_next:',f'🔂 :material/queue_play_next: {ultima_versao()}','Atualizar_versão'):
+            if Button_Nao_Fecha(f'🔃 :material/queue_play_next: {ultima_versao()}',f'🔂 :material/queue_play_next: {ultima_versao()}','Atualizar_versão'):
                 checar_atualizacao()
 
         with Top6:
@@ -196,6 +196,9 @@ def app():
             col1, col2 = st.columns([.2, 9])
         #------------------z--------------------------------------------------- SIDIBAR LATERAL
         with st.sidebar:
+            s1,s2,s3 = st.sidebar.columns(3)
+            s2.image(IMAGEM_LOGO)
+
             caminho_completo = Pasta_Projeto_Atual  # Ex: "C:\\Users\\henri\\PycharmProjects\\IDE_TOP"
             unidade = os.path.splitdrive(caminho_completo)[0]  # Ex: "C:"
             nome_pasta = os.path.basename(caminho_completo)

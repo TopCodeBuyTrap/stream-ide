@@ -7,7 +7,7 @@ import requests
 from pathlib import Path
 import streamlit as st
 
-from Banco_Predefinitions import ultima_versao, salvar_versao
+from Banco_Predefinitions import ultima_versao, salvar_versao, atualizar_info_versao
 
 
 def get_app_root():
@@ -60,12 +60,12 @@ def checar_atualizacao():
 def atualizar_tudo(nova_versao):
 	app_root = get_app_root()
 	salvar_versao(nova_versao)
-	st.sidebar.success(f"✅ BANCO v{nova_versao}")
+	st.success(f"✅ BANCO v{nova_versao}")
 
 	# 1. DOWNLOAD ZIP
 	zip_url = "https://github.com/TopCodeBuyTrap/stream-ide/archive/refs/heads/main.zip"
 	zip_path = app_root / "update.zip"
-	st.sidebar.info("📥 Baixando...")
+	st.info("📥 Baixando...")
 
 	for metodo in range(4):
 		try:
@@ -84,10 +84,10 @@ def atualizar_tudo(nova_versao):
 			resp.raise_for_status()
 			with open(zip_path, "wb") as f:
 				for chunk in resp.iter_content(8192): f.write(chunk)
-			st.sidebar.success("✅ ZIP!")
+			st.success("✅ ZIP!")
 			break
 		except:
-			if metodo == 3: st.sidebar.error("❌ Download!"); return
+			if metodo == 3: st.error("❌ Download!"); return
 
 	# 2. EXTRAI
 	temp_dir = app_root / "temp_update"
@@ -98,16 +98,16 @@ def atualizar_tudo(nova_versao):
 	internal_dest = app_root / "_internal"
 
 	# 🛡️ 3. BACKUP certifi/ ANTES da limpeza
-	st.sidebar.info("💾 Backup certifi/...")
+	st.info("💾 Backup certifi/...")
 	certifi_backup = app_root / "certifi_backup"
 	if (internal_dest / "certifi").exists():
 		shutil.copytree(internal_dest / "certifi", certifi_backup)
-		st.sidebar.text("✅ certifi backup OK")
+		st.text("✅ certifi backup OK")
 	else:
-		st.sidebar.text("⚪ certifi não existia")
+		st.text("⚪ certifi não existia")
 
 	# 4. LIMPA _internal (mantém backup separado)
-	st.sidebar.info("🗑️ Limpar _internal...")
+	st.info("🗑️ Limpar _internal...")
 	if internal_dest.exists():
 		for i in range(10):
 			try:
@@ -117,7 +117,7 @@ def atualizar_tudo(nova_versao):
 				time.sleep(1)
 
 	# 5. COPIA _internal DO GITHUB
-	st.sidebar.info("📁 _internal...")
+	st.info("📁 _internal...")
 	contador = 0
 	internal_dest.mkdir(exist_ok=True)
 	for item in github_root.rglob("*"):
@@ -127,35 +127,35 @@ def atualizar_tudo(nova_versao):
 			dest_path.parent.mkdir(parents=True, exist_ok=True)
 			shutil.copy2(item, dest_path)
 			contador += 1
-	st.sidebar.text(f"✅ {contador} arquivos _internal")
+	st.text(f"✅ {contador} arquivos _internal")
 
 	# ✅ 6. RESTAURA certifi/
 	if certifi_backup.exists():
 		shutil.copytree(certifi_backup, internal_dest / "certifi", dirs_exist_ok=True)
-		st.sidebar.success("✅ certifi/ RESTAURADO!")
+		st.success("✅ certifi/ RESTAURADO!")
 		shutil.rmtree(certifi_backup)
 
 	# 🧹 7. LIMPA RAIZ .py VELHOS
-	st.sidebar.info("🧹 Limpa raiz...")
+	st.info("🧹 Limpa raiz...")
 	for arq_velho in app_root.glob("*.py"):
 		if arq_velho.name not in ["atualizador.py"]:  # Protege este
 			try:
 				arq_velho.unlink()
-				st.sidebar.text(f"🗑️ {arq_velho.name}")
+				st.text(f"🗑️ {arq_velho.name}")
 			except:
 				pass
 
 	# 🏠 8. COPIA RAIZ DO GITHUB
-	st.sidebar.info("🏠 Raiz app...")
+	st.info("🏠 Raiz app...")
 	arquivos_raiz = ["style.css"]  # ← Arquivos na raiz a ser atualizados
 
 	for arq in arquivos_raiz:
 		src = github_root / arq
 		if src.exists():
 			shutil.copy2(src, app_root / arq)
-			st.sidebar.success(f"✅ {arq}")
+			st.success(f"✅ {arq}")
 		else:
-			st.sidebar.text(f"⚪ {arq} (não no GitHub)")
+			st.text(f"⚪ {arq} (não no GitHub)")
 
 	# 📁 9. .arquivos/ RAIZ
 	src_arquivos = github_root / ".arquivos"
@@ -163,19 +163,34 @@ def atualizar_tudo(nova_versao):
 		dest_arquivos = app_root / ".arquivos"
 		shutil.rmtree(dest_arquivos, ignore_errors=True)
 		shutil.copytree(src_arquivos, dest_arquivos)
-		st.sidebar.success("✅ .arquivos/")
+		st.success("✅ .arquivos/")
 
 	# 10. LIMPA TEMP
 	os.remove(zip_path)
 	shutil.rmtree(temp_dir)
 
-	st.sidebar.markdown("---")
-	st.sidebar.success(f"🎉 v{nova_versao} COMPLETO!")
-	st.sidebar.info("✅ _internal/ atualizado")
-	st.sidebar.info("✅ certifi/ PRESERVADO")
-	st.sidebar.info("✅ .arquivos/ atualizado")
-	st.sidebar.info("✅ style.css atualizado")
-	st.sidebar.balloons()
-	st.sidebar.warning("🔄 FECHE E REABRA!")
+	st.markdown("---")
+	st.success(f"🎉 v{nova_versao} COMPLETO!")
+	st.info("✅ _internal/ atualizado")
+	st.info("✅ certifi/ PRESERVADO")
+	st.info("✅ .arquivos/ atualizado")
+	st.info("✅ style.css atualizado")
+	st.balloons()
+	st.warning("🔄 FECHE E REABRA!")
 	time.sleep(5)
 	sys.exit(0)
+
+
+def chek_atual_simples():
+	versao_local = ultima_versao()
+
+	try:
+		url = f"https://raw.githubusercontent.com/TopCodeBuyTrap/stream-ide/main/LATEST_VERSION.txt?t={int(time.time())}"
+		resp = requests.get(url, timeout=5)
+
+		if resp.status_code == 200:
+			versao_nova = resp.text.strip()
+			atualizar_info_versao(versao_local, versao_nova)
+		else:pass
+	except Exception as e:
+		print(f"Erro: {e}")
