@@ -1,4 +1,5 @@
 import json
+from time import sleep
 
 from APP_SUB_Controle_Driretorios import _DIRETORIO_EXECUTAVEL_, _DIRETORIO_PROJETOS_, _DIRETORIO_PROJETO_ATUAL_
 from APP_SUB_Funcitons import saudacao_por_hora_sistema
@@ -98,6 +99,26 @@ def Carregamento_BancoDados_Temas(st):
 		BG_STYLE = f'''
 				    background-color: {THEMA_APP2} !important;
 				    '''
+
+	try:
+		COR_OVERLAY2 = hex_to_rgba_inverso(FUNDO_OUTROS, float(OPC3))
+
+		if OPC3 != "":
+			WD_STYLE = f'''
+		    background: {COR_OVERLAY2} !important;
+		    '''
+
+
+		else:
+			WD_STYLE = f'''
+		    background-color: {FUNDO_OUTROS} !important;
+		    '''
+	except ValueError :
+		WD_STYLE = f'''
+				    background-color: {FUNDO_OUTROS} !important;
+				    '''
+
+
 	PASSR_COR = 'red'
 	BORDA_STIL = 'dashed' # dashed  solid  double  dotted
 	# ✅ CSS CORRIGIDO (sintaxe válida)
@@ -136,7 +157,8 @@ def Carregamento_BancoDados_Temas(st):
     }}
     
     div[data-testid="stVerticalBlock"] [class*="st-key-MenuTopo"] {{
-        background-color: {THEMA_APP1} !important;
+       {WD_STYLE}
+
         border-radius: 0px !important;
         height: -10px !important;
         width: 110% !important;
@@ -167,7 +189,7 @@ def Carregamento_BancoDados_Temas(st):
 	}}
 	
 	div[data-testid="stForm"] {{                                            /* FORM  FORMULARIO */
-        background-color: {FUNDO_OUTROS} !important;
+       {WD_STYLE}
 	
        padding: none !important;
        padding-top: 0% !important;
@@ -392,7 +414,8 @@ def Carregamento_BancoDados_Temas(st):
     }}
 
     div[data-testid="stVerticalBlock"][class*="st-key-menu_lado_sidebar"] {{             /* stVerticalBlock st-key-menu_lado_sidebar st-emotion-cache-1gz5zxc e12zf7d53 */
-        background-color: {THEMA_APP1} !important; 
+               {WD_STYLE}
+
         
     }}
     
@@ -422,8 +445,9 @@ def Carregamento_BancoDados_Temas(st):
         font-size: {FONTE_MENU}px !important;
 	}}
     
-    div[data-testid="stVerticalBlock"][class*="st-key-Preview st-emotion-cache-1gz5zxc e12zf7d53"] {{  /* PREVIEWS  */
-        background-color: {THEMA_APP2} !important;
+    div[data-testid="stVerticalBlock"][class*="st-key-Preview st-emotion-cache-1gz5zxc e12zf7d53"] {{       /* PREVIEWS  */
+               {BG_STYLE}
+
         position: fixed !important;
         bottom: 1.9% !important;
         padding-left:0% !important;
@@ -445,7 +469,8 @@ def Carregamento_BancoDados_Temas(st):
 	}}
 
     div[data-testid="stVerticalBlock"][class*="st-key-Terminal_cmd st-emotion-cache-1gz5zxc e12zf7d53"] {{         /*  TERMINAL  */
-        background-color: {THEMA_APP2} !important;
+                       {BG_STYLE}
+
         position: fixed !important;
         bottom: 1.9% !important;
         padding-left:0% !important;

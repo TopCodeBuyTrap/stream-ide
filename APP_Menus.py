@@ -370,7 +370,7 @@ blinker                   1.9.0'''
             from pathlib import Path
 
             # Cria pasta arquivos se não existir
-            pasta_arquivos = _DIRETORIO_EXECUTAVEL_(".arquivos")
+            pasta_arquivos = _DIRETORIO_EXECUTAVEL_('mim_mids')
             pasta_arquivos.mkdir(exist_ok=True)
             if IMAGEM_LOGO is not None:
                 try:
@@ -406,6 +406,7 @@ blinker                   1.9.0'''
                                   '',0,'ATIVO')
 
                     ATUAL_CUSTOMIZATION_nome(NOME_CUSTOM)
+                    Alerta(f'Beleza {NOME_CUSTOM} Já pintamos essa Budega!')
                 except Exception as e:
                     st.error(f"❌ Erro ao salvar: {str(e)}")
             else:

@@ -184,7 +184,7 @@ def Customization(st,NOME_CUSTOM):
 			col1, col2 = st.columns(2)
 
 			THEMA_APP2 = col1.color_picker("Corpo", THEMA_APP2, key=f'app2_{usuario}')
-			ESCURECER_IMAGEM = col2.selectbox("Opacidade", [0,3,5,7,10,20,30,40,50,60,70,80,90],
+			ESCURECER_IMAGEM = col2.selectbox("Opacidade", [OPC3,0,3,5,7,10,20,30,40,50,60,70,80,90],
 		                               key=f'IMA_2{usuario}')
 
 

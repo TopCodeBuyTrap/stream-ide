@@ -98,6 +98,8 @@ def Abertura():
 				nome_pasta_programa = Path(__file__).parent.parent.name
 				caminho_do_programa = Path(diretorio_programa).parent
 				caminho_Anterior_programa = Path(caminho_do_programa).parent
+				if not Path(caminho_do_programa, ".mim_mids").exists(): #criando a pasta de midias do usuario
+					Path(caminho_do_programa, ".mim_mids").mkdir()
 				st.markdown('<h3 style="color: #00d4ff;"><strong>1. Diretório do Programa</strong><br>(AUTO-DETECTADO)</h3>', unsafe_allow_html=True,text_alignment='center')
 				st.markdown(f"""
                 <div class="path-section">

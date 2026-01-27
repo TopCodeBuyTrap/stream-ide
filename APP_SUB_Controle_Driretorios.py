@@ -6,9 +6,13 @@ from pathlib import Path
 def _DIRETORIO_EXECUTAVEL_(arquivo=''):# onde o executavel vai ser instalado
     from Banco_dados import ler_A_CONTROLE_ABSOLUTO
     Pasta_Isntal_exec = Path(ler_A_CONTROLE_ABSOLUTO()[0][0]).resolve() # Caminho absoluto do arquivo atual   HENRIQUE TROCAR ISSO DEPOIS
+    if not Path(Pasta_Isntal_exec.parent, ".mim_mids").exists():
+        Path(Pasta_Isntal_exec.parent, ".mim_mids").mkdir()
     # Pastas relativas à pasta_projeto
     if arquivo == '.arquivos':
         return Path(Pasta_Isntal_exec,'.arquivos')
+    elif arquivo == 'mim_mids':
+        return Path(Pasta_Isntal_exec.parent,'.mim_mids')
     else:
         return Pasta_Isntal_exec
 

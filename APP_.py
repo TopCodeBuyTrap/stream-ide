@@ -228,6 +228,7 @@ def app():
                 with st.expander(f":material/terminal: Terminal: {val}"):
                     Terminal(altura_term,THEMA_TERMINAL, TERMINAL_TAM_MENU)
 
+
             # --------------------------------------------------------------------- BUSCAR ARQUIVO SELECIONADO
             if arquivo_selecionado_caminho and os.path.isfile(arquivo_selecionado_caminho):
                 caminho = Path(arquivo_selecionado_caminho)
@@ -241,9 +242,7 @@ def app():
                     with footer_container:
                         st.image(caminho, caption=f"🖼️ {caminho.name}")
 
-        else:
-            with col2:
-                st.image('.arquivos/simbolo.png',caption='By TopCodeBuyTrap')
+
 #---------------------------
 if __name__ == "__main__":
     try:

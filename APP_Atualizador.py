@@ -21,27 +21,15 @@ def checar_atualizacao():
 
 	@st.dialog(f":material/format_indent_decrease: Atualizar StreamIDE:  [ {versao_local} ]")
 	def menu_principal():
+		# ✅ BOTÃO MANUAL SEMPRE VISÍVEL
+
 		try:
 			url = f"https://raw.githubusercontent.com/TopCodeBuyTrap/stream-ide/main/LATEST_VERSION.txt?t={int(time.time())}"
-			resp = None
-			for metodo in range(4):
-				try:
-					if metodo == 0:
-						resp = requests.get(url, timeout=10)
-					elif metodo == 1:
-						resp = requests.get(url, timeout=10)
-					elif metodo == 2:
-						resp = requests.get(url, timeout=10, verify=False)
-					elif metodo == 3:
-						session = requests.Session()
-						session.headers.update({'User-Agent': 'Mozilla/5.0'})
-						resp = session.get(url, timeout=10, verify=False)
-					if resp and resp.status_code == 200: break
-				except:
-					continue
+			resp = requests.get(url, timeout=5)
 
-			if resp and resp.status_code == 200:
+			if resp.status_code == 200:
 				versao_nova = resp.text.strip()
+
 				if versao_nova > versao_local:
 					st.success(f"🔔 **NOVA VERSÃO DISPONÍVEL:**  [ {versao_nova} ]")
 					if st.button(f":material/queue_play_next: ATUALIZAR para Vesão :material/terminal_output:",
@@ -50,12 +38,11 @@ def checar_atualizacao():
 				else:
 					st.success(f"✅ App atualizado [ {versao_nova} ]")
 			else:
-				st.warning("🌐 GitHub offline")
+				st.info(f"📱 v{versao_local}")
 		except Exception as e:
-			st.code(f"Erro: {str(e)[:100]}")
+			st.warning(f"Erro: {e}")
 
 	menu_principal()
-
 
 def atualizar_tudo(nova_versao):
 	app_root = get_app_root()
@@ -97,7 +84,7 @@ def atualizar_tudo(nova_versao):
 	github_root = temp_dir / "stream-ide-main"
 	internal_dest = app_root / "_internal"
 
-	# 🛡️ 3. BACKUP certifi/ ANTES da limpeza
+	# 🛡️ 3. BACKUP certifi/ ANTES da atualização
 	st.info("💾 Backup certifi/...")
 	certifi_backup = app_root / "certifi_backup"
 	if (internal_dest / "certifi").exists():
@@ -106,20 +93,10 @@ def atualizar_tudo(nova_versao):
 	else:
 		st.text("⚪ certifi não existia")
 
-	# 4. LIMPA _internal (mantém backup separado)
-	st.info("🗑️ Limpar _internal...")
-	if internal_dest.exists():
-		for i in range(10):
-			try:
-				shutil.rmtree(internal_dest)
-				break
-			except:
-				time.sleep(1)
-
-	# 5. COPIA _internal DO GITHUB
-	st.info("📁 _internal...")
-	contador = 0
+	# 4. NÃO APAGAR _internal inteiro, apenas atualiza arquivos do GitHub
+	st.info("📁 Atualizando _internal sem apagar certifi...")
 	internal_dest.mkdir(exist_ok=True)
+	contador = 0
 	for item in github_root.rglob("*"):
 		if item.is_file():
 			rel_path = item.relative_to(github_root)
@@ -127,28 +104,27 @@ def atualizar_tudo(nova_versao):
 			dest_path.parent.mkdir(parents=True, exist_ok=True)
 			shutil.copy2(item, dest_path)
 			contador += 1
-	st.text(f"✅ {contador} arquivos _internal")
+	st.text(f"✅ {contador} arquivos _internal atualizados")
 
-	# ✅ 6. RESTAURA certifi/
+	# ✅ 5. RESTAURA certifi/
 	if certifi_backup.exists():
 		shutil.copytree(certifi_backup, internal_dest / "certifi", dirs_exist_ok=True)
 		st.success("✅ certifi/ RESTAURADO!")
 		shutil.rmtree(certifi_backup)
 
-	# 🧹 7. LIMPA RAIZ .py VELHOS
+	# 🧹 6. LIMPA RAIZ .py VELHOS
 	st.info("🧹 Limpa raiz...")
 	for arq_velho in app_root.glob("*.py"):
-		if arq_velho.name not in ["atualizador.py"]:  # Protege este
+		if arq_velho.name not in ["atualizador.py"]:
 			try:
 				arq_velho.unlink()
 				st.text(f"🗑️ {arq_velho.name}")
 			except:
 				pass
 
-	# 🏠 8. COPIA RAIZ DO GITHUB
+	# 🏠 7. COPIA RAIZ DO GITHUB
 	st.info("🏠 Raiz app...")
-	arquivos_raiz = ["style.css"]  # ← Arquivos na raiz a ser atualizados
-
+	arquivos_raiz = ["style.css"]
 	for arq in arquivos_raiz:
 		src = github_root / arq
 		if src.exists():
@@ -157,7 +133,7 @@ def atualizar_tudo(nova_versao):
 		else:
 			st.text(f"⚪ {arq} (não no GitHub)")
 
-	# 📁 9. .arquivos/ RAIZ
+	# 📁 8. .arquivos/ RAIZ
 	src_arquivos = github_root / ".arquivos"
 	if src_arquivos.exists():
 		dest_arquivos = app_root / ".arquivos"
@@ -165,7 +141,7 @@ def atualizar_tudo(nova_versao):
 		shutil.copytree(src_arquivos, dest_arquivos)
 		st.success("✅ .arquivos/")
 
-	# 10. LIMPA TEMP
+	# 9. LIMPA TEMP
 	os.remove(zip_path)
 	shutil.rmtree(temp_dir)
 
