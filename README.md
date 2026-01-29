@@ -75,6 +75,10 @@ Todo o estado da IDE é persistido em **SQLite**, garantindo que:
 
 ## 📦 Como usar
 
+---
+
+## 🛠️ INSTALL / BUILD
+
 ### 1️⃣ Executável (fácil)
 
 * Baixe `TcbT-Stream-IDE-v0.0.1.exe`
@@ -83,9 +87,31 @@ Todo o estado da IDE é persistido em **SQLite**, garantindo que:
 
 ### 2️⃣ Desenvolvimento
 
+````bash
+# Atualiza pip, setuptools e wheel
+python.exe -m pip install --upgrade pip
+python -m pip install --upgrade setuptools wheel
+
+# Streamlit Desktop App (empacotamento)
+pip install streamlit-desktop-app==0.3.3
+# https://github.com/ohtaman/streamlit-desktop-app
+
+# Editor Ace
+pip install streamlit_ace==0.1.1
+# https://share.streamlit.io/okld/streamlit-gallery/main?p=ace-editor
+
+# Rodar em modo desenvolvimento
+streamlit run APP_.py
+
+# Criar executável
+streamlit-desktop-app build APP_.py \
+  --name Stream_IDE \
+  --streamlit-options --theme.base=dark \
+  --pyinstaller-options \
+    --onedir --noconsole --noconfirm
 ```bash
 git clone https://github.com/TopCodeBuyTrap/stream-ide
-```
+````
 
 ---
 
