@@ -47,8 +47,8 @@ def Carregamento_BancoDados_Temas(st):
 
 	RADIO = ler_CUSTOMIZATION_coluna('RADIAL')
 	BORDA = ler_CUSTOMIZATION_coluna('BORDA')
-	DECORA = ler_CUSTOMIZATION_coluna('DECORA')
-	FUNDO_OUTROS = ler_CUSTOMIZATION_coluna('OPC1') # coloquei fundo dos botes e expander etc..
+	BORDA_STIL = ler_CUSTOMIZATION_coluna('DECORA') # AQUI NO DECORA COLOQUEI TIPOS DE BORDA
+	COR_WIDGET = ler_CUSTOMIZATION_coluna('OPC1') # coloquei fundo dos botes e expander etc..
 	OPC2 = ler_CUSTOMIZATION_coluna('OPC2')
 	OPC3 = ler_CUSTOMIZATION_coluna('OPC3') # COLOQUEI AQUI IMAGEM CONFIG
 	OBS = ler_CUSTOMIZATION_coluna('OBS')
@@ -80,7 +80,7 @@ def Carregamento_BancoDados_Temas(st):
 
 	# cor base + opacidade vinda do OPC3
 	try:
-		COR_OVERLAY = hex_to_rgba_inverso(THEMA_APP2, float(OPC3))
+		COR_OVERLAY = hex_to_rgba_inverso(THEMA_APP2, float(OPC3))# NESSA PARTE DO CODIGO COLO OPACIDADE E IMAGEM NO BACKGROUND
 
 		if OPC3 != "":
 			BG_STYLE = f'''
@@ -101,7 +101,7 @@ def Carregamento_BancoDados_Temas(st):
 				    '''
 
 	try:
-		COR_OVERLAY2 = hex_to_rgba_inverso(FUNDO_OUTROS, float(OPC3))
+		COR_OVERLAY2 = hex_to_rgba_inverso(COR_WIDGET, float(OPC3))# NESSA PARTE DO CODIGO COLO OPACIDADE NO WIDGET
 
 		if OPC3 != "":
 			WD_STYLE = f'''
@@ -111,17 +111,15 @@ def Carregamento_BancoDados_Temas(st):
 
 		else:
 			WD_STYLE = f'''
-		    background-color: {FUNDO_OUTROS} !important;
+		    background-color: {COR_WIDGET} !important;
 		    '''
 	except ValueError :
 		WD_STYLE = f'''
-				    background-color: {FUNDO_OUTROS} !important;
+				    background-color: {COR_WIDGET} !important;
 				    '''
 
 
 	PASSR_COR = 'red'
-	BORDA_STIL = 'dashed' # dashed  solid  double  dotted
-	# ✅ CSS CORRIGIDO (sintaxe válida)
 	# simblinhado = underline = _____  line-through  underline wavy,  underline dashed = _ _ _  underline dotted = ...
 	page_bg = f"""
     <style>
@@ -139,31 +137,29 @@ def Carregamento_BancoDados_Temas(st):
 	    overflow: hidden !important;
 	}}
 	
-    P {{                                                          /* VALORES SELCBOX SUBHEADERS */
-        color: {COR_MENU} !important;
-        font-family: {FONTE_MENU} !important;
-        font-size: {TAM_MENU}px !important;
- 
+    div[data-testid="stVerticalBlock"] [class*="st-key-MenuTopo"] {{         /* CABEÇALHO MENU TOPO */
+       {WD_STYLE}
+      border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important;   
+        height: -10px !important;
+        width: 110% !important;
 
-        
+    }} 
+	
+    P {{                                                          /* VALORES  SUBHEADERS */
+        font-family: {FONTE_MENU} !important;
+        font-size: {TAM_MENU}px !important; 
     }}
+                                                                                          
+
     
     [data-testid="stMarkdown"] p {{                               /* MARKDOWS E WRITES */
         color: {COR_CAMPO} !important;
         font-size: {FONTE_MENU}px !important;
         text-decoration: underline dotted !important;
-        font-style: italic !important;
-        
+        font-style: italic !important;        
     }}
     
-    div[data-testid="stVerticalBlock"] [class*="st-key-MenuTopo"] {{
-       {WD_STYLE}
 
-        border-radius: 0px !important;
-        height: -10px !important;
-        width: 110% !important;
-
-    }} 
     
     input {{                                                        /* PARA TODOS OS INPUTS */ 
         color: {COR_CAMPO} !important;
@@ -172,7 +168,6 @@ def Carregamento_BancoDados_Temas(st):
     }}
     
     div[data-testid="stButton"] button {{                               /* Botões */
-        background-color: {FUNDO_OUTROS} !important;
         font-family: {FONTE_MENU} !important;
         min-height: 10px !important;
         border-radius: {RADIO}px !important;
@@ -245,7 +240,7 @@ def Carregamento_BancoDados_Temas(st):
 	
 	
 	input[type="checkbox"]:checked + div {{                                 /* checkbox MARCADO */
-	    background-color: {FUNDO_OUTROS } !important;
+	    background-color: {COR_WIDGET } !important;
 	}}
     
    [data-testid="stColorPicker"] {{                                           /* COLOR PICK */ 
@@ -262,16 +257,20 @@ def Carregamento_BancoDados_Temas(st):
     }}
     
 	div[data-testid="stSelectbox"] div[data-baseweb="select"] {{                                         /* SELCTBOX */ 
-        background-color: {FUNDO_OUTROS} !important;
+        background-color: {COR_WIDGET} !important;
         color: {COR_CAMPO} !important;
         font-family: {FONTE_CAMPO} !important;
         font-size: {FONTE_MENU}px !important;
         border-radius: {RADIO}px !important;
         border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important;
     }}
+        [data-testid="stSelectbox"] p{{                           /* LABEL SELCBOX*/
+        color: {COR_MENU} !important;
+        
+    }}
     
-	div[data-testid="stSelectbox"] li {{                                         /* SELCTBOX */ 
-        background-color: {FUNDO_OUTROS} !important;
+	ul[data-testid="stSelectboxVirtualDropdown"]  {{                                         /* SELCTBOX */ 
+        background-color: {THEMA_APP1} !important;
         color: {COR_CAMPO} !important;
         font-family: {FONTE_CAMPO} !important;
         font-size: {FONTE_MENU}px !important;
@@ -287,7 +286,7 @@ def Carregamento_BancoDados_Temas(st):
     }}
 
     [data-testid="stExpander"] {{                                               /* EXPANDER */ 
-        background-color: {FUNDO_OUTROS} !important;
+        background-color: {COR_WIDGET} !important;
         color: {COR_MENU} !important;
         border-radius: 0px !important;
     }}
@@ -311,6 +310,7 @@ def Carregamento_BancoDados_Temas(st):
 	    /* Borda transparente também */
 	    border: none !important;
 	    box-shadow: none !important;
+	    
     }}
     
     .block-container {{                                                                 /* BLOCO PRINCIPAL BODY*/
@@ -376,7 +376,7 @@ def Carregamento_BancoDados_Temas(st):
 	
 	    
     [data-testid="stBaseButton-pills"] {{                               /* ST.PILLS BOTAO */
-        background-color: transparent !important;
+        background-color: {COR_WIDGET} !important;
         border: 0px solid {COR_CAMPO} !important; 
         margin-bottom: -8% !important;
         
@@ -399,6 +399,8 @@ def Carregamento_BancoDados_Temas(st):
         width: 10% !important;
         right: 45% !important;
         z-index: 9999 !important;
+        border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important; 
+        
         
          /* ✅ SCROLL HABILITADO */
 	    overflow: visible !important;  /* Permite conteúdo maior */
@@ -406,8 +408,8 @@ def Carregamento_BancoDados_Temas(st):
 	    height: auto !important;       /* Altura dinâmica */
     }}
     
-    [data-testid="stCustomComponentV1"] {{                                      /* EDITORES DE CODIGOS */
-		background-color: {FUNDO_OUTROS} !important;
+    [data-testid="stCustomComponentV1 vvvvvv"] {{                                      /* EDITORES DE CODIGOS */
+		background-color: {COR_WIDGET} !important;
 		border-radius: {RADIO}px !important;
 		border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important; 
 		
@@ -420,13 +422,13 @@ def Carregamento_BancoDados_Temas(st):
     }}
     
     div[data-testid="stButton"][class*="st-key-nome_da_sua_key"] {{             /* CONTAINERS */
-        background-color: {FUNDO_OUTROS} !important;
+        background-color: {COR_WIDGET} !important;
         padding: 0 !important;
         height: 5% !important;
     }}
 
 	[data-testid="stTextarea"][class*="st-dfs___________dd"] {{  /* nao  ta usando */
-        background-color: {FUNDO_OUTROS} !important;
+        background-color: {COR_WIDGET} !important;
 		border-radius: {RADIO+8}px !important;
 		border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important;	
     }}
@@ -445,44 +447,89 @@ def Carregamento_BancoDados_Temas(st):
         font-size: {FONTE_MENU}px !important;
 	}}
     
-    div[data-testid="stVerticalBlock"][class*="st-key-Preview st-emotion-cache-1gz5zxc e12zf7d53"] {{       /* PREVIEWS  */
-               {BG_STYLE}
+div[data-testid="stTabs"][class*="st-emotion-cache-8atqhb eh1nhsq0"] {{
+    {WD_STYLE}
+    border-radius: {RADIO}px !important;
+    border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important;
+    padding-left: 0% !important;
+}}
 
-        position: fixed !important;
-        bottom: 1.9% !important;
-        padding-left:0% !important;
-        right: 0% !important;
-        z-index: 99999 !important;
-        display: flex !important;
-        justify-content: space-between !important;
-        padding: 0px !important;
-        width:90% !important; 		
-    }}
-    
-	div[class*="st-key-Preview"] summary{{                            /* PREVIEWS CABECALHO  e se usar [data-testid="..."] troca de todos expander*/
-	    background-color: {FUNDO_OUTROS} !important;
+/* ABAS NÃO-SELECIONADAS - CINZA */
+div[data-testid="stTabs"][class*="st-emotion-cache-8atqhb eh1nhsq0"] [data-baseweb="tab"]:not([aria-selected="true"]) {{
+  color: {COR_CAMPO} !important;
+  opacity: 0.8 !important;
+}}
 
-	}}
+/* ABA ATIVA - SUA COR */
+div[data-testid="stTabs"][class*="st-emotion-cache-8atqhb eh1nhsq0"] [data-baseweb="tab"][aria-selected="true"] {{
+  color: {COR_MENU} !important;
+}}
 	
-	div[class*="st-key-Preview"] span.st-emotion-cache-11ofl8m {{                                               /* PREVIEWS CABECALHO */
-	    background-color: {FUNDO_OUTROS} !important;
-	}}
-
     div[data-testid="stVerticalBlock"][class*="st-key-Terminal_cmd st-emotion-cache-1gz5zxc e12zf7d53"] {{         /*  TERMINAL  */
-                       {BG_STYLE}
-
+       {BG_STYLE}
         position: fixed !important;
-        bottom: 1.9% !important;
+        bottom: 2.5% !important;
         padding-left:0% !important;
         right: 0% !important;
-        z-index: 9999 !important;
+        z-index: 999 !important;
         display: flex !important;
         justify-content: space-between !important;
         padding: 0px !important;
         width: 100% !important;      
           
     }}
-  
+    
+    div[data-testid="stVerticalBlock"][class*="st-key-Preview st-emotion-cache-1gz5zxc e12zf7d53"] {{       /* PREVIEWS  */
+       {BG_STYLE}
+        position: fixed !important;
+        bottom: 2.5% !important;
+        padding-left:0% !important;
+        right: 0% !important;
+        z-index: 9999 !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        padding: 0px !important;
+        width:90% !important; 		
+    }}
+    
+     div[data-testid="stVerticalBlock"][class*="st-key-Preview_Jason st-emotion-cache-1gz5zxc e12zf7d53"] {{       /* JASON  */
+       {BG_STYLE}
+        position: fixed !important;
+        bottom: 2.5% !important;
+        padding-left:0% !important;
+        right: 0% !important;
+        z-index: 99999 !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        padding: 0px !important;
+        width:80% !important; 		
+    }}
+    
+     div[data-testid="stVerticalBlock"][class*="st-key-Api_IA st-emotion-cache-1gz5zxc e12zf7d53"] {{       /* CHAT IA  */
+       {BG_STYLE}
+        position: fixed !important;
+        bottom: 2.5% !important;
+        padding-left:0% !important;
+        right: 0% !important;
+        z-index: 999999 !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        padding: 0px !important;
+        width:70% !important; 		
+    }}
+     div[data-testid="stVerticalBlock"][class*="st-key-Catalogar_scripts st-emotion-cache-1gz5zxc e12zf7d53"] {{       /* CATALOGAR */
+       {BG_STYLE}
+        position: fixed !important;
+        bottom: 2.5% !important;
+        padding-left:0% !important;
+        right: 0% !important;
+        z-index: 9999999 !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        padding: 0px !important;
+        width:60% !important; 		
+    }}
+    
     </style>
 
 

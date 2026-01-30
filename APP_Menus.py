@@ -267,6 +267,7 @@ blinker                   1.9.0'''
         FONTE_CAMPO = st1.selectbox("Fonte Campos", FONTES_TEXTO)
         FONTE_TAM_CAMPO = st2.number_input("Tam campos", min_value=8, max_value=48, value=13)
         FONTE_COR_CAMPO = st3.color_picker("Campos", "#FFA500")
+        TIPO_BORDA = st1.selectbox("Fonte Campos", ['solid','dashed','dotted','ridge','inset','hidden'])
 
         # Substitua TODOS os st.markdown por ESTE:
         st.html(f"""
@@ -293,7 +294,7 @@ blinker                   1.9.0'''
             margin: 1rem 0;
             box-shadow: 0 20px 40px rgba(0,0,0,0.15);
             font-family: Arial, sans-serif;
-            border: 2px solid {FONTE_COR_CAMPO} !important;
+            border: 2px {TIPO_BORDA} {FONTE_COR_CAMPO} !important;
             
         }}
 
@@ -315,7 +316,7 @@ blinker                   1.9.0'''
             padding: 2rem;
             border-radius: 1rem;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            border: 2px solid {FONTE_COR_CAMPO} !important;
+            border: 2px {TIPO_BORDA} {FONTE_COR_CAMPO} !important;
             
         }}
 
@@ -402,7 +403,7 @@ blinker                   1.9.0'''
                                       THEMA_APP1, THEMA_APP2,
                                       FONTE_MENU, FONTE_TAM_MENU, FONTE_COR_MENU,
                                       FONTE_CAMPO, FONTE_TAM_CAMPO, FONTE_COR_CAMPO,
-                                      0, 3, '', '#04061a',
+                                      0, 3, TIPO_BORDA, '#04061a',
                                   '',0,'ATIVO')
 
                     ATUAL_CUSTOMIZATION_nome(NOME_CUSTOM)
@@ -417,7 +418,7 @@ blinker                   1.9.0'''
                                   THEMA_APP1, THEMA_APP2,
                                   FONTE_MENU, FONTE_TAM_MENU, FONTE_COR_MENU,
                                   FONTE_CAMPO, FONTE_TAM_CAMPO, FONTE_COR_CAMPO,
-                                  0, 3, '', 	'#04061a',
+                                  0, 3, TIPO_BORDA, 	'#04061a',
                                   '',0,'ATIVO')
 
                 ATUAL_CUSTOMIZATION_nome(NOME_CUSTOM)

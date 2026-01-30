@@ -15,23 +15,20 @@ STARTUPINFO.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 STARTUPINFO.wShowWindow = subprocess.SW_HIDE
 CREATE_FLAGS = subprocess.CREATE_NO_WINDOW
 
-
-
 def data_sistema():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
 
 def Alerta(st,msg):
     @st.dialog("Alerta ")
     def menu_principal():
         st.warning(msg)
     menu_principal()
+
 def Linha_Sep(Cor,Larg):
     import streamlit.components.v1 as components
 
     HtmL =f'<div style="display: block; background-color: {Cor}; width: 100%; height: {Larg}px;"></div>'
     return components.html(HtmL, height=Larg+9, scrolling=False)
-
 
 # ============================================================
 # PARSE AST SEGURO
@@ -41,7 +38,6 @@ def _parse_ast(codigo: str) -> Optional[ast.AST]:
         return ast.parse(codigo)
     except SyntaxError:
         return None
-
 
 # ============================================================
 # ANNOTATIONS PROFISSIONAIS (GUTTER SIMPLES, HOVER RICO)
@@ -134,7 +130,6 @@ def Anotations_Editor(codigo: str) -> List[Dict[str, Any]]:
 
     return annotations
 
-
 # ============================================================
 # MARKERS (VISUAL LIMPO, SEM POLUIÇÃO)
 # ============================================================
@@ -214,8 +209,6 @@ def calcular_qualidade(codigo: str) -> Dict[str, Any]:
         "status": "⭐ Excelente" if score > 90 else "⚡ Boa" if score > 70 else "🚨 Crítica"
     }
 
-
-
 def Identificar_linguagem(arquivo):
     EXT_MAP = {
     ".py": "python",
@@ -235,14 +228,12 @@ def Identificar_linguagem(arquivo):
     _, ext = os.path.splitext(arquivo)
     return EXT_MAP.get(ext.lower(), "Desconhecido")
 
-
 def Criar_Arquivo_TEXTO(caminho, titulo, conteudo, ext):
     caminho_txt =rf"{caminho}\\{titulo}{ext}"
 
     with open(caminho_txt, "w", encoding="utf-8") as f:
         f.write(conteudo)
     return caminho_txt
-
 
 def wrap_text(text, width=80):
     # Quebra o texto nas linhas originais
@@ -252,7 +243,6 @@ def wrap_text(text, width=80):
         # Aplica wrap apenas em cada linha separadamente
         wrapped_lines.extend(textwrap.wrap(line, width=width) or [""])
     return "\n".join(wrapped_lines)
-
 
 # Henrique, essa função é só pra olhar na pasta se tem um arquivo com o mesmo nome e se tiver ele procura outro nome diferente.
 def gerar_nome_unico(pasta_base: Path, nome_desejado: str) -> Path:
@@ -278,15 +268,9 @@ def gerar_nome_unico(pasta_base: Path, nome_desejado: str) -> Path:
             return novo_caminho
         contador += 1
 
-
-
-
 # -------------------------------
 # 1️⃣ Sincroniza estrutura do projeto corretamente
 # -------------------------------
-
-
-
 def contar_estrutura(caminho_base):
     caminho_base = Path(caminho_base).resolve()
 
@@ -381,7 +365,6 @@ def saudacao_por_hora_sistema() -> str:
         return "Boa noite"
     else:
         return "Boa madrugada"
-
 
 import os
 from collections import defaultdict

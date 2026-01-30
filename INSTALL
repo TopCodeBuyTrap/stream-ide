@@ -27,6 +27,8 @@ License: MIT
 # ---------------------------- Rodar
 streamlit run modelo.py
 
+pip install streamlit_dynamic_tabs
+
 
 # FALTA IMPLEMENTAR:
 1. salvar arquivos automaticamente

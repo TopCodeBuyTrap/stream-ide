@@ -3,7 +3,6 @@
 # Isso corrige o erro "ModuleNotFoundError" quando roda o executável
 
 import sys
-import os
 from pathlib import Path
 
 
@@ -192,12 +191,20 @@ def app():
                                             key="bBotao_recustomizar")
                     if btcst:
                         Customization(st,NOME_CUSTOM)
+                catalogo = Button_Nao_Fecha("📚 Arquivos Catalogados", "📚 Arquivos Catalogados", 'catalogo')
+                if catalogo:
+                    caminho_completo = Pasta_Projeto_Atual  # Ex: "C:\\Users\\henri\\PycharmProjects\\IDE_TOP"
+                    nome_pasta = os.path.basename(caminho_completo)
+                    conf_baix_catalogo(st, caminho_completo, nome_pasta)
+
         else:
             col1, col2 = st.columns([.2, 9])
+
+        Tab1, Tab2 = st.columns([.4, 9])
         #------------------z--------------------------------------------------- SIDIBAR LATERAL
         with st.sidebar:
             s1,s2,s3 = st.sidebar.columns(3)
-            s2.image(IMAGEM_LOGO)
+            s2.image('.arquivos/logo_.png',caption='By TopCodeBuyTrap')
 
             caminho_completo = Pasta_Projeto_Atual  # Ex: "C:\\Users\\henri\\PycharmProjects\\IDE_TOP"
             unidade = os.path.splitdrive(caminho_completo)[0]  # Ex: "C:"
@@ -205,7 +212,7 @@ def app():
             Arq_Selec_Nomes, Arq_Selec_Diretorios = Sidebar_Diretorios(st, Meus_Arquivos, 7)
 
         if Top7.button(f':material/search: {os.path.join(nome_pasta)} :material/folder_open:',use_container_width=True, type="secondary"):
-            Open_Explorer(Pasta_Projeto_Atual)
+            Open_Explorer(os.path.join(caminho_completo,nome_pasta))
 
 
         if len(Arq_Selec_Diretorios) > 0:
@@ -220,7 +227,6 @@ def app():
 
 
 
-            Tab1, Tab2 = st.columns([.4, 9])
             val = ''
             with Tab2.container(border=True, key='Terminal_cmd', width=900):
                 with Trm2:
@@ -228,6 +234,9 @@ def app():
                 with st.expander(f":material/terminal: Terminal: {val}"):
                     Terminal(altura_term,THEMA_TERMINAL, TERMINAL_TAM_MENU)
 
+        else:
+            with col2:
+                st.image('.arquivos/simbolo.png',caption='By TopCodeBuyTrap')
 
             # --------------------------------------------------------------------- BUSCAR ARQUIVO SELECIONADO
             if arquivo_selecionado_caminho and os.path.isfile(arquivo_selecionado_caminho):
@@ -248,7 +257,7 @@ if __name__ == "__main__":
     try:
         import streamlit as st
         from datetime import datetime
-
+        from APP_Catalogo import conf_baix_catalogo
         from APP_SUB_Customizar import Customization
         from APP_SUB_Funcitons import Identificar_linguagem, escreve, chec_se_arq_do_projeto, contar_estrutura, \
             Button_Nao_Fecha, data_sistema, resumo_pasta, limpar_CASH, Linha_Sep
@@ -283,6 +292,8 @@ if __name__ == "__main__":
             if Abertura() == True:
                 st.rerun()
     except Exception as e:
-        st.error(f"🚨 ERRO: {e}")
+        st.toast(f"🚨 ERRO: {e}")
         st.warning("🔄 **FECHE e REABRA o programa**")
+        st.write(f"🚨{e}")
+
 
