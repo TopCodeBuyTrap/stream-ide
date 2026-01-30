@@ -100,6 +100,22 @@ def Carregamento_BancoDados_Temas(st):
 				    background-color: {THEMA_APP2} !important;
 				    '''
 
+	def img_to_base64(image_path):
+		with open(image_path, "rb") as img_file:
+			return base64.b64encode(img_file.read()).decode()
+	SD_STYLE = f'''
+		    /* FUNDO COLORIDO PRIMEIRO */
+    background: linear-gradient(135deg, {THEMA_APP2}, #1e1e1e) !important;
+    
+    /* IMAGEM PEQUENA SOBRE O FUNDO */
+    background-image: url("data:image/png;base64,{img_to_base64('.arquivos/simbolo.png')}") !important;
+    background-repeat: no-repeat !important;
+    background-position: center center !important;
+    
+    
+    background-size: 450px 250px !important;  /* ← IMAGEM PEQUENA */
+    
+'''
 	try:
 		COR_OVERLAY2 = hex_to_rgba_inverso(COR_WIDGET, float(OPC3))# NESSA PARTE DO CODIGO COLO OPACIDADE NO WIDGET
 
@@ -133,14 +149,17 @@ def Carregamento_BancoDados_Temas(st):
 
 
 	/* CONTEÚDO CENTRAL */
-	section[data-testid="stMain2"] {{ /* REMOVER SCROLL */
+	section[data-testid="stMain"] {{ /* REMOVER SCROLL */
 	    overflow: hidden !important;
 	}}
 	
     div[data-testid="stVerticalBlock"] [class*="st-key-MenuTopo"] {{         /* CABEÇALHO MENU TOPO */
        {WD_STYLE}
       border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important;   
-        height: -10px !important;
+        height: 10px !important; 
+        padding-top: 3% !important;
+        padding-bottom: .0% !important;
+        
         width: 110% !important;
 
     }} 
@@ -202,6 +221,8 @@ def Carregamento_BancoDados_Temas(st):
 
 	}}
 	div[data-testid="stColumn"] {{                                            /* COLUNAS st.columns() */
+        margin-top: -1.5% !important;
+	
        padding-top: 0% !important;
        padding-left: 0% !important;
        padding-right: 0% !important;
@@ -314,7 +335,7 @@ def Carregamento_BancoDados_Temas(st):
     }}
     
     .block-container {{                                                                 /* BLOCO PRINCIPAL BODY*/
-        margin-top: -7% !important;
+        margin-top: -8.5% !important;
         margin-left: 0px !important;
         padding-left: 3.7% !important;
         margin-right: 0px !important;
@@ -324,7 +345,8 @@ def Carregamento_BancoDados_Temas(st):
     }}
    
 	section[data-testid="stSidebar"] {{                                         /* SIDEBAR */
-        background-color: {THEMA_APP1} !important;
+	
+        {SD_STYLE}
         height: 110% !important;
         margin-top: 0% !important;
         margin-left: -0% !important;

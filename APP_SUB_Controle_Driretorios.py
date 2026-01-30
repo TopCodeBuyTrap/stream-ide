@@ -13,6 +13,8 @@ def _DIRETORIO_EXECUTAVEL_(arquivo=''):# onde o executavel vai ser instalado
         return Path(Pasta_Isntal_exec,'.arquivos')
     elif arquivo == 'mim_mids':
         return Path(Pasta_Isntal_exec.parent,'.mim_mids')
+    elif arquivo == 'backup':
+        return Path(ler_A_CONTROLE_ABSOLUTO()[0][2])
     else:
         return Pasta_Isntal_exec
 

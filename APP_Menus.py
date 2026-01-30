@@ -963,17 +963,20 @@ def Cria_Projeto_pouppap(st):
 
 
 def Apagar_Arq(st,nome,diretorio):
-    st1, st2 = st.columns([9,1])
-    st1.text(f"🗑️ Tem certeza de que deseja apagar?")
-    st1.code(f"{nome}")
-    if st2.button("x", key="fechar_painel", ):
-        st.session_state["botao_apagar_arquivos_state"] = False
-        st.rerun()
+    @st.dialog(f"Apagar {nome}")
+    def menu_principal():
+        st1, st2 = st.columns([9,1])
+        st1.text(f"🗑️ Tem certeza de que deseja apagar?")
+        st1.code(f"{diretorio}")
+        if st2.button("x", key="fechar_painel", ):
+            st.session_state["botao_apagar_arquivos_state"] = False
+            st.rerun()
 
-    if st.button(f"**❌ Apagar Sim!**", key=f"{nome}_btn_del2", use_container_width=True,type="secondary"):
-        Apagar_Arquivos(st, diretorio)
-        st.session_state.Apagar_Arquivos = False
+        if st.button(f"**❌ Apagar Sim!**", key=f"{nome}_btn_del2", use_container_width=True,type="secondary"):
+            Apagar_Arquivos(st, diretorio)
+            st.session_state.Apagar_Arquivos = False
 
-        sleep(1.5)
-        st.session_state["botao_apagar_arquivos_state"] = False
-        st.rerun()
+            sleep(1.5)
+            st.session_state["botao_apagar_arquivos_state"] = False
+            st.rerun()
+    menu_principal()

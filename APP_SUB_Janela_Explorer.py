@@ -83,6 +83,58 @@ def listar_arquivos_e_pastas(caminho):
     return itens
 
 
+def Abrir_Arquivo_Select_Tabs_(st, caminho_arquivo):
+    # **PRIMEIRO** trata lista (resolve TypeError)
+    from pathlib import Path
+    import os
+
+
+    if isinstance(caminho_arquivo, (list, tuple)):
+        if not caminho_arquivo:
+            st.warning("Lista de caminhos vazia")
+            return "ERRO", ""
+        caminho_arquivo = caminho_arquivo[0]  # Pega primeiro item
+
+    # AGORA é string válida - faz verificações originais
+    if not os.path.exists(caminho_arquivo):
+        st.warning(f"Arquivo não encontrado: {caminho_arquivo}")
+        return "ERRO", ""
+
+    if not os.path.isfile(caminho_arquivo):
+        st.warning(f"'{caminho_arquivo}' é uma pasta, não arquivo")
+        return "ERRO", ""
+
+    # IDENTIFICA TIPO por extensão
+    path = Path(caminho_arquivo)
+    ext = path.suffix.lower()
+
+    # IMAGENS
+    if ext in ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp']:
+        try:
+            return "IMAGEM", path.read_bytes()
+        except:
+            return "ERRO", ""
+
+    # VÍDEOS
+    elif ext in ['.mp4', '.avi', '.mov', '.mkv', '.webm', '.flv', '.wmv']:
+        return "VIDEO", str(path)
+
+    # ÁUDIO
+    elif ext in ['.mp3', '.wav', '.ogg', '.flac', '.aac', '.m4a']:
+        return "AUDIO", str(path)
+
+    # TEXTO/CÓDIGO (EXATAMENTE COMO ORIGINAL)
+    else:
+        try:
+            os.chmod(caminho_arquivo, 0o666)
+            with open(caminho_arquivo, "r", encoding="utf-8") as f:
+                return "TEXTO", f.read()
+        except PermissionError:
+            st.warning("Sem permissão. Feche outros apps ou rode como admin.")
+            return "ERRO", ""
+        except Exception as e:
+            st.warning(f"Erro: {e}")
+            return "ERRO", ""
 
 def Abrir_Arquivo_Select_Tabs(st,caminho_arquivo):
     if not os.path.exists(caminho_arquivo):
@@ -97,9 +149,8 @@ def Abrir_Arquivo_Select_Tabs(st,caminho_arquivo):
             return f.read()
     except PermissionError:
         st.warning("Sem permissão. Feche outros apps ou rode como admin.")
-    except Exception as e:
-        st.warning(f"Erro: {e}")
-
+    except Exception as e:pass
+       # st.warning(f"Erro: {e}")
 
 
 def Apagar_Arquivos(st, arquivo):

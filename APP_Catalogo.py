@@ -172,25 +172,63 @@ def conf_baix_catalogo(st,caminho_completo,nome_pasta):
             df = pd.DataFrame(dados)
             st.dataframe(df, hide_index=True)
 
-        conteudo = "# DOCUMENTAÇÃO COMPLETA DO PROJETO\n"
-        conteudo += f"{caminho_completo}\n\n"
+        conteudo = "DOCUMENTAÇÃO COMPLETA DO PROJETO\n"
+        conteudo += f"{caminho_completo}\n\n\n"
 
         for nome_arquivo, info in catalogos.items():
-            conteudo += (
-                f"## {info.get('arquivo', 'desconhecida')}\n"
-            )
+            conteudo += (f"--\n\n{info.get('arquivo', 'desconhecida')}\n")
             conteudo += (
                 f"{nome_arquivo} / Linguagem: "
                 f"{info.get('linguagem', '').upper()}\n\n"
             )
             conteudo += info.get("documentacao", "")
-            conteudo += "\n\n---\n\n"
 
         st.download_button(
             label=f"Download {nome_pasta}",
             data=conteudo.encode("utf-8"),
-            file_name=f"{nome_pasta}.md",
+            file_name=f"{nome_pasta}.txt",
             mime="text/markdown",use_container_width=True
         )
 
+def conf_baix_catalogo_bacup(st, caminho_completo, nome_pasta):
+    import os
+    import json
+    import shutil
+    from datetime import datetime
 
+    PASTA_CATALOGO = ".virto_stream"
+    CAMINHO_JSON = os.path.join(PASTA_CATALOGO, ".catalogos.json")
+
+    PASTA_BACKUP = os.path.join("backup", nome_pasta)
+    os.makedirs(PASTA_BACKUP, exist_ok=True)
+
+    if not os.path.exists(CAMINHO_JSON):
+        return
+
+    with open(CAMINHO_JSON, "r", encoding="utf-8") as f:
+        catalogos = json.load(f)
+
+    if not catalogos:
+        return
+
+    conteudo = "DOCUMENTAÇÃO COMPLETA DO PROJETO\n\n"
+    conteudo += f"{caminho_completo}\n\n"
+    conteudo += f"Gerado em: {datetime.now().strftime('%Y-%m-%d %H:%M')}\n\n"
+
+    for nome_arquivo, info in catalogos.items():
+        conteudo += f"{info.get('arquivo', 'desconhecida')}\n"
+        conteudo += (
+            f"{nome_arquivo} / Linguagem: "
+            f"{info.get('linguagem', '').upper()}\n\n"
+        )
+        conteudo += info.get("documentacao", "")
+        conteudo += "\n\n---\n\n"
+
+    nome_txt = f"StreamProjet.txt"
+    caminho_txt_catalogo = os.path.join(PASTA_CATALOGO, nome_txt)
+    caminho_txt_backup = os.path.join(PASTA_BACKUP, nome_txt)
+
+    with open(caminho_txt_catalogo, "w", encoding="utf-8") as f:
+        f.write(conteudo)
+
+    shutil.copy2(caminho_txt_catalogo, caminho_txt_backup)

@@ -138,7 +138,6 @@ def app():
     else:
 
 
-
         with st.container(border=True, key='MenuTopo'):
             Top1,Top2 ,Top3 ,Top4,Top5,Top6,Top7,Top8= st.columns([.4,.4,.4,.4,2,1.4,1,.4])
 
@@ -193,9 +192,9 @@ def app():
                         Customization(st,NOME_CUSTOM)
                 catalogo = Button_Nao_Fecha("📚 Arquivos Catalogados", "📚 Arquivos Catalogados", 'catalogo')
                 if catalogo:
-                    caminho_completo = Pasta_Projeto_Atual  # Ex: "C:\\Users\\henri\\PycharmProjects\\IDE_TOP"
-                    nome_pasta = os.path.basename(caminho_completo)
-                    conf_baix_catalogo(st, caminho_completo, nome_pasta)
+                    caminho_pai = Pasta_Projeto_Atual  # Ex: "C:\\Users\\henri\\PycharmProjects\\IDE_TOP"
+                    nome_pasta = os.path.basename(caminho_pai)
+                    conf_baix_catalogo(st, caminho_pai, nome_pasta)
 
         else:
             col1, col2 = st.columns([.2, 9])
@@ -206,13 +205,18 @@ def app():
             s1,s2,s3 = st.sidebar.columns(3)
             s2.image('.arquivos/logo_.png',caption='By TopCodeBuyTrap')
 
-            caminho_completo = Pasta_Projeto_Atual  # Ex: "C:\\Users\\henri\\PycharmProjects\\IDE_TOP"
-            unidade = os.path.splitdrive(caminho_completo)[0]  # Ex: "C:"
-            nome_pasta = os.path.basename(caminho_completo)
+            caminho_pai = Pasta_Projeto_Atual  # Ex: "C:\\Users\\henri\\PycharmProjects\\IDE_TOP"
+            unidade = os.path.splitdrive(caminho_pai)[0]  # Ex: "C:"
+            nome_pasta = os.path.basename(caminho_pai)
             Arq_Selec_Nomes, Arq_Selec_Diretorios = Sidebar_Diretorios(st, Meus_Arquivos, 7)
+            caminho_completo = os.path.join(caminho_pai,nome_pasta)
+            from APP_SUB_Backup import BAKCUP
 
+            ignores = ['.idea', '.venv', 'build', 'dist','.virto_stream','.gitignore']
+            MINUTOS_ATUALIZAR = 1
+            BAKCUP(st,MINUTOS_ATUALIZAR, Path(caminho_completo).parent, os.path.join(_DIRETORIO_EXECUTAVEL_('backup'),nome_pasta), ignores)
         if Top7.button(f':material/search: {os.path.join(nome_pasta)} :material/folder_open:',use_container_width=True, type="secondary"):
-            Open_Explorer(os.path.join(caminho_completo,nome_pasta))
+            Open_Explorer(caminho_completo)
 
 
         if len(Arq_Selec_Diretorios) > 0:
@@ -238,62 +242,50 @@ def app():
             with col2:
                 st.image('.arquivos/simbolo.png',caption='By TopCodeBuyTrap')
 
-            # --------------------------------------------------------------------- BUSCAR ARQUIVO SELECIONADO
-            if arquivo_selecionado_caminho and os.path.isfile(arquivo_selecionado_caminho):
-                caminho = Path(arquivo_selecionado_caminho)
-                nome_sem_extensao = caminho.stem
-                extensao_arquivo = caminho.suffix
-                nome_arquivo = caminho.name
-
-                # Se for imagem, mostra no container
-                if extensao_arquivo.lower() in ('.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp'):
-                    footer_container = Tab2.container(border=True, key="meu_container_unico")
-                    with footer_container:
-                        st.image(caminho, caption=f"🖼️ {caminho.name}")
 
 
 #---------------------------
 if __name__ == "__main__":
-    try:
-        import streamlit as st
-        from datetime import datetime
-        from APP_Catalogo import conf_baix_catalogo
-        from APP_SUB_Customizar import Customization
-        from APP_SUB_Funcitons import Identificar_linguagem, escreve, chec_se_arq_do_projeto, contar_estrutura, \
-            Button_Nao_Fecha, data_sistema, resumo_pasta, limpar_CASH, Linha_Sep
-        from APP_SUB_Janela_Explorer import listar_arquivos_e_pastas, Open_Explorer, Abrir_Arquivo_Select_Tabs
-        from APP_Sidebar import Sidebar_Diretorios
-        from Banco_dados import ler_A_CONTROLE_PROJETOS, ler_B_ARQUIVOS_RECENTES, ATUAL_B_ARQUIVOS_RECENTES, \
-            se_B_ARQUIVOS_RECENTES, esc_B_ARQUIVOS_RECENTES, Del_B_ARQUIVOS_RECENTES, ler_A_CONTROLE_ABSOLUTO, \
-            Del_A_CONTROLE_ABSOLUTO, Del_CUSTOMIZATION, esc_A_CONTROLE_PROJETOS
-        from APP_SUB_Controle_Driretorios import _DIRETORIO_EXECUTAVEL_, _DIRETORIO_PROJETOS_, _DIRETORIO_PROJETO_ATUAL_
+    #try:
+    import streamlit as st
+    from datetime import datetime
+    from APP_Catalogo import conf_baix_catalogo
+    from APP_SUB_Customizar import Customization
+    from APP_SUB_Funcitons import Identificar_linguagem, escreve, chec_se_arq_do_projeto, contar_estrutura, \
+        Button_Nao_Fecha, data_sistema, resumo_pasta, limpar_CASH, Linha_Sep
+    from APP_SUB_Janela_Explorer import listar_arquivos_e_pastas, Open_Explorer, Abrir_Arquivo_Select_Tabs
+    from APP_Sidebar import Sidebar_Diretorios
+    from Banco_dados import ler_A_CONTROLE_PROJETOS, ler_B_ARQUIVOS_RECENTES, ATUAL_B_ARQUIVOS_RECENTES, \
+        se_B_ARQUIVOS_RECENTES, esc_B_ARQUIVOS_RECENTES, Del_B_ARQUIVOS_RECENTES, ler_A_CONTROLE_ABSOLUTO, \
+        Del_A_CONTROLE_ABSOLUTO, Del_CUSTOMIZATION, esc_A_CONTROLE_PROJETOS
+    from APP_SUB_Controle_Driretorios import _DIRETORIO_EXECUTAVEL_, _DIRETORIO_PROJETOS_, _DIRETORIO_PROJETO_ATUAL_
 
-        import os
-        from pathlib import Path
-        from APP_Terminal import Terminal
-        st.set_page_config(page_title="Stream-IDE", layout="wide",page_icon='icon.ico')
+    import os
+    from pathlib import Path
+    from APP_Terminal import Terminal
+    st.set_page_config(page_title="Stream-IDE", layout="wide",page_icon='icon.ico')
 
-        if 'config_absoluta_ok' not in st.session_state:
-            st.session_state.config_absoluta_ok = False
+    if 'config_absoluta_ok' not in st.session_state:
+        st.session_state.config_absoluta_ok = False
 
-        # 🔹 SE JÁ TEM CONFIG → ENTRA DIRETO NA IDE
-        if len(ler_A_CONTROLE_ABSOLUTO()) > 0 or st.session_state.config_absoluta_ok:
-            from APP_Htmls import Carregamento_BancoDados_Temas
-            (IMAGEM_LOGO, NOME_CUSTOM, NOME_USUARIO, COR_CAMPO, COR_MENU, THEMA_EDITOR, EDITOR_TAM_MENU,THEMA_PREVIEW,PREVIEW_TAM_MENU,
-             THEMA_TERMINAL,TERMINAL_TAM_MENU,TOP_CAB,FONTE_MENU,FONTE_CAMPO) = Carregamento_BancoDados_Temas(st)
+    # 🔹 SE JÁ TEM CONFIG → ENTRA DIRETO NA IDE
+    if len(ler_A_CONTROLE_ABSOLUTO()) > 0 or st.session_state.config_absoluta_ok:
+        from APP_Htmls import Carregamento_BancoDados_Temas
+        (IMAGEM_LOGO, NOME_CUSTOM, NOME_USUARIO, COR_CAMPO, COR_MENU, THEMA_EDITOR, EDITOR_TAM_MENU,THEMA_PREVIEW,PREVIEW_TAM_MENU,
+         THEMA_TERMINAL,TERMINAL_TAM_MENU,TOP_CAB,FONTE_MENU,FONTE_CAMPO) = Carregamento_BancoDados_Temas(st)
 
-            app( )
+        app( )
 
-        # 🔹 SENÃO → MOSTRA ABERTURA
-        else:
-            from Abertura_TCBT import Abertura
-            Del_CUSTOMIZATION()
+    # 🔹 SENÃO → MOSTRA ABERTURA
+    else:
+        from Abertura_TCBT import Abertura
+        Del_CUSTOMIZATION()
 
-            if Abertura() == True:
+        if Abertura() == True:
                 st.rerun()
-    except Exception as e:
+'''    except Exception as e:
         st.toast(f"🚨 ERRO: {e}")
         st.warning("🔄 **FECHE e REABRA o programa**")
-        st.write(f"🚨{e}")
+        st.write(f"🚨{e}")'''
 
 
