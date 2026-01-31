@@ -213,7 +213,7 @@ def app():
             from APP_SUB_Backup import BAKCUP
 
             ignores = ['.idea', '.venv', 'build', 'dist','.virto_stream','.gitignore']
-            MINUTOS_ATUALIZAR = 1
+            MINUTOS_ATUALIZAR = 60
             BAKCUP(st,MINUTOS_ATUALIZAR, Path(caminho_completo).parent, os.path.join(_DIRETORIO_EXECUTAVEL_('backup'),nome_pasta), ignores)
         if Top7.button(f':material/search: {os.path.join(nome_pasta)} :material/folder_open:',use_container_width=True, type="secondary"):
             Open_Explorer(caminho_completo)
@@ -237,11 +237,6 @@ def app():
                     altura_term = st.slider( ':material/terminal:', value=300, min_value=200, max_value=800, step=300,label_visibility='collapsed')
                 with st.expander(f":material/terminal: Terminal: {val}"):
                     Terminal(altura_term,THEMA_TERMINAL, TERMINAL_TAM_MENU)
-
-        else:
-            with col2:
-                st.image('.arquivos/simbolo.png',caption='By TopCodeBuyTrap')
-
 
 
 #---------------------------
