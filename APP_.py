@@ -242,7 +242,7 @@ def app():
                 with Trm2:
                     altura_term = st.slider( ':material/terminal:', value=300, min_value=200, max_value=800, step=300,label_visibility='collapsed')
                 with st.expander(f":material/terminal: Terminal: {val}"):
-                    Terminal(altura_term,THEMA_TERMINAL, TERMINAL_TAM_MENU)
+                    Terminal(altura_term)
 
 
 #---------------------------

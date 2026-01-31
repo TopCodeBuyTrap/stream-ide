@@ -278,7 +278,8 @@ def Editor_Simples( Top4, Apag,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,
                     st.session_state.input_queue.put(user_input)
                     st.session_state.output += f"> {user_input}\n"
                     st.rerun()
-
+            st.write('')
+            st.write('')
         # Auto-refresh enquanto rodando
         if st.session_state.thread_running:
             time.sleep(0.1)
@@ -395,7 +396,8 @@ def Editor_Simples( Top4, Apag,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,
                 pass
             except ValueError:
                 pass
-
+            st.write('')
+            st.write('')
         # -------------------------------------------------------------------- Api IA
     with st.container(border=True, key='Api_IA'):
         with st.expander('Ajuda IA', expanded=False, ):
@@ -543,6 +545,8 @@ def Editor_Simples( Top4, Apag,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,
 
                             except Exception as e:
                                 c2.error(f"🪲 Falha na IA: {str(e)}")
+            st.write('')
+            st.write('')
     # -------------------------------------------------------------------- Catalogar scripts
     with st.container(border=True, key='Catalogar_scripts'):
         from APP_Catalogo import catalogar_arquivo_ia
@@ -558,6 +562,8 @@ def Editor_Simples( Top4, Apag,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,
                                          observacao_usuario)
                     except TypeError as e:
                         st.write(traduzir_saida(e))
+            st.write('')
+            st.write('')
     return (
         arquivos_abertos_nomes,
         arquivos_abertos_caminhos,

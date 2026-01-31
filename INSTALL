@@ -25,9 +25,8 @@ Author: okld
 License: MIT
 
 # ---------------------------- Rodar
-streamlit run modelo.py
+streamlit run APP_.py
 
-pip install streamlit_dynamic_tabs
 
 
 # FALTA IMPLEMENTAR:

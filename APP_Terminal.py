@@ -1,270 +1,285 @@
 from pathlib import Path
 import streamlit as st
-from streamlit_ace import st_ace
-import re
 import subprocess
-import threading
 import queue
+import threading
+import time
+import os
+import atexit
+import signal
+import re
 
-from APP_SUB_Controle_Driretorios import _DIRETORIO_PROJETO_ATUAL_
-
-
-# ===== FIX WINDOWS: NÃO ABRIR CMD / POWERSHELL =====
+# ===== FIX WINDOWS: NÃO ABRIR JANELA =====
 STARTUPINFO = subprocess.STARTUPINFO()
 STARTUPINFO.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 STARTUPINFO.wShowWindow = subprocess.SW_HIDE
 CREATE_FLAGS = subprocess.CREATE_NO_WINDOW
 
+from APP_SUB_Controle_Driretorios import _DIRETORIO_PROJETO_ATUAL_
+
 
 def get_prompt():
+    """Gera o prompt do PowerShell com informações do diretório atual e venv"""
     try:
-        Pasta_RAIZ_projeto = _DIRETORIO_PROJETO_ATUAL_()
-        Pasta_RAIZ_projeto = Path(Pasta_RAIZ_projeto)
-
-        venv_path = Pasta_RAIZ_projeto / ".virto_stream"
-        venv_name = venv_path.name if venv_path.exists() else ""
-
-        caminho_completo = str(Pasta_RAIZ_projeto)
-
+        root = Path(_DIRETORIO_PROJETO_ATUAL_())
+        venv_path = root / ".virto_stream"
         if venv_path.exists():
-            prompt = f"({venv_name}) PS {caminho_completo}> "
-        else:
-            prompt = f"PS {caminho_completo}> "
-
-        return prompt
-
-    except Exception as e:
+            return f"({venv_path.name}) PS {root}> "
+        return f"PS {root}> "
+    except:
         return "PS ERRO> "
 
 
-def executar_comando(cmd: str) -> str:
+def kill_all_processes():
+    """Mata APENAS Streamlit do PROJETO ATUAL (SEGURA!)"""
     try:
-        Pasta_RAIZ_projeto = Path(_DIRETORIO_PROJETO_ATUAL_())
-        venv_path = Pasta_RAIZ_projeto / ".virto_stream"
-        activate_script = venv_path / "Scripts" / "Activate.ps1"
+        root = Path(_DIRETORIO_PROJETO_ATUAL_())
+        projeto_nome = root.name  # "MERDA" no seu caso
 
-        if venv_path.exists():
-            ps_cmd = [
-                "powershell",
-                "-NoLogo",
-                "-NoProfile",
-                "-NonInteractive",
-                "-Command",
-                (
-                    "Remove-Module PSReadLine -ErrorAction SilentlyContinue; "
-                    f"cd '{Pasta_RAIZ_projeto}'; "
-                    f"& '{activate_script}'; "
-                    f"{cmd}"
-                )
-            ]
-        else:
-            ps_cmd = [
-                "powershell",
-                "-NoLogo",
-                "-NoProfile",
-                "-NonInteractive",
-                "-Command",
-                f"Remove-Module PSReadLine -ErrorAction SilentlyContinue; cd '{Pasta_RAIZ_projeto}'; {cmd}"
-            ]
+        # 🔥 MATA SÓ PROCESSOS DO SEU PROJETO
+        cmd = f'''
+        Get-Process streamlit,python | 
+        Where-Object {{ $_.MainWindowTitle -like "*Streamlit*" -or $_.CommandLine -like "*{projeto_nome}*" }} | 
+        Stop-Process -Force
+        '''
 
-        result = subprocess.run(
-            ps_cmd,
-            capture_output=True,
-            text=True,
-            timeout=30,
-            startupinfo=STARTUPINFO,
-            creationflags=CREATE_FLAGS
-        )
+        subprocess.run([
+            "powershell", "-Command", cmd
+        ], capture_output=True, startupinfo=STARTUPINFO, creationflags=CREATE_FLAGS)
 
-        saida = (result.stdout or "") + (result.stderr or "")
-        resultado_final = saida
-        return resultado_final
-
-    except subprocess.TimeoutExpired:
-        return "❌ Comando demorou demais (30s)"
-    except Exception as e:
-        return f"❌ Erro: {str(e)}"
+    except:
+        pass
 
 
-def ultima_linha_nao_vazia(linhas):
-    for l in reversed(linhas):
-        if l.strip():
-            return l
-    return ""
+def get_aba_state(aba_nome):
+    """Estado persistente por aba"""
+    if "terminal_abas" not in st.session_state:
+        st.session_state.terminal_abas = {}
+    if aba_nome not in st.session_state.terminal_abas:
+        st.session_state.terminal_abas[aba_nome] = {
+            "buffer": get_prompt(),
+            "q": queue.Queue(),
+            "running": False,
+            "proc": None,
+            "last_rerun": 0,
+            "last_cmd": None
+        }
+    return st.session_state.terminal_abas[aba_nome]
 
 
-def get_powershell_banner():
+
+
+def ler_pipe(pipe, q, prefix=""):
+    """Lê stdout/stderr linha por linha e coloca na queue"""
     try:
-        proc = subprocess.Popen(
-            ["powershell"],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            startupinfo=STARTUPINFO,
-            creationflags=CREATE_FLAGS
-        )
+        for line in iter(pipe.readline, ''):
+            if line:
+                q.put(prefix + line.rstrip('\r\n'))
+        q.put(None)  # sinal de fim
+    except:
+        pass
+    finally:
+        try:
+            pipe.close()
+        except:
+            pass
 
-        proc.stdin.write("exit\n")
-        proc.stdin.flush()
-        stdout, _ = proc.communicate()
-        linhas = stdout.splitlines()
-        banner = []
-        for linha in linhas:
-            if linha.strip().startswith("PS "):
-                break
-            banner.append(linha)
-        return "\n".join(banner).strip()
-    except Exception as e:
-        return "PowerShell Banner"
+
+def start_command(aba_nome, cmd):
+    """Inicia comando PowerShell com suporte a venv e UTF-8"""
+    state = get_aba_state(aba_nome)
+    root = Path(_DIRETORIO_PROJETO_ATUAL_())
+    venv = root / ".virto_stream"
+    activate = venv / "Scripts" / "Activate.ps1"
+
+    # Auto --yes para pip uninstall
+    cmd_lower = cmd.lower()
+    if "pip uninstall" in cmd_lower and "--yes" not in cmd and "-y" not in cmd:
+        cmd += " --yes"
+        state["buffer"] += "\n🔧 Adicionado --yes automaticamente\n"
+
+    # Força UTF-8 + desabilita buffering
+    full_cmd = (
+        "chcp 65001 > $null; "  # UTF-8 codepage
+        "$OutputEncoding = [console]::InputEncoding = [console]::OutputEncoding = New-Object System.Text.UTF8Encoding; "
+        "$ProgressPreference = 'SilentlyContinue'; "
+        "Remove-Module PSReadLine -ErrorAction SilentlyContinue; "
+        f"cd '{root}'; "
+    )
+    if activate.exists():
+        full_cmd += f"& '{activate}'; "
+    full_cmd += cmd
+
+    proc = subprocess.Popen(
+        ["powershell", "-NoLogo", "-NoProfile", "-NonInteractive", "-Command", full_cmd],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        bufsize=1,
+        encoding='utf-8',
+        errors='replace',
+        startupinfo=STARTUPINFO,
+        creationflags=CREATE_FLAGS
+    )
+
+    state["proc"] = proc
+    state["running"] = True
+    state["q"] = queue.Queue()
+
+    # Threads de leitura
+    threading.Thread(target=ler_pipe, args=(proc.stdout, state["q"], ""), daemon=True).start()
+    threading.Thread(target=ler_pipe, args=(proc.stderr, state["q"], "ERR: "), daemon=True).start()
 
 
 def safe_key(name):
+    """Chave segura para widgets"""
     return re.sub(r'\W', '_', name)
 
 
-if "process_queues" not in st.session_state:
-    st.session_state["process_queues"] = {}
+def RenderTerminalAba(aba_nome):
+    """Renderiza terminal com live output linha por linha"""
+    state = get_aba_state(aba_nome)
 
+    # Placeholder para atualizar sem piscar
+    term_placeholder = st.empty()
+    with term_placeholder:
+        st.code(state["buffer"], language="powershell", line_numbers=False)
 
-def run_command_async(comando, aba_nome):
-    if "process_queues" not in st.session_state:
-        st.session_state["process_queues"] = {}
+    # Input comando
+    comando = st.chat_input("", key=f"cmd_{safe_key(aba_nome)}")
 
-    def target(q):
-        try:
-            Pasta_RAIZ_projeto = Path(_DIRETORIO_PROJETO_ATUAL_())
-            venv_python = Pasta_RAIZ_projeto / ".virto_stream" / "Scripts" / "python.exe"
+    if comando and comando.strip():
+        prompt = get_prompt()
 
-            # 🚀 SE É PIP → USA PYTHON DA VENV!
-            if comando.strip().startswith("pip"):
-                novo_comando = f'"{venv_python}" -m pip ' + comando.split("pip", 1)[1]
-            else:
-                novo_comando = f'"{venv_python}" -c "{comando}"'
+        # Suporte múltiplos comandos (um por vez, sequencial)
+        linhas = [linha.strip() for linha in comando.splitlines() if linha.strip()]
 
-            process = subprocess.Popen(
-                novo_comando,
-                shell=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                bufsize=1,
-                startupinfo=STARTUPINFO,
-                creationflags=CREATE_FLAGS
-            )
+        if len(linhas) > 1:
+            # Executa cada comando sequencialmente
+            for linha in linhas:
+                state["buffer"] += f"\n{prompt}{linha}\n"
+                with term_placeholder:
+                    st.code(state["buffer"], language="powershell")
 
-            for line in iter(process.stdout.readline, ''):
-                q.put(line)
-            process.stdout.close()
-            process.wait()
-            q.put(None)
-        except Exception as e:
-            q.put(f"Erro: {str(e)}\n")
-            q.put(None)
+                start_command(aba_nome, linha)
 
-    q = queue.Queue()
-    st.session_state["process_queues"][aba_nome] = q
-    thread = threading.Thread(target=target, args=(q,), daemon=True)
-    thread.start()
+                # Espera este comando terminar antes do próximo
+                while state["running"]:
+                    time.sleep(0.2)
+                    process_queue(state, term_placeholder)
 
+                state["buffer"] += "\n"
+        else:
+            # Comando único
+            state["buffer"] += f"\n{prompt}{comando}\n"
+            with term_placeholder:
+                st.code(state["buffer"], language="powershell")
+            start_command(aba_nome, comando)
 
-@st.fragment(run_every=1.0)
-def RenderTerminalAba(aba_nome, altura, THEMA_TERMINAL, TERMINAL_TAM_MENU):
+        st.rerun()
 
-    if "process_queues" not in st.session_state:
-        st.session_state["process_queues"] = {}
+    # Processa queue (non-blocking)
+    process_queue(state, term_placeholder)
 
-    buff_k = f"buffer_{aba_nome}"
-    rend_k = f"render_{aba_nome}"
-    proc_k = f"running_{aba_nome}"
+    # Controles quando rodando
+    if state["running"]:
+        col1, col2 = st.columns([2, 1])
+        with col2:
+            if st.button("🗑️ Limpar esta aba", key=f"limpar_{safe_key(aba_nome)}"):
+                kill_all_processes()
+                state["buffer"] = get_prompt()
+                st.rerun()
 
-    if buff_k not in st.session_state:
-        st.session_state[buff_k] = f"{get_powershell_banner()}\n\n{get_prompt()}"
-    if rend_k not in st.session_state:
-        st.session_state[rend_k] = st.session_state[buff_k]
-    if proc_k not in st.session_state:
-        st.session_state[proc_k] = False
+        with col1:
+            if st.button("🛑 Parar", key=f"kill_{safe_key(aba_nome)}"):
+                if state["proc"] and state["proc"].poll() is None:
+                    state["proc"].kill()
+                    state["proc"].wait(timeout=3)
+                kill_all_processes(aba_nome)
 
-    if st.session_state[proc_k] and aba_nome in st.session_state["process_queues"]:
-        q = st.session_state["process_queues"][aba_nome]
-        new_content = ""
-        while not q.empty():
-            line = q.get()
-            if line is None:
-                st.session_state[proc_k] = False
-                new_content += f"\n{get_prompt()}"
-                break
-            new_content += line
+                state["running"] = False
+                state["buffer"] += "\n[INTERROMPIDO PELO USUÁRIO]\n"
+                with term_placeholder:
+                    st.code(state["buffer"], language="powershell")
+                st.rerun()
 
-        if new_content:
-            st.session_state[buff_k] += new_content
-            st.session_state[rend_k] = st.session_state[buff_k]
-
-    # layout interno do fragmento: coluna do botão + coluna do terminal
-    col_close, col_main = st.columns([1, 12])
-
-    with col_close:
-        if st.button(f"❌{aba_nome}", key=f"cls_{safe_key(aba_nome)}"):
-            if "abas_terminal" in st.session_state and aba_nome in st.session_state.abas_terminal:
-                st.session_state.abas_terminal.remove(aba_nome)
+        # Live update suave
+        agora = time.time()
+        if agora - state.get("last_rerun", 0) > 0.15:
+            state["last_rerun"] = agora
+            time.sleep(0.15)
             st.rerun()
 
-    with col_main:
-        conteudo = st_ace(
-            value=st.session_state[buff_k],
-            language='kotlin',
-            theme=THEMA_TERMINAL,
-            height=altura + 10,
-            font_size=TERMINAL_TAM_MENU,
-            auto_update=True,
-            wrap=True,
-            show_gutter=False,
-            show_print_margin=True,
-            key=st.session_state[buff_k]  # mesma key do value, como você comentou
-        )
+    # Prompt novo quando terminou
+    if not state["running"] and not state["buffer"].strip().endswith(">"):
+        state["buffer"] += get_prompt()
+        with term_placeholder:
+            st.code(state["buffer"], language="powershell")
 
-        st.write("")
 
-        if (not st.session_state[proc_k]) and conteudo and conteudo != st.session_state[rend_k]:
-            if "\n" in conteudo[len(st.session_state[rend_k]):]:
-                linhas = conteudo.splitlines()
-                ultima = next((l for l in reversed(linhas) if l.strip()), "")
-                prompt = get_prompt()
+def process_queue(state, placeholder):
+    """Processa queue sem bloquear - MOSTRA COMANDO CORRETO"""
+    updated = False
 
-                if ultima.startswith(prompt):
-                    cmd = ultima[len(prompt):].strip()
-                    if cmd:
-                        st.session_state[proc_k] = True
-                        st.session_state[buff_k] = conteudo.rstrip() + "\n"
-                        st.session_state[rend_k] = st.session_state[buff_k]
-                        run_command_async(cmd, aba_nome)
-                        st.rerun(scope="fragment")
-                    else:
-                        res = conteudo.rstrip() + f"\n{prompt}"
-                        st.session_state[buff_k] = res
-                        st.session_state[rend_k] = res
-                        st.rerun(scope="fragment")
+    while not state["q"].empty():
+        try:
+            linha = state["q"].get_nowait()
+
+            if linha is None:
+                # ✅ COMANDO TERMINOU - mostra o comando EXATO
+                if "last_cmd" in state and state["last_cmd"]:
+                    cmd_executado = state["last_cmd"].strip()
+                    state["buffer"] += f"\n✅ [{cmd_executado}] CONCLUÍDO ✅\n"
                 else:
-                    st.session_state[rend_k] = conteudo
+                    state["buffer"] += f"\n✅ Comando concluído ✅\n"
+
+                state["running"] = False
+                state["last_cmd"] = None  # limpa
+                updated = True
+                break
             else:
-                st.session_state[rend_k] = conteudo
-def Terminal(altura, THEMA_TERMINAL, TERMINAL_TAM_MENU):
-    if "process_queues" not in st.session_state:
-        st.session_state["process_queues"] = {}
+                state["buffer"] += linha + "\n"
+                updated = True
+
+        except queue.Empty:
+            break
+
+    if updated:
+        with placeholder:
+            st.code(state["buffer"], language="powershell", line_numbers=False)
+
+
+def Terminal(altura=500, THEMA_TERMINAL="default", TERMINAL_TAM_MENU=14):
+    """Terminal Multi-Aba COMPLETO com live output"""
+
+    # Inicializa abas
     if "abas_terminal" not in st.session_state:
         st.session_state.abas_terminal = ["Terminal 1"]
     if "contador_aba" not in st.session_state:
         st.session_state.contador_aba = 1
 
-    t1, t2 = st.columns([1, 12])
-    if t1.button("➕ Nova aba"):
-        st.session_state.contador_aba += 1
-        st.session_state.abas_terminal.append(f"Terminal {st.session_state.contador_aba}")
-        st.rerun()
+    # Header com nova aba
+    col1, col2 = st.columns([1, 20])
+    with col1:
+        if st.button("➕ Nova aba"):
+            st.session_state.contador_aba += 1
+            st.session_state.abas_terminal.append(f"Terminal {st.session_state.contador_aba}")
+            st.rerun()
 
-    with t2:
-        tabs = st.tabs(st.session_state.abas_terminal)
-        for idx, aba_nome in enumerate(st.session_state.abas_terminal):
-            with tabs[idx]:
-                # agora o fragmento não recebe mais t1
-                RenderTerminalAba(aba_nome, altura, THEMA_TERMINAL, TERMINAL_TAM_MENU)
+    # Tabs
+    tabs = st.tabs(st.session_state.abas_terminal)
+    for idx, aba_nome in enumerate(st.session_state.abas_terminal):
+        with tabs[idx]:
+            container = st.container(height=altura)
+            with container:
+                RenderTerminalAba(aba_nome)
+
+    # Limpar tudo (mata processos!)
+    if st.button("🗑️ Limpar todos terminais"):
+        kill_all_processes()
+        for aba in st.session_state.abas_terminal:
+            state = get_aba_state(aba)
+            state["buffer"] = get_prompt()
+            state["running"] = False
+            state["proc"] = None
+        st.rerun()
