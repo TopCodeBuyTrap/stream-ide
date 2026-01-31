@@ -21,7 +21,7 @@ from APP_SUB_Janela_Explorer import Abrir_Arquivo_Select_Tabs
 from SUB_Traduz_terminal import traduzir_saida
 
 
-def Editor_Simples(col1, Top4, ColunaSelect, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU, colStop, ColunaRun):
+def Editor_Simples( Top4, Apag,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU, colStop, ColunaRun):
     # Função para nome curto (mantida)
     def nome_curto(nome, limite=20):
         base, ext = os.path.splitext(nome)
@@ -52,7 +52,7 @@ def Editor_Simples(col1, Top4, ColunaSelect, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM
         try:
             Pasta_RAIZ_projeto = _DIRETORIO_PROJETO_ATUAL_()
             projeto_path = Path(Pasta_RAIZ_projeto)
-            output_q.put(f"🎯 PROJETO: {projeto_path}\n")
+            #output_q.put(f"🎯 PROJETO: {projeto_path}\n")
         except:
             projeto_path = Path.cwd()
 
@@ -61,7 +61,7 @@ def Editor_Simples(col1, Top4, ColunaSelect, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM
             site_packages = venv_path / "Lib" / "site-packages"
             if site_packages.exists():
                 sys.path.insert(0, str(site_packages))
-                output_q.put(f"✅ VENV: {venv_path}\n📦 MÓDULOS: {site_packages}\n📂 sys.path[0]: {sys.path[0]}\n")
+                #output_q.put(f"✅ VENV: {venv_path}\n📦 MÓDULOS: {site_packages}\n📂 sys.path[0]: {sys.path[0]}\n")
 
         # SEU CÓDIGO ORIGINAL 100% (SÓ ADICIONA VENV)
         def custom_input(prompt=""):
@@ -141,14 +141,16 @@ def Editor_Simples(col1, Top4, ColunaSelect, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM
                     language=linguagem,
                     theme=THEMA_EDITOR,
                     font_size=EDITOR_TAM_MENU,
-                    height=750,
+                    height=775,
                     auto_update=True,
-                    show_print_margin=True,
+                    show_print_margin=False,
                     annotations=Anotations_Editor(conteudo_inicial),
                     markers=Marcadores_Editor(conteudo_inicial),
                     wrap=True,
                     key=f"ace_editor_{I}"
                 )
+                if st.button(f'🗑️Apagar: {nome_arquivo}', key=f"botao_apagar_arquivos{I}"):
+                    Apagar_Arq(st, nome_arquivo, caminho)
 
                 # Salva no session_state por aba
                 _.conteudos_abas[I] = cod
@@ -176,8 +178,8 @@ def Editor_Simples(col1, Top4, ColunaSelect, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM
 
 
 
-    col_apag, col_sel = ColunaSelect.columns([2, 8])
-    id_aba_ativa = col_sel.selectbox(
+
+    id_aba_ativa = Select.selectbox(
         "Aba ativa ▶️",
         range(len(nomes_arquivos)),
         format_func=lambda i: nomes_arquivos[i],
@@ -211,12 +213,10 @@ def Editor_Simples(col1, Top4, ColunaSelect, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM
                 st.error(f"Erro salvar {nome_arquivo_sectbox}: {e}")
 
 
-    with col_apag:
-        if st.button(f'🗑️{nome_curto(nome_arquivo_sectbox, 5)}', key="botao_apagar_arquivos"):
-            Apagar_Arq(st,nome_arquivo,_.Diretorio.get(_.id_aba_ativa, ""))
+
 
     # EXECUÇÃO - usa 'codigo' da aba ativa
-    if ColunaRun.button("▶️ Run", key="executar_aba_ativa", shortcut='Ctrl+Enter'):
+    if ColunaRun.button("▶️", key="executar_aba_ativa", shortcut='Ctrl+Enter',use_container_width=True):
         st.session_state.output = f"{arquivo_selecionado_caminho}>\n"
         # Limpa queues...
         while not st.session_state.input_queue.empty():
@@ -231,7 +231,7 @@ def Editor_Simples(col1, Top4, ColunaSelect, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM
         ).start()
         st.rerun()
 
-    if colStop.button("⏹️", key=f"parar_{id_aba_ativa}", shortcut='Ctrl+Space'):  # *** BOTÃO STOP DE VOLTA! ***
+    if colStop.button("⏹️", key=f"parar_{id_aba_ativa}", shortcut='Ctrl+Space',use_container_width=True):  # *** BOTÃO STOP DE VOLTA! ***
         _.thread_running = False
         _.output += "\n⏹️ Execução interrompida\n"
 

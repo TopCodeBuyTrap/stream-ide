@@ -105,15 +105,15 @@ def Carregamento_BancoDados_Temas(st):
 			return base64.b64encode(img_file.read()).decode()
 	SD_STYLE = f'''
 		    /* FUNDO COLORIDO PRIMEIRO */
-    background: linear-gradient(135deg, {THEMA_APP2}, #1e1e1e) !important;
+    background-color: {THEMA_APP1} !important;
     
     /* IMAGEM PEQUENA SOBRE O FUNDO */
-    background-image: url("data:image/png;base64,{img_to_base64('.arquivos/simbolo.png')}") !important;
+    background-image: url("data:image/png;base64,{img_to_base64('.arquivos/Logo_simbolo.png')}") !important;
     background-repeat: no-repeat !important;
-    background-position: center center !important;
+    background-position: top bottom !important;
     
     
-    background-size: 450px 250px !important;  /* ← IMAGEM PEQUENA */
+    background-size: 450px 650px !important;  /* ← IMAGEM PEQUENA */
     
 '''
 	try:
@@ -153,16 +153,7 @@ def Carregamento_BancoDados_Temas(st):
 	    overflow: hidden !important;
 	}}
 	
-    div[data-testid="stVerticalBlock"] [class*="st-key-MenuTopo"] {{         /* CABEÇALHO MENU TOPO */
-       {WD_STYLE}
-      border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important;   
-        height: 10px !important; 
-        padding-top: 3% !important;
-        padding-bottom: .0% !important;
-        
-        width: 110% !important;
 
-    }} 
 	
     P {{                                                          /* VALORES  SUBHEADERS */
         font-family: {FONTE_MENU} !important;
@@ -174,7 +165,6 @@ def Carregamento_BancoDados_Temas(st):
     [data-testid="stMarkdown"] p {{                               /* MARKDOWS E WRITES */
         color: {COR_CAMPO} !important;
         font-size: {FONTE_MENU}px !important;
-        text-decoration: underline dotted !important;
         font-style: italic !important;        
     }}
     
@@ -187,6 +177,8 @@ def Carregamento_BancoDados_Temas(st):
     }}
     
     div[data-testid="stButton"] button {{                               /* Botões */
+        color: {COR_MENU} !important;
+    
         font-family: {FONTE_MENU} !important;
         min-height: 10px !important;
         border-radius: {RADIO}px !important;
@@ -221,12 +213,10 @@ def Carregamento_BancoDados_Temas(st):
 
 	}}
 	div[data-testid="stColumn"] {{                                            /* COLUNAS st.columns() */
-        margin-top: -1.5% !important;
-	
-       padding-top: 0% !important;
-       padding-left: 0% !important;
-       padding-right: 0% !important;
-       padding-bottom: 0% !important;
+		padding-top: 0% !important; 
+		padding-left: 0% !important;
+		padding-right: 0% !important;
+		padding-bottom: 0% !important;
 
 	}}
 	
@@ -335,7 +325,7 @@ def Carregamento_BancoDados_Temas(st):
     }}
     
     .block-container {{                                                                 /* BLOCO PRINCIPAL BODY*/
-        margin-top: -8.5% !important;
+        margin-top: -6% !important;
         margin-left: 0px !important;
         padding-left: 3.7% !important;
         margin-right: 0px !important;
@@ -345,16 +335,18 @@ def Carregamento_BancoDados_Temas(st):
     }}
    
 	section[data-testid="stSidebar"] {{                                         /* SIDEBAR */
-	
         {SD_STYLE}
+        width: 400px !important;
         height: 110% !important;
-        margin-top: 0% !important;
+        margin-top: -1% !important;
         margin-left: -0% !important;
         
         border: {BORDA+1}px solid {THEMA_APP2} !important;
     }}
 
     [data-testid="stSidebarCollapseButton"] {{                                  /* BOTÃO DO SIDEBAR DE CIMA >> */
+        margin-top: 3% !important;
+    
 	    position: fixed !important;
 	    background-color: {COR_CAMPO} !important;
         border-radius: {RADIO}px !important;
@@ -362,10 +354,10 @@ def Carregamento_BancoDados_Temas(st):
 	}}
 
     [data-testid="stExpandSidebarButton"] {{                                    /* BOTÃO DO SIDEBAR DE BAIXO << */            
+        background-color: {COR_CAMPO} !important;
         position: fixed !important;
-        top: 4% !important;
-        left: 3px !important;
-        width: 60px !important;
+        top: 5% !important;
+        left: -2px !important;
         height: 11px !important;
         opacity: 1 !important;
         z-index: 9999 !important;
@@ -375,10 +367,10 @@ def Carregamento_BancoDados_Temas(st):
         background-color: {THEMA_APP1} !important;
 	    position: absolute !important;
 	    top: 3% !important;  /* Alinha no topo do sidebar */
-		left: 40% !important;
+		left: 70% !important;
 	    border-radius: {RADIO}px !important;
 	    border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important;
-	    z-index: 999999 !important;
+	    z-index: 9999999999 !important;
 	    width: 600px; /* Largura fixa do seu bloco */
 	    transition: transform .001s ease !important; /* Animação suave */
 	}}
@@ -469,6 +461,22 @@ def Carregamento_BancoDados_Temas(st):
         font-size: {FONTE_MENU}px !important;
 	}}
     
+	div[data-testid="stVerticalBlock"] [class*="st-key-MenuTopo"] {{         /* CABEÇALHO MENU TOPO */
+		        background-color: {THEMA_APP1} !important;
+
+		height: 4% !important; 
+		padding-top: 1% !important;
+		padding-bottom: -10% !important;
+		position: fixed !important;
+		align-items: center !important;
+		
+		top: -1.5% !important;
+		z-index: 99999 !important;
+		display: flex !important;
+
+
+    }} 
+    
 div[data-testid="stTabs"][class*="st-emotion-cache-8atqhb eh1nhsq0"] {{
     {WD_STYLE}
     border-radius: {RADIO}px !important;
@@ -490,7 +498,7 @@ div[data-testid="stTabs"][class*="st-emotion-cache-8atqhb eh1nhsq0"] [data-basew
     div[data-testid="stVerticalBlock"][class*="st-key-Terminal_cmd st-emotion-cache-1gz5zxc e12zf7d53"] {{         /*  TERMINAL  */
        {BG_STYLE}
         position: fixed !important;
-        bottom: 2.5% !important;
+        bottom: 0% !important;
         padding-left:0% !important;
         right: 0% !important;
         z-index: 999 !important;
@@ -504,7 +512,7 @@ div[data-testid="stTabs"][class*="st-emotion-cache-8atqhb eh1nhsq0"] [data-basew
     div[data-testid="stVerticalBlock"][class*="st-key-Preview st-emotion-cache-1gz5zxc e12zf7d53"] {{       /* PREVIEWS  */
        {BG_STYLE}
         position: fixed !important;
-        bottom: 2.5% !important;
+        bottom: 0% !important;
         padding-left:0% !important;
         right: 0% !important;
         z-index: 9999 !important;
@@ -517,7 +525,7 @@ div[data-testid="stTabs"][class*="st-emotion-cache-8atqhb eh1nhsq0"] [data-basew
      div[data-testid="stVerticalBlock"][class*="st-key-Preview_Jason st-emotion-cache-1gz5zxc e12zf7d53"] {{       /* JASON  */
        {BG_STYLE}
         position: fixed !important;
-        bottom: 2.5% !important;
+        bottom: 0% !important;
         padding-left:0% !important;
         right: 0% !important;
         z-index: 99999 !important;
@@ -530,7 +538,7 @@ div[data-testid="stTabs"][class*="st-emotion-cache-8atqhb eh1nhsq0"] [data-basew
      div[data-testid="stVerticalBlock"][class*="st-key-Api_IA st-emotion-cache-1gz5zxc e12zf7d53"] {{       /* CHAT IA  */
        {BG_STYLE}
         position: fixed !important;
-        bottom: 2.5% !important;
+        bottom: 0% !important;
         padding-left:0% !important;
         right: 0% !important;
         z-index: 999999 !important;
@@ -542,7 +550,7 @@ div[data-testid="stTabs"][class*="st-emotion-cache-8atqhb eh1nhsq0"] [data-basew
      div[data-testid="stVerticalBlock"][class*="st-key-Catalogar_scripts st-emotion-cache-1gz5zxc e12zf7d53"] {{       /* CATALOGAR */
        {BG_STYLE}
         position: fixed !important;
-        bottom: 2.5% !important;
+        bottom: 0% !important;
         padding-left:0% !important;
         right: 0% !important;
         z-index: 9999999 !important;
@@ -645,7 +653,7 @@ div[data-testid="stTabs"][class*="st-emotion-cache-8atqhb eh1nhsq0"] [data-basew
 	<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">Custom atual:</span>
 	<span style="font-weight:500;"> {NOME_CUSTOM} </span>
 	<span style="opacity:0.1;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
-	<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">Projeto :material/content_paste:</span>
+	<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">:material/content_paste:Projeto: </span>
 	<span style="font-weight:500;"> {os.path.basename(Pasta_Projeto_Atual)} </span>
 	<span style="opacity:0.1;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
 	<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">Criado:</span>
@@ -654,7 +662,7 @@ div[data-testid="stTabs"][class*="st-emotion-cache-8atqhb eh1nhsq0"] [data-basew
 	<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">Modificado:</span>
 	<span>{modificado}</span>
 	<span style="opacity:0.1;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
-	<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;"> Projeto Com:&nbsp;&nbsp;</span>
+	<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;"> Conteudo:&nbsp;&nbsp;</span>
 	<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">:material/folder:</span>
 	<span>{pastas}</span>
 	<span style="opacity:0.1;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
@@ -678,16 +686,15 @@ div[data-testid="stTabs"][class*="st-emotion-cache-8atqhb eh1nhsq0"] [data-basew
 	TOP_CAB = f"""
 	<style>
 	.footer {{
-		position: fixed !important;
-		bottom: -2% !important;
-		left: 0 !important;
+		top: 0% !important;
+		left: 2% !important;
+		padding-left: 2% !important;
 		right: 0 !important;
 		height: 20px !important;
-		background: {THEMA_APP1} !important;
 		z-index: 9!important;
 		display: flex !important;
-		align-items: center !important;
-		padding: 20px !important;
+		align-items: left !important;
+		padding-bottom: 0px !important;
 		color: white !important;
 		white-space: nowrap !important;
 	    
@@ -700,7 +707,6 @@ div[data-testid="stTabs"][class*="st-emotion-cache-8atqhb eh1nhsq0"] [data-basew
 	</div>
 	"""
 
-	st.markdown(TOP_CAB, unsafe_allow_html=True)
 
 	# Injeta CSS para mudar o fundo do Ace Editor.)
 

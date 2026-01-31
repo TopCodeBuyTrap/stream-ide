@@ -136,33 +136,37 @@ def app():
         Cria_Projeto_pouppap(st)
 
     else:
-
-
         with st.container(border=True, key='MenuTopo'):
-            Top1,Top2 ,Top3 ,Top4,Top5,Top6,Top7,Top8= st.columns([.4,.4,.4,.4,2,1.4,1,.4])
+            cab1, cab2 , cab3 , cab4 = st.columns([8, 1,1,.3])
+            cab1.markdown(TOP_CAB, unsafe_allow_html=True)
+            with cab3:
+                from APP_Atualizador import checar_atualizacao
+                if Button_Nao_Fecha(f':material/queue_play_next: versão: {ultima_versao()}',
+                                    f':material/queue_play_next: versão: {ultima_versao()}', 'Atualizar_versão'):
+                    checar_atualizacao()
+            with cab4:
+                if st.button("♻️",  help='limpar os caches do app'.title()):
+                    limpar_CASH()
+        Tab1, Tab2 = st.columns([2, 9])
 
-        with Top8:
-            from APP_Atualizador import checar_atualizacao
-            if Button_Nao_Fecha(f'🔃 :material/queue_play_next: {ultima_versao()}',f'🔂 :material/queue_play_next: {ultima_versao()}','Atualizar_versão'):
-                checar_atualizacao()
+        #btnt = Button_Nao_Fecha(':material/folder_open:' + ":material/keyboard_double_arrow_left:", ':material/folder:' + ':material/keyboard_double_arrow_right:',
+                                        #key="botao_diretorio")
 
-        with Top6:
-            Ttp1,Ttp2 = st.columns(2) # Botão de run e stop
 
-        with Top3:
-            Trm1,Trm2 = st.columns([2,8])
-            Trm1.write(':material/terminal:')
 
-        with Top4:
-            Prw1, Prw2 = st.columns([2, 8])
-            Prw1.write(':material/directions_bike:')
+
+
+        Trm1,Trm2 = st.columns([2,8])
+        Trm1.write(':material/terminal:')
+
+        Prw1, Prw2 = st.columns([2, 8])
+        Prw1.write(':material/directions_bike:')
 
         from APP_Menus import Abrir_Menu
         #Abrir_Menu(st)
         # ============================================================= MENU SUPERIOR
-        if Top2.button(":material/delete_sweep:",icon='♻️',help='limpar os caches do app'.title()):
-            limpar_CASH()
-        st.markdown('<style>' + open('./style.css').read() + '</style>', unsafe_allow_html=True)
+
+        #st.markdown('<style>' + open('./style.css').read() + '</style>', unsafe_allow_html=True)
 
         #--------------------------------------------------------------------- MENUS DE EDIÇÃO E CRIAÇÃO DE ARQUIVOS
         from  APP_Menus import  Abrir_Menu,Custom
@@ -171,61 +175,63 @@ def app():
         Pasta_Projeto_Atual = caminho
         Meus_Arquivos = listar_arquivos_e_pastas(Pasta_Projeto_Atual)
 
-        # Exemplo de uso
-        with Top1:
-            btnt = Button_Nao_Fecha(':material/folder_open:'+":material/keyboard_double_arrow_left:",
-            ':material/folder:' + ':material/keyboard_double_arrow_right:', key="botao_diretorio")
-        if btnt:
-            col1, col2 = st.columns([1.2, 7])
-            vl = 400
-            with col1.container(border=True, width=vl,key='menu_lado_sidebar',height=800):
-                # :material/settings:  :material/emoji_symbols:
-                Abrir_Menu(st)
 
-                select_arquivo_recente(st)
 
-                if NOME_CUSTOM != 'Padrão':
-                    btcst = Button_Nao_Fecha(f'**{NOME_CUSTOM}** - :material/build:' + ":material/keyboard_double_arrow_up:",
-                                            f"**{NOME_CUSTOM}** - :material/build:" + ':material/keyboard_double_arrow_down:',
-                                            key="bBotao_recustomizar")
-                    if btcst:
-                        Customization(st,NOME_CUSTOM)
-                catalogo = Button_Nao_Fecha("📚 Arquivos Catalogados", "📚 Arquivos Catalogados", 'catalogo')
-                if catalogo:
-                    caminho_pai = Pasta_Projeto_Atual  # Ex: "C:\\Users\\henri\\PycharmProjects\\IDE_TOP"
-                    nome_pasta = os.path.basename(caminho_pai)
-                    conf_baix_catalogo(st, caminho_pai, nome_pasta)
 
-        else:
-            col1, col2 = st.columns([.2, 9])
+        with Tab1.container(border=True,key='menu_lado_sidebar',height=1000):
+            # :material/settings:  :material/emoji_symbols:
+            Tt1, Tt2 = st.columns([1,9])  # Botão de run e stop
+            Ttp1, Ttp2 = st.columns(2)  # Botão de run e stop
 
-        Tab1, Tab2 = st.columns([.4, 9])
+
+            Arq_Selec_Nomes, Arq_Selec_Diretorios = Sidebar_Diretorios(st, Meus_Arquivos, 7)
+
+
+
+
         #------------------z--------------------------------------------------- SIDIBAR LATERAL
         with st.sidebar:
             s1,s2,s3 = st.sidebar.columns(3)
-            s2.image('.arquivos/logo_.png',caption='By TopCodeBuyTrap')
+            #s2.image('.arquivos/logo_.png',caption='By TopCodeBuyTrap')
+            Abrir_Menu(st)
 
+            select_arquivo_recente(st)
             caminho_pai = Pasta_Projeto_Atual  # Ex: "C:\\Users\\henri\\PycharmProjects\\IDE_TOP"
             unidade = os.path.splitdrive(caminho_pai)[0]  # Ex: "C:"
             nome_pasta = os.path.basename(caminho_pai)
-            Arq_Selec_Nomes, Arq_Selec_Diretorios = Sidebar_Diretorios(st, Meus_Arquivos, 7)
             caminho_completo = os.path.join(caminho_pai,nome_pasta)
             from APP_SUB_Backup import BAKCUP
+            if NOME_CUSTOM != 'Padrão':
+                btcst = Button_Nao_Fecha(
+                    f'**{NOME_CUSTOM}** - :material/build:' + ":material/keyboard_double_arrow_up:",
+                    f"**{NOME_CUSTOM}** - :material/build:" + ':material/keyboard_double_arrow_down:',
+                    key="bBotao_recustomizar")
+                if btcst:
+                    Customization(st, NOME_CUSTOM)
+            catalogo = Button_Nao_Fecha("📚 Arquivos Catalogados", "📚 Arquivos Catalogados", 'catalogo')
+            if catalogo:
+                caminho_pai = Pasta_Projeto_Atual  # Ex: "C:\\Users\\henri\\PycharmProjects\\IDE_TOP"
+                nome_pasta = os.path.basename(caminho_pai)
+                caminho_pai = Pasta_Projeto_Atual  # Ex: "C:\\Users\\henri\\PycharmProjects\\IDE_TOP"
+                caminho_completo = os.path.join(caminho_pai, nome_pasta)
 
+                conf_baix_catalogo(st, caminho_pai, nome_pasta)
             ignores = ['.idea', '.venv', 'build', 'dist','.virto_stream','.gitignore']
             MINUTOS_ATUALIZAR = 60
             BAKCUP(st,MINUTOS_ATUALIZAR, Path(caminho_completo).parent, os.path.join(_DIRETORIO_EXECUTAVEL_('backup'),nome_pasta), ignores)
-        if Top7.button(f':material/search: {os.path.join(nome_pasta)} :material/folder_open:',use_container_width=True, type="secondary"):
-            Open_Explorer(caminho_completo)
+
+        if cab2.button(f':material/search: :material/folder_open: : {os.path.join(nome_pasta)} ',
+                               use_container_width=True, type="secondary"):
+                    Open_Explorer(caminho_completo)
 
 
         if len(Arq_Selec_Diretorios) > 0:
             from APP_Editor_Run_Preview import Editor_Simples
 
             try:
-                with col2:
+                with Tab2:
                     arquivos_abertos_nomes, arquivos_abertos_caminhos, arquivo_selecionado_nome, arquivo_selecionado_caminho,arquivo_selecionado_conteudo\
-                    = Editor_Simples(col1,Prw2,Top5,Arq_Selec_Diretorios,THEMA_EDITOR, EDITOR_TAM_MENU,Ttp2,Ttp1,)
+                    = Editor_Simples(Prw2,Tt1,Tt2,Arq_Selec_Diretorios,THEMA_EDITOR, EDITOR_TAM_MENU,Ttp2,Ttp1,)
             except UnicodeDecodeError:
                 st.warning('Arquivo não Reconhecido GmeOver!')
 

@@ -2,7 +2,7 @@ DOCUMENTAÇÃO COMPLETA DO PROJETO
 
 C:\Users\henri\ProjetoSteamIDE\Projetor_
 
-Gerado em: 2026-01-31 00:04
+Gerado em: 2026-01-31 12:50
 
 main.py
 C:\Users\henri\ProjetoSteamIDE\Projetor_\main.py / Linguagem: PYTHON
