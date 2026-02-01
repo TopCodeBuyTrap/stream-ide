@@ -16,12 +16,12 @@ from APP_Catalogo import arquivo_ja_catalogado
 from APP_Menus import Apagar_Arq
 from APP_SUB_Controle_Driretorios import _DIRETORIO_PROJETO_ATUAL_
 from APP_SUB_Funcitons import Identificar_linguagem, Button_Nao_Fecha, Sinbolos, Anotations_Editor, Marcadores_Editor, \
-    wrap_text, chec_se_arq_do_projeto
+    wrap_text, chec_se_arq_do_projeto, controlar_altura
 from APP_SUB_Janela_Explorer import Abrir_Arquivo_Select_Tabs
 from SUB_Traduz_terminal import traduzir_saida
 
 
-def Editor_Simples( Top4, Apag,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU, colStop, ColunaRun):
+def Editor_Simples( Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU, colStop, ColunaRun):
     # Função para nome curto (mantida)
     def nome_curto(nome, limite=20):
         base, ext = os.path.splitext(nome)
@@ -239,47 +239,44 @@ def Editor_Simples( Top4, Apag,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,
 
     # -------------------------------------------------------------------- TERMINAL Preview
     with st.container(border=True, key='Preview'):
-        with Top4:
-            altura_prev = st.slider(':material/directions_bike:', value=300, min_value=200, max_value=800, step=300,
-                                    label_visibility='collapsed')
-
-        with st.expander(
-                f' **{arquivo_selecionado_nome}** :material/directions_bike:'.replace('Executando - None', '')):
+        with st.expander(f' **{arquivo_selecionado_nome}** :material/directions_bike:'.replace('Executando - None', '')):
             output_placeholder = st.empty()
-
-
-            # Processa mensagens da fila
-            if st.session_state.thread_running:
-                new_data = False
-                try:
-                    while True:
-                        msg = st.session_state.output_queue.get_nowait()
-                        if msg == "PROGRAM_FINISHED":
-                            st.session_state.thread_running = False
-                            st.session_state.output += "🏁 Fim do Codigo!"
+            col1, col2 = st.columns([1, 30])
+            with col1:
+                altura_prev = controlar_altura(st, "Preview", altura_inicial=400, passo=300, maximo=800, minimo=200)
+            with col2.container(height=altura_prev):
+                # Processa mensagens da fila
+                if st.session_state.thread_running:
+                    new_data = False
+                    try:
+                        while True:
+                            msg = st.session_state.output_queue.get_nowait()
+                            if msg == "PROGRAM_FINISHED":
+                                st.session_state.thread_running = False
+                                st.session_state.output += "🏁 Fim do Codigo!"
+                                new_data = True
+                                break
+                            st.session_state.output += msg
                             new_data = True
-                            break
-                        st.session_state.output += msg
-                        new_data = True
-                except queue.Empty:
-                    pass
+                    except queue.Empty:
+                        pass
 
-                if new_data:
-                    output_placeholder.code(st.session_state.output, linguagem, wrap_lines=True ,height=altura_prev)
+                    if new_data:
+                        output_placeholder.code(st.session_state.output, linguagem, wrap_lines=True ,height=altura_prev)
+                    else:
+                        st.code(st.session_state.output, linguagem, wrap_lines=True ,height=altura_prev)
                 else:
                     st.code(st.session_state.output, linguagem, wrap_lines=True ,height=altura_prev)
-            else:
-                st.code(st.session_state.output, linguagem, wrap_lines=True ,height=altura_prev)
 
-            # Input do usuário (apenas quando executando)
-            if st.session_state.thread_running:
-                user_input = st.chat_input("Digite sua entrada aqui: ")
-                if user_input:
-                    st.session_state.input_queue.put(user_input)
-                    st.session_state.output += f"> {user_input}\n"
-                    st.rerun()
-            st.write('')
-            st.write('')
+                # Input do usuário (apenas quando executando)
+                if st.session_state.thread_running:
+                    user_input = st.chat_input("Digite sua entrada aqui: ")
+                    if user_input:
+                        st.session_state.input_queue.put(user_input)
+                        st.session_state.output += f"> {user_input}\n"
+                        st.rerun()
+                st.write('')
+                st.write('')
         # Auto-refresh enquanto rodando
         if st.session_state.thread_running:
             time.sleep(0.1)
@@ -290,10 +287,13 @@ def Editor_Simples( Top4, Apag,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,
     saida_preview = st.session_state.output.strip().replace(f'{arquivo_selecionado_caminho}>', '').replace('🏁 Fim do Codigo!', '')
     st.write(saida_preview)
     with st.container(border=True, key='Preview_Jason'):
-        with st.expander('Explorer Jason', expanded=False, ):
 
+        with st.expander('Explorer Jason', expanded=False, ):
+            col1, col2 = st.columns([1, 30])
+            with col1:
+                altura_prev = controlar_altura(st, "Explorer", altura_inicial=400, passo=300, maximo=800, minimo=200)
             try:
-                with st.container(height=500):
+                with col2.container(height=altura_prev):
 
                     dados = ast.literal_eval(saida_preview)
 
@@ -401,7 +401,10 @@ def Editor_Simples( Top4, Apag,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,
         # -------------------------------------------------------------------- Api IA
     with st.container(border=True, key='Api_IA'):
         with st.expander('Ajuda IA', expanded=False, ):
-            with st.container(border=False, height=400):
+            col1, col2 = st.columns([1, 30])
+            with col1:
+                altura_prev = controlar_altura(st, "Ajuda", altura_inicial=400, passo=300, maximo=800, minimo=200)
+            with col2.container(border=True, height=altura_prev):
 
                 c1, c2 = st.columns([1, 3])
 
@@ -551,7 +554,10 @@ def Editor_Simples( Top4, Apag,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,
     with st.container(border=True, key='Catalogar_scripts'):
         from APP_Catalogo import catalogar_arquivo_ia
         with st.expander(f"🔍 Catalogar este arquivo: {nome_arquivo}", expanded=False):
-            with st.container(border=False, height=300):
+            col1, col2 = st.columns([1, 30])
+            with col1:
+                altura_prev = controlar_altura(st, "Catalogar", altura_inicial=400, passo=300, maximo=800, minimo=200)
+            with col2.container(border=True, height=altura_prev):
                 col1, col2 = st.columns([3, 1])
                 observacao_usuario = col1.text_input("💭 Sua observação:", key=f"obs_{nome_arquivo}")
                 concluir = col2.button("📚 Gerar catálogo com IA", use_container_width=True)

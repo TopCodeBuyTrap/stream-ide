@@ -325,7 +325,7 @@ def Carregamento_BancoDados_Temas(st):
     }}
     
     .block-container {{                                                                 /* BLOCO PRINCIPAL BODY*/
-        margin-top: -6% !important;
+        margin-top: -5% !important;
         margin-left: 0px !important;
         padding-left: 3.7% !important;
         margin-right: 0px !important;

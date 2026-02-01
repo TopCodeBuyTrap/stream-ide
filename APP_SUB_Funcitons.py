@@ -575,6 +575,33 @@ def chec_se_arq_do_projeto(Arq_Selec_Diretorios):
 
     return nomes_com_path
 
+def controlar_altura(st,
+    chave,
+    altura_inicial=100,
+    passo=10,
+    minimo=0,
+    maximo=None
+):
+    estado_altura = f"{chave}_altura"
+
+    if estado_altura not in st.session_state:
+        st.session_state[estado_altura] = altura_inicial
+
+
+    if st.button(":material/keyboard_double_arrow_up:", key=f"{chave}_mais"):
+        st.session_state[estado_altura] += passo
+
+    if st.button(":material/keyboard_double_arrow_down:", key=f"{chave}_menos"):
+        st.session_state[estado_altura] -= passo
+
+    if st.session_state[estado_altura] < minimo:
+        st.session_state[estado_altura] = minimo
+
+    if maximo is not None and st.session_state[estado_altura] > maximo:
+        st.session_state[estado_altura] = maximo
+
+    return st.session_state[estado_altura]
+
 
 
 

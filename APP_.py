@@ -154,14 +154,6 @@ def app():
 
 
 
-
-
-        Trm1,Trm2 = st.columns([2,8])
-        Trm1.write(':material/terminal:')
-
-        Prw1, Prw2 = st.columns([2, 8])
-        Prw1.write(':material/directions_bike:')
-
         from APP_Menus import Abrir_Menu
         #Abrir_Menu(st)
         # ============================================================= MENU SUPERIOR
@@ -185,8 +177,6 @@ def app():
 
 
             Arq_Selec_Nomes, Arq_Selec_Diretorios = Sidebar_Diretorios(st, Meus_Arquivos, 7)
-
-
 
 
         #------------------z--------------------------------------------------- SIDIBAR LATERAL
@@ -231,18 +221,16 @@ def app():
             try:
                 with Tab2:
                     arquivos_abertos_nomes, arquivos_abertos_caminhos, arquivo_selecionado_nome, arquivo_selecionado_caminho,arquivo_selecionado_conteudo\
-                    = Editor_Simples(Prw2,Tt1,Tt2,Arq_Selec_Diretorios,THEMA_EDITOR, EDITOR_TAM_MENU,Ttp2,Ttp1,)
+                    = Editor_Simples(Tt2,Arq_Selec_Diretorios,THEMA_EDITOR, EDITOR_TAM_MENU,Ttp2,Ttp1,)
             except UnicodeDecodeError:
                 st.warning('Arquivo não Reconhecido GmeOver!')
 
 
 
-            val = ''
-            with Tab2.container(border=True, key='Terminal_cmd', width=900):
-                with Trm2:
-                    altura_term = st.slider( ':material/terminal:', value=300, min_value=200, max_value=800, step=300,label_visibility='collapsed')
-                with st.expander(f":material/terminal: Terminal: {val}"):
-                    Terminal(altura_term)
+        val = ''
+        with Tab2.container(border=True, key='Terminal_cmd', width=900):
+            with st.expander(f":material/terminal: Terminal: {val}"):
+                Terminal()
 
 
 #---------------------------
