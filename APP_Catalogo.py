@@ -187,7 +187,7 @@ def conf_baix_catalogo(st,caminho_completo,nome_pasta):
             label=f"Download {nome_pasta}",
             data=conteudo.encode("utf-8"),
             file_name=f"{nome_pasta}.txt",
-            mime="text/markdown",use_container_width=True
+            mime="text/markdown",width='stretch'
         )
 
 def conf_baix_catalogo_bacup(st, caminho_completo, nome_pasta):

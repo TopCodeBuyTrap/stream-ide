@@ -293,7 +293,7 @@ def Janela_PESQUIZA(st,DIRETORIO):
 
     col1, col2, col3 = st.columns([1, 6, 1])
     with col1:
-        if st.button("🔙", use_container_width=True):
+        if st.button("🔙", width='stretch'):
             voltar_pasta()
     with col2:
         st.text_input(
@@ -303,7 +303,7 @@ def Janela_PESQUIZA(st,DIRETORIO):
             key="procura_nome"
         )
     with col3:
-        if st.button("🔍", use_container_width=True, type="primary"):
+        if st.button("🔍", width='stretch', type="primary"):
             ir_para_caminho()
 
     # LISTA PRINCIPAL
@@ -450,7 +450,7 @@ def Janela_PESQUIZA_PASTAS_ARQUIVOS(st, LISTAR_OQUE, DIRETO_QUE_ESTA_O_EXEC):
 
     col1, col2, col3 = st.columns([1, 6, 1])
     with col1:
-        st.button("🔙", use_container_width=True, on_click=voltar_pasta)
+        st.button("🔙", width='stretch', on_click=voltar_pasta)
     with col2:
         st.text_input(
             "procurar",
@@ -459,7 +459,7 @@ def Janela_PESQUIZA_PASTAS_ARQUIVOS(st, LISTAR_OQUE, DIRETO_QUE_ESTA_O_EXEC):
             key="procura_nome"
         )
     with col3:
-        st.button("🔍", use_container_width=True, type="primary", on_click=ir_para_caminho)
+        st.button("🔍", width='stretch', type="primary", on_click=ir_para_caminho)
 
     # ---------- CRIAR PASTA ----------
     st.divider()
@@ -473,7 +473,7 @@ def Janela_PESQUIZA_PASTAS_ARQUIVOS(st, LISTAR_OQUE, DIRETO_QUE_ESTA_O_EXEC):
             label_visibility="collapsed"
         )
     with col_b:
-        st.button("➕", use_container_width=True, on_click=criar_nova_pasta)
+        st.button("➕", width='stretch', on_click=criar_nova_pasta)
 
     if st.session_state.aviso_criar_pasta:
         st.warning(st.session_state.aviso_criar_pasta)

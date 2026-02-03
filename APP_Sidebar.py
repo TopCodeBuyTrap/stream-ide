@@ -96,7 +96,7 @@ def Sidebar_Diretorios_(st, lista_projeto, qt_col):
 					Arquivo_Selecionado_Completo.append(diretorio)
 					Arquivo_Selecionado_Nomes.append(arquivo)
 					if origem == "banco":
-						if st.button(f"{Sinbolos(arquivo)}{arquivo}' X",key=f"btn_banco_{arquivo}_{j}",use_container_width=True,type='tertiary'):
+						if st.button(f"{Sinbolos(arquivo)}{arquivo}' X",key=f"btn_banco_{arquivo}_{j}",width='stretch',type='tertiary'):
 							Del_CONTROLE_ARQUIVOS(arquivo)
 							st.rerun()
 
@@ -187,7 +187,7 @@ def Sidebar_Diretorios(st, lista_projeto, qt_col):
 					Arquivo_Selecionado_Completo.append(diretorio)
 					Arquivo_Selecionado_Nomes.append(arquivo)
 					if origem == "banco":
-						if st.button(f"{Sinbolos(arquivo)}{arquivo}' X",key=f"btn_banco_{arquivo}_{j}",use_container_width=True,type='tertiary'):
+						if st.button(f"{Sinbolos(arquivo)}{arquivo}' X",key=f"btn_banco_{arquivo}_{j}",width='stretch',type='tertiary'):
 							Del_CONTROLE_ARQUIVOS(arquivo)
 							st.rerun()
 

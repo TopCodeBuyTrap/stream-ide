@@ -167,9 +167,7 @@ def Carregamento_BancoDados_Temas(st):
         font-size: {FONTE_MENU}px !important;
         font-style: italic !important;        
     }}
-    
-
-    
+        
     input {{                                                        /* PARA TODOS OS INPUTS */ 
         color: {COR_CAMPO} !important;
         font-family: {FONTE_CAMPO} !important;
@@ -177,21 +175,29 @@ def Carregamento_BancoDados_Temas(st):
     }}
     
     div[data-testid="stButton"] button {{                               /* Botões */
-        color: {COR_MENU} !important;
-    
-        font-family: {FONTE_MENU} !important;
-        min-height: 10px !important;
-        border-radius: {RADIO}px !important;
-        border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important;   
-          padding: none !important;
-       padding-top: 0% !important;
-       padding-bottom: 0% !important;           
+		color: {COR_MENU} !important;		
+		font-family: {FONTE_MENU} !important;
+		min-height: 10px !important;
+		border-radius: {RADIO}px !important;
+		border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important;   
+		padding: none !important;
+		padding-top: 0% !important;
+		padding-bottom: 0% !important;           
  
     }}
     
 	div[data-testid="stButton"] button:hover {{                             /* AO PASSAR O MAUSE */
 	    background-color: {PASSR_COR} !important;  
-	    transform: scale(1.05) !important;
+	    transform: scale(1.01) !important;
+	}}
+	
+	.stButton[data-testid="stButton"] button[kind="primary"] {{             /* AO PASSAR O MAUSE kind */
+	    {WD_STYLE}
+
+	}}
+	.stButton[data-testid="stButton"] button[kind="secondary"] {{             /* AO PASSAR O MAUSE kind */
+	    {WD_STYLE}
+
 	}}
 	
 	div[data-testid="stForm"] {{                                            /* FORM  FORMULARIO */
@@ -508,6 +514,14 @@ div[data-testid="stTabs"][class*="st-emotion-cache-8atqhb eh1nhsq0"] [data-basew
         width: 100% !important;      
           
     }}
+    .st-key-BtnTerminal_widget .stButton button > div {{
+	    justify-content: flex-start !important;
+	    text-align: left !important;
+	    margin-left: 20px !important;
+	    height: 30px !important;
+
+	}}
+	
     
     div[data-testid="stVerticalBlock"][class*="st-key-Preview st-emotion-cache-1gz5zxc e12zf7d53"] {{       /* PREVIEWS  */
        {BG_STYLE}
@@ -521,7 +535,13 @@ div[data-testid="stTabs"][class*="st-emotion-cache-8atqhb eh1nhsq0"] [data-basew
         padding: 0px !important;
         width:90% !important; 		
     }}
-    
+    .st-key-BtnPreview_widget .stButton button > div {{
+	    justify-content: flex-start !important;
+	    text-align: left !important;
+	    margin-left: 20px !important;
+	    height: 30px !important;
+
+	}}
      div[data-testid="stVerticalBlock"][class*="st-key-Preview_Jason st-emotion-cache-1gz5zxc e12zf7d53"] {{       /* JASON  */
        {BG_STYLE}
         position: fixed !important;
@@ -534,7 +554,13 @@ div[data-testid="stTabs"][class*="st-emotion-cache-8atqhb eh1nhsq0"] [data-basew
         padding: 0px !important;
         width:80% !important; 		
     }}
-    
+    .st-key-BtnJson_widget .stButton button > div {{
+	    justify-content: flex-start !important;
+	    text-align: left !important;
+	    margin-left: 20px !important;
+	    height: 30px !important;
+
+	}}
      div[data-testid="stVerticalBlock"][class*="st-key-Api_IA st-emotion-cache-1gz5zxc e12zf7d53"] {{       /* CHAT IA  */
        {BG_STYLE}
         position: fixed !important;
@@ -547,6 +573,13 @@ div[data-testid="stTabs"][class*="st-emotion-cache-8atqhb eh1nhsq0"] [data-basew
         padding: 0px !important;
         width:70% !important; 		
     }}
+    .st-key-BtnChat_widget .stButton button > div {{
+	    justify-content: flex-start !important;
+	    text-align: left !important;
+	    margin-left: 20px !important;
+	    height: 30px !important;
+
+	}}
      div[data-testid="stVerticalBlock"][class*="st-key-Catalogar_scripts st-emotion-cache-1gz5zxc e12zf7d53"] {{       /* CATALOGAR */
        {BG_STYLE}
         position: fixed !important;
@@ -559,6 +592,15 @@ div[data-testid="stTabs"][class*="st-emotion-cache-8atqhb eh1nhsq0"] [data-basew
         padding: 0px !important;
         width:60% !important; 		
     }}
+    .st-key-BtnCatalogar_widget .stButton button > div {{
+	    justify-content: flex-start !important;
+	    text-align: left !important;
+	    margin-left: 20px !important;
+	    height: 30px !important;
+
+	}}
+
+
     
     </style>
 

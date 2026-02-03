@@ -4,11 +4,34 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="563116a2-fbe7-4a8b-bdf8-3df381587b9d" name="Changes" comment="" />
+    <list default="true" id="563116a2-fbe7-4a8b-bdf8-3df381587b9d" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.virto_stream/StreamProjet.txt" beforeDir="false" afterPath="$PROJECT_DIR$/.virto_stream/StreamProjet.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/APP_.py" beforeDir="false" afterPath="$PROJECT_DIR$/APP_.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/APP_Catalogo.py" beforeDir="false" afterPath="$PROJECT_DIR$/APP_Catalogo.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/APP_Editor_Run_Preview.py" beforeDir="false" afterPath="$PROJECT_DIR$/APP_Editor_Run_Preview.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/APP_Htmls.py" beforeDir="false" afterPath="$PROJECT_DIR$/APP_Htmls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/APP_Menus.py" beforeDir="false" afterPath="$PROJECT_DIR$/APP_Menus.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/APP_SUB_Customizar.py" beforeDir="false" afterPath="$PROJECT_DIR$/APP_SUB_Customizar.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/APP_SUB_Funcitons.py" beforeDir="false" afterPath="$PROJECT_DIR$/APP_SUB_Funcitons.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/APP_SUB_Janela_Explorer.py" beforeDir="false" afterPath="$PROJECT_DIR$/APP_SUB_Janela_Explorer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/APP_Sidebar.py" beforeDir="false" afterPath="$PROJECT_DIR$/APP_Sidebar.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/APP_Terminal.py" beforeDir="false" afterPath="$PROJECT_DIR$/APP_Terminal.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Abertura_TCBT.py" beforeDir="false" afterPath="$PROJECT_DIR$/Abertura_TCBT.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Banco_Dados_sudo_pip.db" beforeDir="false" afterPath="$PROJECT_DIR$/Banco_Dados_sudo_pip.db" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -29,24 +52,32 @@
   &quot;associatedIndex&quot;: 7
 }</component>
   <component name="ProjectId" id="38ijk2dvTsPEhWOUiGXq8n31Ybj" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="1" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
+    &quot;Python.APP_CodeLLama.executor&quot;: &quot;Run&quot;,
+    &quot;Python.APP_Editor_Run_Preview.executor&quot;: &quot;Run&quot;,
     &quot;Python.Banco_dados.executor&quot;: &quot;Run&quot;,
+    &quot;Python.IA.executor&quot;: &quot;Run&quot;,
+    &quot;Python.Main.executor&quot;: &quot;Run&quot;,
     &quot;Python._Criar_Exec.executor&quot;: &quot;Run&quot;,
     &quot;Python.run_app.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/henri/PycharmProjects/Stream-IDE&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/henri/PycharmProjects/Baixa video&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;aDefault&quot;,
     &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
   }
 }</component>
-  <component name="RunManager" selected="Python._Criar_Exec">
-    <configuration name="Banco_dados" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="Python.APP_Editor_Run_Preview">
+    <configuration name="APP_CodeLLama" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Stream-IDE" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -59,7 +90,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Banco_dados.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/APP_CodeLLama.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -68,7 +99,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="START_Run_app" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="APP_Editor_Run_Preview" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Stream-IDE" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -81,7 +112,51 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="C:\Users\henri\PycharmProjects\Stream-IDE\START_Run_app.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/APP_Editor_Run_Preview.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="IA" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="Stream-IDE" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/IA.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="Stream-IDE" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Main.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -114,9 +189,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.APP_Editor_Run_Preview" />
+        <item itemvalue="Python.Main" />
+        <item itemvalue="Python.APP_CodeLLama" />
+        <item itemvalue="Python.IA" />
         <item itemvalue="Python._Criar_Exec" />
-        <item itemvalue="Python.Banco_dados" />
-        <item itemvalue="Python.START_Run_app" />
       </list>
     </recent_temporary>
   </component>
@@ -137,5 +214,26 @@
       <updated>1769289425132</updated>
     </task>
     <servers />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/APP_SUB_Funcitons.py</url>
+          <line>537</line>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/APP_Menus.py</url>
+          <line>600</line>
+          <option name="timeStamp" value="7" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/APP_Menus.py</url>
+          <line>506</line>
+          <option name="timeStamp" value="9" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

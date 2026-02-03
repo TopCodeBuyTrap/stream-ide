@@ -495,6 +495,45 @@ def Sinbolos(arquivo):
 
     return ICONES_EXT.get(arquivo.suffix.lower(), "📦")
 
+def Testar_Fluxo_Run(st, col, marca=None):
+    import time
+    agora = time.time()
+
+    if "trafego" not in st.session_state:
+        st.session_state.trafego = {}
+
+    t = st.session_state.trafego
+
+    if "reruns" not in t:
+        t["reruns"] = 0
+    if "inicio" not in t:
+        t["inicio"] = agora
+    if "ultimo" not in t:
+        t["ultimo"] = None
+    if "intervalos" not in t:
+        t["intervalos"] = []
+    if "marcas" not in t:
+        t["marcas"] = {}
+
+    t["reruns"] += 1
+
+    if t["ultimo"] is not None:
+        t["intervalos"].append(agora - t["ultimo"])
+
+    t["ultimo"] = agora
+
+    tempo_total = agora - t["inicio"]
+
+    col.write(f"Fluxo passou: {t['reruns']}\tTempo: {tempo_total:.3f}")
+
+    if marca is not None:
+        if marca not in t["marcas"]:
+            t["marcas"][marca] = agora
+        else:
+            delta = agora - t["marcas"][marca]
+            col.write(f"Delta '{marca}': {delta:.3f}s")
+            del t["marcas"][marca]
+
 
 def Button_Nao_Fecha(nome_aberto, nome_fechado, key, fechar_outras=None):
     import streamlit as st
@@ -516,7 +555,7 @@ def Button_Nao_Fecha(nome_aberto, nome_fechado, key, fechar_outras=None):
             nome_aberto,
             key=widget_key,
             on_click=toggle,
-            use_container_width=True,
+            width='stretch',
             type="primary"
         )
     else:
@@ -524,7 +563,7 @@ def Button_Nao_Fecha(nome_aberto, nome_fechado, key, fechar_outras=None):
             nome_fechado,
             key=widget_key,
             on_click=toggle,
-            use_container_width=True,
+            width='stretch',
             type="secondary"
         )
 

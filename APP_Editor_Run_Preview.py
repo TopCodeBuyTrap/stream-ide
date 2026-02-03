@@ -1,6 +1,7 @@
 import ast
 import json
 import re
+import subprocess
 from pathlib import Path
 from platform import java_ver
 
@@ -21,7 +22,33 @@ from APP_SUB_Janela_Explorer import Abrir_Arquivo_Select_Tabs
 from SUB_Traduz_terminal import traduzir_saida
 
 
-def Editor_Simples( Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU, colStop, ColunaRun):
+def netstat_streamlit():
+    """Parse CORRETO com encoding BR e PID no final"""
+    portas_85xx = []
+
+    resultado = subprocess.run(
+        'netstat -ano',
+        shell=True, capture_output=True, text=True,
+        encoding='cp850'  # ← ENCODING BRASILEIRO!
+    )
+
+    for linha in resultado.stdout.splitlines():
+        if 'LISTENING' in linha and '850' in linha:
+            # Pega campos: Proto Endereço PID no FINAL
+            parts = linha.split()
+            if len(parts) >= 5:
+                pid = parts[-1]  # Último = PID
+                # Regex pega porta 850x
+                match = re.search(r'0\.0\.0\.0:(\d{4})', linha)
+                if match:
+                    porta = match.group(1)
+                    portas_85xx.append((porta, pid, linha.strip()))
+
+    return portas_85xx
+
+
+def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU, colStop, ColunaRun):
+    msg_fim_cod = "🏁 Fim do Codigo!"
     # Função para nome curto (mantida)
     def nome_curto(nome, limite=20):
         base, ext = os.path.splitext(nome)
@@ -43,10 +70,43 @@ def Editor_Simples( Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU, colStop, C
     _.setdefault("Diretorio", {})
     _.setdefault("conteudos_abas", {})
 
-    from pathlib import Path
-    import sys
-    import time
+    # ===== DETECTA SE É CÓDIGO STREAMLIT =====
+    def is_streamlit_code(code):
+        code_lower = code.lower()
+        return 'import streamlit' in code_lower or 'import st' in code_lower or 'st.' in code_lower
 
+    # ===== EXECUTA COM SUBPROCESS PARA STREAMLIT =====
+    def run_streamlit_process(file_path):
+        try:
+            Pasta_RAIZ_projeto = _DIRETORIO_PROJETO_ATUAL_()
+            projeto_path = Path(Pasta_RAIZ_projeto)
+        except:
+            projeto_path = Path.cwd()
+
+        # Caminho completo do streamlit
+        streamlit_cmd = ["streamlit", "run", str(file_path)]
+
+        # Adiciona venv se existir
+        venv_path = projeto_path / ".virto_stream" / "Scripts" / "python.exe"
+        if venv_path.exists():
+            streamlit_cmd = [str(venv_path), "-m", "streamlit", "run", str(file_path)]
+        else:
+            venv_path = projeto_path / ".virto_stream" / "bin" / "python"
+            if venv_path.exists():
+                streamlit_cmd = [str(venv_path), "-m", "streamlit", "run", str(file_path)]
+
+        # Captura output do subprocess
+        process = subprocess.Popen(
+            streamlit_cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1,
+            universal_newlines=True,
+            cwd=str(projeto_path)
+        )
+
+        return process
     def run_code_thread(code, input_q, output_q):
         # VENV (mantém igual)
         try:
@@ -149,6 +209,10 @@ def Editor_Simples( Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU, colStop, C
                     wrap=True,
                     key=f"ace_editor_{I}"
                 )
+                with Janela:
+                    if is_streamlit_code(cod):
+                        st.code(f'streamlit run {nome_arquivo}')
+
                 if st.button(f'🗑️Apagar: {nome_arquivo}', key=f"botao_apagar_arquivos{I}"):
                     Apagar_Arq(st, nome_arquivo, caminho)
 
@@ -213,38 +277,77 @@ def Editor_Simples( Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU, colStop, C
                 st.error(f"Erro salvar {nome_arquivo_sectbox}: {e}")
 
 
+      # INICIALIZA output
+    if 'streamlit_output' not in _:
+        _['streamlit_output'] = []
 
 
     # EXECUÇÃO - usa 'codigo' da aba ativa
-    if ColunaRun.button("▶️", key="executar_aba_ativa", shortcut='Ctrl+Enter',use_container_width=True):
+    if ColunaRun.button("▶️", key="executar_aba_ativa", shortcut='Ctrl+Enter',width="stretch"):
         st.session_state.output = f"{arquivo_selecionado_caminho}>\n"
         # Limpa queues...
-        while not st.session_state.input_queue.empty():
-            st.session_state.input_queue.get()
-        while not st.session_state.output_queue.empty():
-            st.session_state.output_queue.get()
-        st.session_state.thread_running = True
-        threading.Thread(
-            target=run_code_thread,
-            args=(codigo, st.session_state.input_queue, st.session_state.output_queue),
-            daemon=True
-        ).start()
-        st.rerun()
+        # ✅ DETECTA SE É STREAMLIT E USA SUBPROCESS
+        if is_streamlit_code(codigo):
+            st.session_state.process_running = True
+            st.session_state.current_process = run_streamlit_process(arquivo_selecionado_caminho)
 
-    if colStop.button("⏹️", key=f"parar_{id_aba_ativa}", shortcut='Ctrl+Space',use_container_width=True):  # *** BOTÃO STOP DE VOLTA! ***
+            # *** WHILE TRUE CONTÍNUO (atualiza sempre!) ***
+            process = _.current_process
+
+            while True:
+                try:
+                    # LÊ UMA LINHA (igual PyCharm)
+                    line = process.stdout.readline()
+                    if line:
+                        _['streamlit_output'].append(line)
+                        time.sleep(0.01)  # ← SEMPRE NO FINAL
+                        st.rerun()  # ← ATUALIZA NA HORA!
+                    else:
+                        # Processo acabou ou sem output
+                        break
+                except:
+                    break
+            Exct = f'''
+{''.join(_['streamlit_output'])}\n{msg_fim_cod}'''
+            st.session_state.output = Exct
+
+        else:
+            while not st.session_state.input_queue.empty():
+                st.session_state.input_queue.get()
+            while not st.session_state.output_queue.empty():
+                st.session_state.output_queue.get()
+            st.session_state.thread_running = True
+            threading.Thread(
+                target=run_code_thread,
+                args=(codigo, st.session_state.input_queue, st.session_state.output_queue),
+                daemon=True
+            ).start()
+            st.rerun()
+
+    if colStop.button("⏹️", key=f"parar_{id_aba_ativa}", shortcut='Ctrl+Space',width='stretch'):  # *** BOTÃO STOP DE VOLTA! ***
         _.thread_running = False
         _.output += "\n⏹️ Execução interrompida\n"
 
+    with Janela:
+        portas = netstat_streamlit()
+        for porta, pid, linha in portas:
+            st.write(f"[**http://localhost:{porta}**](http://localhost:{porta}) ← PID **{pid}**")
 
+            if st.button(f"🛑 Parar {porta}", key=f"kill_{porta}"):
+                os.system(f'taskkill /PID {pid} /F')
+                st.rerun()
 
     # -------------------------------------------------------------------- TERMINAL Preview
     with st.container(border=True, key='Preview'):
-        with st.expander(f' **{arquivo_selecionado_nome}** :material/directions_bike:'.replace('Executando - None', '')):
-            output_placeholder = st.empty()
+        if Button_Nao_Fecha(f':material/directions_bike: **{arquivo_selecionado_nome}**', f':material/directions_bike: **{arquivo_selecionado_nome}**','BtnPreview'):
+
+
             col1, col2 = st.columns([1, 30])
             with col1:
                 altura_prev = controlar_altura(st, "Preview", altura_inicial=400, passo=300, maximo=800, minimo=200)
+
             with col2.container(height=altura_prev):
+                output_placeholder = st.empty()
                 # Processa mensagens da fila
                 if st.session_state.thread_running:
                     new_data = False
@@ -253,7 +356,7 @@ def Editor_Simples( Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU, colStop, C
                             msg = st.session_state.output_queue.get_nowait()
                             if msg == "PROGRAM_FINISHED":
                                 st.session_state.thread_running = False
-                                st.session_state.output += "🏁 Fim do Codigo!"
+                                st.session_state.output += msg_fim_cod
                                 new_data = True
                                 break
                             st.session_state.output += msg
@@ -284,11 +387,13 @@ def Editor_Simples( Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU, colStop, C
 
     # -------------------------------------------------------------------- Explorer Jason
     codigo_completo_do_editor = codigo
-    saida_preview = st.session_state.output.strip().replace(f'{arquivo_selecionado_caminho}>', '').replace('🏁 Fim do Codigo!', '')
+    saida_preview = st.session_state.output.strip().replace(f'{arquivo_selecionado_caminho}>', '').replace(msg_fim_cod, '')
     st.write(saida_preview)
     with st.container(border=True, key='Preview_Jason'):
 
-        with st.expander('Explorer Jason', expanded=False, ):
+        if Button_Nao_Fecha(f':material/data_object: Explorer Jason', f':material/data_object: Explorer Jason',
+                            'BtnJson'):
+
             col1, col2 = st.columns([1, 30])
             with col1:
                 altura_prev = controlar_altura(st, "Explorer", altura_inicial=400, passo=300, maximo=800, minimo=200)
@@ -355,7 +460,7 @@ def Editor_Simples( Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU, colStop, C
                     col1, col2 = st.columns([3, 2])
 
                     with col1:
-                        st.dataframe(linhas_tabela, use_container_width=True, hide_index=True)
+                        st.dataframe(linhas_tabela, width='stretch', hide_index=True)
                         st.json(dados)
 
                     with col2:
@@ -400,7 +505,8 @@ def Editor_Simples( Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU, colStop, C
             st.write('')
         # -------------------------------------------------------------------- Api IA
     with st.container(border=True, key='Api_IA'):
-        with st.expander('Ajuda IA', expanded=False, ):
+
+        if Button_Nao_Fecha(f':material/psychology: Chat IA', f':material/psychology: Chat IA','BtnChat'):
             col1, col2 = st.columns([1, 30])
             with col1:
                 altura_prev = controlar_altura(st, "Ajuda", altura_inicial=400, passo=300, maximo=800, minimo=200)
@@ -435,7 +541,7 @@ def Editor_Simples( Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU, colStop, C
                     key="prompt_ia_unique"
                 )
                 with c1:
-                    if c1.button("Gerar / Aplicar", type="primary", use_container_width=True):
+                    if c1.button("Gerar / Aplicar", type="primary", width='stretch'):
 
                         with st.spinner("Consultando IA..."):
                             # Adapta instrução
@@ -517,7 +623,7 @@ def Editor_Simples( Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU, colStop, C
 
                             # Chama API do OpenRouter
                             headers = {
-                                "Authorization": "Bearer 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",
+                                "Authorization": "Bearer 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",
                                 "Content-Type": "application/json",
                                 "HTTP-Referer": "http://localhost:8501",
                                 "X-Title": "Stream-IDE IA"
@@ -553,14 +659,15 @@ def Editor_Simples( Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU, colStop, C
     # -------------------------------------------------------------------- Catalogar scripts
     with st.container(border=True, key='Catalogar_scripts'):
         from APP_Catalogo import catalogar_arquivo_ia
-        with st.expander(f"🔍 Catalogar este arquivo: {nome_arquivo}", expanded=False):
+        if Button_Nao_Fecha(f':material/inventory: Catalogar: {nome_arquivo}', f':material/inventory_2: Catalogar: {nome_arquivo}', 'BtnCatalogar'):
+
             col1, col2 = st.columns([1, 30])
             with col1:
                 altura_prev = controlar_altura(st, "Catalogar", altura_inicial=400, passo=300, maximo=800, minimo=200)
             with col2.container(border=True, height=altura_prev):
                 col1, col2 = st.columns([3, 1])
                 observacao_usuario = col1.text_input("💭 Sua observação:", key=f"obs_{nome_arquivo}")
-                concluir = col2.button("📚 Gerar catálogo com IA", use_container_width=True)
+                concluir = col2.button("📚 Gerar catálogo com IA", width='stretch')
                 if concluir:
                     # aqui começa a porro das chamada desse codogo
                     try:
@@ -577,4 +684,3 @@ def Editor_Simples( Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU, colStop, C
         arquivo_selecionado_caminho,
         arquivo_selecionado_conteudo  # ✅ AGORA RETORNA o código da aba ativa!
     )
-

@@ -1,10 +1,12 @@
-
+import re
+import subprocess
 # Adicione este bloco NO INÍCIO do seu arquivo APP_.py e outros arquivos principais
 # Isso corrige o erro "ModuleNotFoundError" quando roda o executável
 
 import sys
 from pathlib import Path
 
+import pandas as pd
 
 # Detecta se está rodando como executável (frozen) ou script python normal
 if getattr(sys, 'frozen', False):
@@ -99,7 +101,7 @@ def select_arquivo_recente(col2):
         st.session_state.ultimo_idx = selecionado
 
     item = dados[selecionado]
-    if st.button(f'Acesar',use_container_width=True):
+    if st.button(f'Acesar',width='stretch'):
         data = contar_estrutura(item["caminho"])
         versao_set = data["versoes"][0]
         esc_A_CONTROLE_PROJETOS(str(item["caminho"]), list(versao_set)[0], data_sistema(), data["pastas"], data["arquivos"] , '')
@@ -169,8 +171,8 @@ def app():
 
 
 
-
-        with Tab1.container(border=True,key='menu_lado_sidebar',height=1000):
+        Janela = Tab1.container(border=True,key='menu_lado_sidebar',height=1000)
+        with Janela:
             # :material/settings:  :material/emoji_symbols:
             Tt1, Tt2 = st.columns([1,9])  # Botão de run e stop
             Ttp1, Ttp2 = st.columns(2)  # Botão de run e stop
@@ -211,7 +213,7 @@ def app():
             BAKCUP(st,MINUTOS_ATUALIZAR, Path(caminho_completo).parent, os.path.join(_DIRETORIO_EXECUTAVEL_('backup'),nome_pasta), ignores)
 
         if cab2.button(f':material/search: :material/folder_open: : {os.path.join(nome_pasta)} ',
-                               use_container_width=True, type="secondary"):
+                               width='stretch', type="secondary"):
                     Open_Explorer(caminho_completo)
 
 
@@ -221,7 +223,7 @@ def app():
             try:
                 with Tab2:
                     arquivos_abertos_nomes, arquivos_abertos_caminhos, arquivo_selecionado_nome, arquivo_selecionado_caminho,arquivo_selecionado_conteudo\
-                    = Editor_Simples(Tt2,Arq_Selec_Diretorios,THEMA_EDITOR, EDITOR_TAM_MENU,Ttp2,Ttp1,)
+                    = Editor_Simples(Janela,Tt2,Arq_Selec_Diretorios,THEMA_EDITOR, EDITOR_TAM_MENU,Ttp2,Ttp1,)
             except UnicodeDecodeError:
                 st.warning('Arquivo não Reconhecido GmeOver!')
 
@@ -229,7 +231,7 @@ def app():
 
         val = ''
         with Tab2.container(border=True, key='Terminal_cmd', width=900):
-            with st.expander(f":material/terminal: Terminal: {val}"):
+            if Button_Nao_Fecha(':material/terminal: Terminal:', ':material/terminal: Terminal:', 'BtnTerminal'):
                 Terminal()
 
 

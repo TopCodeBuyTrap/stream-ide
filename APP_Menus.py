@@ -364,7 +364,7 @@ def Custom(st):
             st.divider()
 
             st.write('')
-            submitted = st.button("Salvar Customização", type="primary",use_container_width=True)
+            submitted = st.button("Salvar Customização", type="primary",width='stretch')
             st.write('')
             st.write('')
 
@@ -526,7 +526,7 @@ def Abrir_Projeto(st):
             extensao = Path(caminho).suffix
 
             if tipo == '📄 ARQUIVO':
-                if st.button(f"📄 **Abrir: {nome_arq}**", use_container_width=True, key=f"abrir_arq_{nome_arq}"):
+                if st.button(f"📄 **Abrir: {nome_arq}**", width='stretch', key=f"abrir_arq_{nome_arq}"):
                     try:
                         with open(caminho, "r", encoding="utf-8") as f:
                             conteudo = f.read()
@@ -544,7 +544,7 @@ def Abrir_Projeto(st):
 Criada: {r['criado']} Modificada: {r['modificado']}
 Extensões: {r['extensoes']}''')
 
-                if st.button(f"**Abrir Projeto: {nome_arq}**", use_container_width=True, key=f"abrir_proj_{nome_arq}"):
+                if st.button(f"**Abrir Projeto: {nome_arq}**", width='stretch', key=f"abrir_proj_{nome_arq}"):
                     try:
                         pasta_pai = Path(caminho).parent
                         st.write(caminho, pasta_pai)
@@ -989,7 +989,7 @@ def Apagar_Arq(st,nome,diretorio):
             st.session_state["botao_apagar_arquivos_state"] = False
             st.rerun()
 
-        if st.button(f"**❌ Apagar Sim!**", key=f"{nome}_btn_del2", use_container_width=True,type="secondary"):
+        if st.button(f"**❌ Apagar Sim!**", key=f"{nome}_btn_del2", width='stretch',type="secondary"):
             Apagar_Arquivos(st, diretorio)
             st.session_state.Apagar_Arquivos = False
 

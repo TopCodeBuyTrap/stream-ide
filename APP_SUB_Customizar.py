@@ -189,7 +189,7 @@ def Customization(st,NOME_CUSTOM):
 
 
 		# ---------------- BOTÃO APLICAR (final das tabs)
-		if st.form_submit_button("💾 SALVAR TUDO",  use_container_width=True):
+		if st.form_submit_button("💾 SALVAR TUDO",  width='stretch'):
 			# Layout
 			ATUAL_CUSTOM_agora(st, usuario, 'EDITOR_TAM_MENU', Tam_Font)
 			ATUAL_CUSTOM_agora(st, usuario, 'PREVIEW_TAM_MENU', Tam_Run)

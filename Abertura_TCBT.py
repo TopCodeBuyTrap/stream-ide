@@ -22,7 +22,7 @@ def Janela_Lista_Arquivos(st, listar_tipo, caminho_inicial):
 			if tipo == '📁 DIRETÓRIO':
 				if st.button(
 						f"📁 **Usar este diretório: {nome_arq}**",
-						use_container_width=True
+						width='stretch'
 				):
 					st.session_state.caminho_selecionado = caminho
 					st.session_state.dialog_aberto = False
@@ -158,7 +158,7 @@ def Abertura():
 			with col_gpt2:
 				chave_gpt = st.text_input("🔑 Chave GPT", type="password", placeholder="sk-...")
 
-			if st.button("💾 **SALVAR CONFIGURAÇÃO ABSOLUTA**", type="primary", use_container_width=True):
+			if st.button("💾 **SALVAR CONFIGURAÇÃO ABSOLUTA**", type="primary", width='stretch'):
 				try:
 					Path(diretorio_backup).mkdir(parents=True, exist_ok=True)
 
