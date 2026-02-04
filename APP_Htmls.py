@@ -3,7 +3,7 @@ from time import sleep
 
 from APP_SUB_Controle_Driretorios import _DIRETORIO_EXECUTAVEL_, _DIRETORIO_PROJETOS_, _DIRETORIO_PROJETO_ATUAL_
 from APP_SUB_Funcitons import saudacao_por_hora_sistema
-from Banco_dados import ler_CUSTOMIZATION_coluna, ler_B_ARQUIVOS_RECENTES
+from Banco_dados import  ler_B_ARQUIVOS_RECENTES
 import base64
 import streamlit as st
 import os
@@ -21,37 +21,44 @@ def Carregamento_BancoDados_Temas(st):
 	Estrutura_projeto = st.session_state.estrutura_projeto
 
 	# --------------------------------------------------------------------- CARREGAMENTO DE CUSTOMIZAÇÃO
-	NOME_CUSTOM = ler_CUSTOMIZATION_coluna('NOME_CUSTOM')
-	NOME_USUARIO = ler_CUSTOMIZATION_coluna('NOME_USUARIO')
-	CAMINHO_DOWNLOAD = ler_CUSTOMIZATION_coluna('CAMINHO_DOWNLOAD')
-	IMAGEM_LOGO = ler_CUSTOMIZATION_coluna('IMAGEM_LOGO')
+	@st.cache_data
+	def ler_CUSTOMIZATION_cached():
+		from Banco_dados import ler_CUSTOMIZATION_TODOS
+		return ler_CUSTOMIZATION_TODOS()
 
-	THEMA_EDITOR = ler_CUSTOMIZATION_coluna('THEMA_EDITOR')
-	EDITOR_TAM_MENU = ler_CUSTOMIZATION_coluna('EDITOR_TAM_MENU')
+	cfg = ler_CUSTOMIZATION_cached()
 
-	THEMA_PREVIEW = ler_CUSTOMIZATION_coluna('THEMA_PREVIEW')
-	PREVIEW_TAM_MENU = ler_CUSTOMIZATION_coluna('PREVIEW_TAM_MENU')
+	NOME_CUSTOM = cfg.get('NOME_CUSTOM')
+	NOME_USUARIO = cfg.get('NOME_USUARIO')
+	CAMINHO_DOWNLOAD = cfg.get('CAMINHO_DOWNLOAD')
+	IMAGEM_LOGO = cfg.get('IMAGEM_LOGO')
 
-	TERMINAL_TAM_MENU = ler_CUSTOMIZATION_coluna('TERMINAL_TAM_MENU')
-	THEMA_TERMINAL = ler_CUSTOMIZATION_coluna('THEMA_TERMINAL')
+	THEMA_EDITOR = cfg.get('THEMA_EDITOR')
+	EDITOR_TAM_MENU = cfg.get('EDITOR_TAM_MENU')
 
-	THEMA_APP1 = ler_CUSTOMIZATION_coluna('THEMA_APP1')
-	THEMA_APP2 = ler_CUSTOMIZATION_coluna('THEMA_APP2')
-	FONTE_MENU = ler_CUSTOMIZATION_coluna('FONTE_MENU')
-	TAM_MENU = ler_CUSTOMIZATION_coluna('FONTE_TAM_MENU')
-	COR_MENU = ler_CUSTOMIZATION_coluna('FONTE_COR_MENU')
-	FONTE_CAMPO = ler_CUSTOMIZATION_coluna('FONTE_CAMPO')
-	TAM_CAMPO = ler_CUSTOMIZATION_coluna('FONTE_TAM_CAMPO')
-	COR_CAMPO = ler_CUSTOMIZATION_coluna('FONTE_COR_CAMPO')
+	THEMA_PREVIEW = cfg.get('THEMA_PREVIEW')
+	PREVIEW_TAM_MENU = cfg.get('PREVIEW_TAM_MENU')
+
+	TERMINAL_TAM_MENU = cfg.get('TERMINAL_TAM_MENU')
+	THEMA_TERMINAL = cfg.get('THEMA_TERMINAL')
+
+	THEMA_APP1 = cfg.get('THEMA_APP1')
+	THEMA_APP2 = cfg.get('THEMA_APP2')
+	FONTE_MENU = cfg.get('FONTE_MENU')
+	TAM_MENU = cfg.get('FONTE_TAM_MENU')
+	COR_MENU = cfg.get('FONTE_COR_MENU')
+	FONTE_CAMPO = cfg.get('FONTE_CAMPO')
+	TAM_CAMPO = cfg.get('FONTE_TAM_CAMPO')
+	COR_CAMPO = cfg.get('FONTE_COR_CAMPO')
 
 
-	RADIO = ler_CUSTOMIZATION_coluna('RADIAL')
-	BORDA = ler_CUSTOMIZATION_coluna('BORDA')
-	BORDA_STIL = ler_CUSTOMIZATION_coluna('DECORA') # AQUI NO DECORA COLOQUEI TIPOS DE BORDA
-	COR_WIDGET = ler_CUSTOMIZATION_coluna('OPC1') # coloquei fundo dos botes e expander etc..
-	OPC2 = ler_CUSTOMIZATION_coluna('OPC2')
-	OPC3 = ler_CUSTOMIZATION_coluna('OPC3') # COLOQUEI AQUI IMAGEM CONFIG
-	OBS = ler_CUSTOMIZATION_coluna('OBS')
+	RADIO = cfg.get('RADIAL')
+	BORDA = cfg.get('BORDA')
+	BORDA_STIL = cfg.get('DECORA') # AQUI NO DECORA COLOQUEI TIPOS DE BORDA
+	COR_WIDGET = cfg.get('OPC1') # coloquei fundo dos botes e expander etc..
+	OPC2 = cfg.get('OPC2')
+	OPC3 = cfg.get('OPC3') # COLOQUEI AQUI IMAGEM CONFIG
+	OBS = cfg.get('OBS')
 
 	# ✅ FUNÇÕES AUXILIARES (antes do CSS)
 	def img_to_base64(img_path):

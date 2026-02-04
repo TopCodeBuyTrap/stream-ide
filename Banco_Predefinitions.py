@@ -1,13 +1,13 @@
 import json
 import sqlite3
-
+import streamlit as st
 
 
 def get_conn():
     """Retorna CONEXÃO PRONTA (padrão correto)"""
     return sqlite3.connect("Base_Dados_PreDefinidos.db", check_same_thread=False)
 
-
+@st.cache_data
 def init_db():
     """Cria TODAS as tabelas de uma vez"""
     conn = get_conn()
@@ -159,7 +159,7 @@ def listar_versoes():
     conn.close()
     return nomes
 
-
+@st.cache_data
 def ultima_versao():
     """Retorna a última versão instalada"""
     conn = get_conn()

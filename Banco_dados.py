@@ -2,14 +2,14 @@ import os
 import sqlite3
 import time
 
-
+import streamlit
 import  streamlit as st
 
 
 def get_conn():
     return sqlite3.connect("Base_Dados.db", check_same_thread=False)  # ← ADICIONE , check_same_thread=False
 
-
+@st.cache_data
 def init_db():
 	conn = get_conn()
 	c = conn.cursor()
@@ -100,7 +100,7 @@ def esc_A_CONTROLE_ABSOLUTO(DIRETORIO_PROGRAMA, DIRETORIO_PROJETOS, DIRETORIOS_B
 	conn.close()
 
 
-
+@st.cache_data
 def ler_A_CONTROLE_ABSOLUTO():
 	conn = get_conn()
 	c = conn.cursor()
@@ -463,6 +463,9 @@ def Del_CUSTOMIZATION(ID=''):
 			time.sleep(0.1)
 
 
+
+
+
 def ler_CUSTOMIZATION_coluna(COLUNA):
 	conn = get_conn()
 	c = conn.cursor()
@@ -471,6 +474,50 @@ def ler_CUSTOMIZATION_coluna(COLUNA):
 	c.close()
 	conn.close()
 	return row[0] if row else None
+
+def ler_CUSTOMIZATION_TODOS():
+    conn = get_conn()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT
+            NOME_CUSTOM,
+            NOME_USUARIO,
+            CAMINHO_DOWNLOAD,
+            IMAGEM_LOGO,
+            THEMA_EDITOR,
+            EDITOR_TAM_MENU,
+            THEMA_PREVIEW,
+            PREVIEW_TAM_MENU,
+            TERMINAL_TAM_MENU,
+            THEMA_TERMINAL,
+            THEMA_APP1,
+            THEMA_APP2,
+            FONTE_MENU,
+            FONTE_TAM_MENU,
+            FONTE_COR_MENU,
+            FONTE_CAMPO,
+            FONTE_TAM_CAMPO,
+            FONTE_COR_CAMPO,
+            RADIAL,
+            BORDA,
+            DECORA,
+            OPC1,
+            OPC2,
+            OPC3,
+            OBS
+        FROM CUSTOMIZATION
+        WHERE OBS = 'ATIVO'
+    """)
+
+    row = cur.fetchone()
+    colunas = [d[0] for d in cur.description]
+
+    cur.close()
+    conn.close()
+
+    return dict(zip(colunas, row)) if row else {}
+
 
 
 # Inicialização padrão de CUSTOMIZATION

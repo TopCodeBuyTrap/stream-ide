@@ -1,12 +1,9 @@
 import ast
-import json
 import re
 import subprocess
 from pathlib import Path
-from platform import java_ver
 
 import streamlit as st
-from streamlit_ace import st_ace
 import sys
 import threading
 import queue
@@ -14,6 +11,7 @@ import requests
 import os, time
 
 from APP_Catalogo import arquivo_ja_catalogado
+from APP_Editor_Codigo import editor_codigo_autosave
 from APP_Menus import Apagar_Arq
 from APP_SUB_Controle_Driretorios import _DIRETORIO_PROJETO_ATUAL_
 from APP_SUB_Funcitons import Identificar_linguagem, Button_Nao_Fecha, Sinbolos, Anotations_Editor, Marcadores_Editor, \
@@ -196,19 +194,16 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU, colS
             extensao = os.path.splitext(nome_arquivo)[1].lower()
             try:
                 # *** st_ace RETORNA o código ATUALIZADO da aba ***
-                cod = st_ace(
-                    value=conteudo_inicial,
-                    language=linguagem,
-                    theme=THEMA_EDITOR,
+                cod = editor_codigo_autosave(
+                    st=st,
+                    aba_id=I,
+                    caminho_arquivo=_.Diretorio[I],
+                    conteudo_inicial=conteudo_inicial,
+                    linguagem=linguagem,
+                    thema_editor=THEMA_EDITOR,
                     font_size=EDITOR_TAM_MENU,
-                    height=775,
-                    auto_update=True,
-                    show_print_margin=False,
-                    annotations=Anotations_Editor(conteudo_inicial),
-                    markers=Marcadores_Editor(conteudo_inicial),
-                    wrap=True,
-                    key=f"ace_editor_{I}"
                 )
+                st.write(cod)
                 with Janela:
                     if is_streamlit_code(cod):
                         st.code(f'streamlit run {nome_arquivo}')

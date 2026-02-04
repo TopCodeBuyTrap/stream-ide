@@ -1,12 +1,9 @@
-import re
-import subprocess
-# Adicione este bloco NO INÍCIO do seu arquivo APP_.py e outros arquivos principais
+
+# Adicionei este bloco NO INÍCIO do seu arquivo APP_.py e outros arquivos principais
 # Isso corrige o erro "ModuleNotFoundError" quando roda o executável
 
 import sys
 from pathlib import Path
-
-import pandas as pd
 
 # Detecta se está rodando como executável (frozen) ou script python normal
 if getattr(sys, 'frozen', False):

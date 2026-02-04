@@ -27,7 +27,7 @@ License: MIT
 # ---------------------------- Rodar
 streamlit run APP_.py
 
-
+pip install streamlit-code-editor # instalei pq tem como controlar os rerus de teclas digitadas
 
 # FALTA IMPLEMENTAR:
 1. salvar arquivos automaticamente

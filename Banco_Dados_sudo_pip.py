@@ -19,14 +19,14 @@ INTEGRAÇÃO:
 BANCO: Banco_Dados_sudo_pip.db (SQLite independente)
 TABELA: tabelas_modulos (nome, install_cmd, uninstall_cmd, upgrade_cmd, tipo)
 """
-
+import streamlit as st
 import sqlite3
 
 
 def get_conn():
 	return sqlite3.connect("Banco_Dados_sudo_pip.db", check_same_thread=False)
 
-
+@st.cache_data
 def init_db_modulos():
 	conn = get_conn()
 	c = conn.cursor()
