@@ -28,6 +28,15 @@ License: MIT
 streamlit run APP_.py
 
 pip install streamlit-code-editor # instalei pq tem como controlar os rerus de teclas digitadas
+Summary: React-ace editor customized for Streamlit
+Home-page: https://github.com/bouzidanas/streamlit-code-editor
+Author: Anas Bouzid
+Author-email: anasbouzid@gmail.com
+License:
+Location: C:\Users\henri\PycharmProjects\Stream-IDE\.venv\Lib\site-packages
+Requires: streamlit
+
+
 
 # FALTA IMPLEMENTAR:
 1. salvar arquivos automaticamente

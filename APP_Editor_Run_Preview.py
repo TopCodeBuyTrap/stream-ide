@@ -45,7 +45,7 @@ def netstat_streamlit():
     return portas_85xx
 
 
-def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU, colStop, ColunaRun):
+def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE, colStop, ColunaRun):
     msg_fim_cod = "🏁 Fim do Codigo!"
     # Função para nome curto (mantida)
     def nome_curto(nome, limite=20):
@@ -202,6 +202,7 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU, colS
                     linguagem=linguagem,
                     thema_editor=THEMA_EDITOR,
                     font_size=EDITOR_TAM_MENU,
+                    fonte=FONTE
                 )
                 st.write(cod)
                 with Janela:
@@ -618,7 +619,7 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU, colS
 
                             # Chama API do OpenRouter
                             headers = {
-                                "Authorization": "Bearer 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",
+                                "Authorization": "Bearer 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",
                                 "Content-Type": "application/json",
                                 "HTTP-Referer": "http://localhost:8501",
                                 "X-Title": "Stream-IDE IA"
