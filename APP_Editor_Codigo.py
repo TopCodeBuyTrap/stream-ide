@@ -157,7 +157,7 @@ def editor_codigo_autosave(st, aba_id, caminho_arquivo, conteudo_inicial, lingua
     cod = code_editor(conteudo_inicial,
         lang=linguagem.lower(), # garante minúsculo
 
-        height=f'170px', # Altura dinâmica (min, max linhas) ou fixa "850px"
+        height=f'770px', # Altura dinâmica (min, max linhas) ou fixa "850px"
         shortcuts='vscode', # ["emacs", "vim", "vscode", "sublime"]
         response_mode=["blur"],  # ← ADICIONE AQUI (linha 142, junto com lang=, theme=, etc)
 

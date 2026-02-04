@@ -13,7 +13,7 @@ import os, time
 from APP_Catalogo import arquivo_ja_catalogado
 from APP_Editor_Codigo import editor_codigo_autosave
 from APP_Menus import Apagar_Arq
-from APP_SUB_Controle_Driretorios import _DIRETORIO_PROJETO_ATUAL_
+from APP_SUB_Controle_Driretorios import _DIRETORIO_PROJETO_ATUAL_, VENVE_DO_PROJETO
 from APP_SUB_Funcitons import Identificar_linguagem, Button_Nao_Fecha, Sinbolos, Anotations_Editor, Marcadores_Editor, \
     wrap_text, chec_se_arq_do_projeto, controlar_altura
 from APP_SUB_Janela_Explorer import Abrir_Arquivo_Select_Tabs
@@ -75,63 +75,34 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
 
     # ===== EXECUTA COM SUBPROCESS PARA STREAMLIT =====
     def run_streamlit_process(file_path):
-        try:
-            Pasta_RAIZ_projeto = _DIRETORIO_PROJETO_ATUAL_()
-            projeto_path = Path(Pasta_RAIZ_projeto)
-        except:
-            projeto_path = Path.cwd()
-
-        # Caminho completo do streamlit
-        streamlit_cmd = ["streamlit", "run", str(file_path)]
-
-        # Adiciona venv se existir
-        venv_path = projeto_path / ".virto_stream" / "Scripts" / "python.exe"
-        if venv_path.exists():
-            streamlit_cmd = [str(venv_path), "-m", "streamlit", "run", str(file_path)]
-        else:
-            venv_path = projeto_path / ".virto_stream" / "bin" / "python"
-            if venv_path.exists():
-                streamlit_cmd = [str(venv_path), "-m", "streamlit", "run", str(file_path)]
-
-        # Captura output do subprocess
-        process = subprocess.Popen(
-            streamlit_cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            bufsize=1,
-            universal_newlines=True,
-            cwd=str(projeto_path)
-        )
-
+        python_exe, root_path, _, _ = VENVE_DO_PROJETO()
+        cmd = [python_exe, "-m", "streamlit", "run", str(file_path)]
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                   text=True, bufsize=1, cwd=root_path)
         return process
-    def run_code_thread(code, input_q, output_q):
-        # VENV (mantém igual)
-        try:
-            Pasta_RAIZ_projeto = _DIRETORIO_PROJETO_ATUAL_()
-            projeto_path = Path(Pasta_RAIZ_projeto)
-            #output_q.put(f"🎯 PROJETO: {projeto_path}\n")
-        except:
-            projeto_path = Path.cwd()
 
-        venv_path = projeto_path / ".virto_stream"
-        if venv_path.exists():
-            site_packages = venv_path / "Lib" / "site-packages"
+    def run_code_thread(code, input_q, output_q):
+        # 🔥 USA A FUNÇÃO MESTRE - ZERO Path()
+        python_exe, root_path, venv_path, _ = VENVE_DO_PROJETO()
+
+        # ADICIONA VENV NO sys.path
+        if Path(venv_path).exists():
+            site_packages = Path(venv_path) / "Lib" / "site-packages"
             if site_packages.exists():
                 sys.path.insert(0, str(site_packages))
-                #output_q.put(f"✅ VENV: {venv_path}\n📦 MÓDULOS: {site_packages}\n📂 sys.path[0]: {sys.path[0]}\n")
+                # output_q.put(f"✅ VENV: {venv_path}\n📦 MÓDULOS: {site_packages}\n")
 
-        # SEU CÓDIGO ORIGINAL 100% (SÓ ADICIONA VENV)
+        # RESTO IGUAL
         def custom_input(prompt=""):
             if prompt:
                 output_q.put(prompt)
-            val = input_q.get()  # ← ORIGINAL!
+            val = input_q.get()
             return val
 
         class CustomStdout:
             def write(self, s):
                 if s:
-                    output_q.put(s)  # ← ORIGINAL!
+                    output_q.put(s)
 
             def flush(self):
                 pass
@@ -146,12 +117,12 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
                 'time': time,
                 'sleep': time.sleep,
                 '__name__': '__main__',
-                'st': st  # ← VOLTA pro 'st': st!
+                'st': st
             })
-            output_q.put("PROGRAM_FINISHED")  # ← EXATO original SEM emoji!
+            output_q.put("PROGRAM_FINISHED")
         except Exception as e:
             output_q.put(f"\n❌ ERRO: {str(e)}\n")
-            output_q.put("PROGRAM_FINISHED")  # ← EXATO original!
+            output_q.put("PROGRAM_FINISHED")
         finally:
             sys.stdout = old_stdout
 
@@ -619,7 +590,7 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
 
                             # Chama API do OpenRouter
                             headers = {
-                                "Authorization": "Bearer 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",
+                                "Authorization": "Bearer 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",
                                 "Content-Type": "application/json",
                                 "HTTP-Referer": "http://localhost:8501",
                                 "X-Title": "Stream-IDE IA"
