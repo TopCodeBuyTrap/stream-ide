@@ -138,14 +138,11 @@ def app():
         with st.container(border=True, key='MenuTopo'):
             cab1, cab2 , cab3 , cab4 = st.columns([8, 1,1,.3])
             cab1.markdown(TOP_CAB, unsafe_allow_html=True)
-            with cab3:
-                from APP_Atualizador import checar_atualizacao
-                if Button_Nao_Fecha(f':material/queue_play_next: versão: {ultima_versao()}',
-                                    f':material/queue_play_next: versão: {ultima_versao()}', 'Atualizar_versão'):
-                    checar_atualizacao()
+            with cab3:pass
+
             with cab4:
-                if st.button("♻️",  help='limpar os caches do app'.title()):
-                    limpar_CASH()
+                st.button("♻️",  help='limpar os caches do app'.title(),on_click=limpar_CASH)
+
         Tab1, Tab2 = st.columns([2, 9])
 
         #btnt = Button_Nao_Fecha(':material/folder_open:' + ":material/keyboard_double_arrow_left:", ':material/folder:' + ':material/keyboard_double_arrow_right:',
@@ -181,6 +178,10 @@ def app():
         #------------------z--------------------------------------------------- SIDIBAR LATERAL
         with st.sidebar:
             s1,s2,s3 = st.sidebar.columns(3)
+            if Button_Nao_Fecha(f':material/queue_play_next: versão: {ultima_versao()}',
+                                f':material/queue_play_next: versão: {ultima_versao()}', 'Atualizar_versão'):
+                from APP_Atualizador import checar_atualizacao
+                checar_atualizacao()
             #s2.image('.arquivos/logo_.png',caption='By TopCodeBuyTrap')
             Abrir_Menu(st)
 
@@ -209,7 +210,9 @@ def app():
             MINUTOS_ATUALIZAR = 60
             BAKCUP(st,MINUTOS_ATUALIZAR, Path(caminho_completo).parent, os.path.join(_DIRETORIO_EXECUTAVEL_('backup'),nome_pasta), ignores)
 
-        if cab2.button(f':material/search: :material/folder_open: : {os.path.join(nome_pasta)} ',
+
+
+        if Janela.button(f':material/search: {os.path.join(nome_pasta)} :material/folder_open: ',
                                width='stretch', type="secondary"):
                     Open_Explorer(caminho_completo)
 
@@ -251,7 +254,7 @@ if __name__ == "__main__":
     import os
     from pathlib import Path
     from APP_Terminal import Terminal
-    st.set_page_config(page_title="Stream-IDE", layout="wide",page_icon='icon.ico')
+    st.set_page_config(page_title="Stream-IDE", layout="wide",page_icon='icon.ico',initial_sidebar_state='collapsed')
 
     if 'config_absoluta_ok' not in st.session_state:
         st.session_state.config_absoluta_ok = False

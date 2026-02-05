@@ -2,7 +2,7 @@ import json
 from time import sleep
 
 from APP_SUB_Controle_Driretorios import _DIRETORIO_EXECUTAVEL_, _DIRETORIO_PROJETOS_, _DIRETORIO_PROJETO_ATUAL_
-from APP_SUB_Funcitons import saudacao_por_hora_sistema
+from APP_SUB_Funcitons import saudacao_por_hora_sistema, cor_semelhante
 from Banco_dados import  ler_B_ARQUIVOS_RECENTES
 import base64
 import streamlit as st
@@ -199,16 +199,18 @@ def Carregamento_BancoDados_Temas(st):
 	}}
 	
 	.stButton[data-testid="stButton"] button[kind="primary"] {{             /* AO PASSAR O MAUSE kind */
-	    {WD_STYLE}
+	    background-color: {cor_semelhante(COR_WIDGET)} !important;  
 
 	}}
 	.stButton[data-testid="stButton"] button[kind="secondary"] {{             /* AO PASSAR O MAUSE kind */
-	    {WD_STYLE}
+	    	    background-color: {cor_semelhante(COR_WIDGET)} !important;  
+
 
 	}}
 	
 	div[data-testid="stForm"] {{                                            /* FORM  FORMULARIO */
-       {WD_STYLE}
+       	    background-color: {cor_semelhante(COR_WIDGET)} !important;  
+
 	
        padding: none !important;
        padding-top: 0% !important;

@@ -2,7 +2,7 @@ DOCUMENTAÇÃO COMPLETA DO PROJETO
 
 C:\Users\henri\ProjetoSteamIDE\MERDA
 
-Gerado em: 2026-02-04 19:21
+Gerado em: 2026-02-05 13:27
 
 main.py
 C:\Users\henri\ProjetoSteamIDE\Projetor_\main.py / Linguagem: PYTHON

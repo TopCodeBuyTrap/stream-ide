@@ -17,6 +17,8 @@ def _DIRETORIO_EXECUTAVEL_(arquivo=''):# onde o executavel vai ser instalado
         return Path(Pasta_Isntal_exec.parent,'.mim_mids')
     elif arquivo == 'backup':
         return Path(ler_A_CONTROLE_ABSOLUTO()[0][2])
+    elif arquivo == 'chave_api':
+        return Path(ler_A_CONTROLE_ABSOLUTO()[0][5])
     else:
         return Pasta_Isntal_exec
 
@@ -36,27 +38,12 @@ def _DIRETORIO_PROJETO_ATUAL_():
         return _DIRETORIO_EXECUTAVEL_()
 
 
+
+
+@st.cache_data
 def VENVE_DO_PROJETO():
-    """
-    🔥Retorna: python_exe, root_path, venv_path, prompt
-    """
-    try:
-        projeto_path = Path(_DIRETORIO_PROJETO_ATUAL_())
-    except:
-        projeto_path = Path.cwd()
-
-    # PYTHON CORRETO
+    projeto_path = Path(_DIRETORIO_PROJETO_ATUAL_())
     venv_win = projeto_path / ".virto_stream" / "Scripts" / "python.exe"
-    if venv_win.exists():
-        python_exe = str(venv_win)
-    else:
-        python_exe = sys.executable
-
-    # PROMPT BONITO
     venv = projeto_path / ".virto_stream"
-    if venv.exists():
-        prompt = f"({venv.name}) PS {projeto_path}> "
-    else:
-        prompt = f"PS {projeto_path}> "
-
-    return python_exe, str(projeto_path), str(venv), prompt
+    prompt = f"({venv.name}) PS {projeto_path}> "
+    return str(venv_win), str(projeto_path), str(venv), prompt

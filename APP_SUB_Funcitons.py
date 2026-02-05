@@ -3,9 +3,6 @@ import subprocess
 import textwrap
 from pathlib import Path
 
-import ast
-import re
-from typing import List, Dict, Any, Optional
 
 
 from APP_SUB_Controle_Driretorios import _DIRETORIO_PROJETO_ATUAL_
@@ -30,184 +27,7 @@ def Linha_Sep(Cor,Larg):
     HtmL =f'<div style="display: block; background-color: {Cor}; width: 100%; height: {Larg}px;"></div>'
     return components.html(HtmL, height=Larg+9, scrolling=False)
 
-# ============================================================
-# PARSE AST SEGURO
-# ============================================================
-def _parse_ast(codigo: str) -> Optional[ast.AST]:
-    try:
-        return ast.parse(codigo)
-    except SyntaxError:
-        return None
 
-# ============================================================
-# ANNOTATIONS PROFISSIONAIS (GUTTER SIMPLES, HOVER RICO)
-# ============================================================
-def Anotations_Editor(codigo: str) -> List[Dict[str, Any]]:
-    annotations: List[Dict[str, Any]] = []
-    linhas = codigo.split("\n")
-    tree = _parse_ast(codigo)
-
-    def add(row: int, level: str, emoji: str, msg: str):
-        annotations.append({
-            "row": row,
-            "type": level,              # controla ❌ ou ⚠️
-            "text": f"{emoji} {msg}"    # aparece SOMENTE no hover
-        })
-
-    # --------------------------------------------------------
-    # 1. ANÁLISE TEXTUAL
-    # --------------------------------------------------------
-    for i, linha in enumerate(linhas):
-        l = linha.strip()
-
-        if re.search(r"\b(TODO|FIXME|BUG|HACK|XXX|NOTE)\b", l, re.I):
-            add(i, "warning", "🧩", "Pendência anotada no código")
-
-        if len(linha) > 100:
-            add(i, "warning", "📏", "Linha excede 100 caracteres")
-
-        if l.startswith("#") and len(linha) > 80:
-            add(i, "warning", "💬", "Comentário excessivamente longo")
-
-        if "print(" in l and not l.startswith("#"):
-            add(i, "warning", "🐞", "Uso de print como debug")
-
-        if "eval(" in l or "exec(" in l:
-            add(i, "error", "☠️", "Uso de eval/exec (risco de segurança)")
-
-        if l.startswith("global "):
-            add(i, "warning", "🌍", "Uso de variável global")
-
-        if l == "pass":
-            add(i, "warning", "🕳️", "Bloco vazio (pass)")
-
-        if l.startswith("except:") or ("except Exception" in l and "as" not in l):
-            add(i, "error", "🚫", "Except genérico oculta erros reais")
-
-    # --------------------------------------------------------
-    # 2. ANÁLISE AST
-    # --------------------------------------------------------
-    if tree:
-        for node in ast.walk(tree):
-
-            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                add(
-                    node.lineno - 1,
-                    "warning" if ast.get_docstring(node) is None else "info",
-                    "⚙️",
-                    f"Função '{node.name}' sem docstring"
-                    if ast.get_docstring(node) is None
-                    else f"Função '{node.name}'"
-                )
-
-            elif isinstance(node, ast.ClassDef):
-                add(
-                    node.lineno - 1,
-                    "warning" if ast.get_docstring(node) is None else "info",
-                    "🏷️",
-                    f"Classe '{node.name}' sem docstring"
-                    if ast.get_docstring(node) is None
-                    else f"Classe '{node.name}'"
-                )
-
-            elif isinstance(node, ast.Import):
-                for alias in node.names:
-                    add(node.lineno - 1, "info", "📦", f"Import: {alias.name}")
-
-            elif isinstance(node, ast.ImportFrom):
-                add(node.lineno - 1, "info", "📥", f"Import from {node.module}")
-
-    else:
-        try:
-            ast.parse(codigo)
-        except SyntaxError as e:
-            add(
-                (e.lineno or 1) - 1,
-                "error",
-                "💥",
-                f"Erro de sintaxe: {e.msg}"
-            )
-
-    return annotations
-
-# ============================================================
-# MARKERS (VISUAL LIMPO, SEM POLUIÇÃO)
-# ============================================================
-def Marcadores_Editor(codigo: str) -> List[Dict[str, Any]]:
-    markers: List[Dict[str, Any]] = []
-    linhas = codigo.split("\n")
-    tree = _parse_ast(codigo)
-
-    for i, linha in enumerate(linhas):
-
-        if len(linha) > 100:
-            markers.append({
-                "startRow": i,
-                "startCol": 100,
-                "endRow": i,
-                "endCol": len(linha),
-                "className": "marker-longline",
-                "type": "range"
-            })
-
-        if linha.strip() == "pass":
-            markers.append({
-                "startRow": i,
-                "startCol": 0,
-                "endRow": i,
-                "endCol": len(linha),
-                "className": "marker-pass",
-                "type": "fullLine"
-            })
-
-    if tree:
-        for node in ast.walk(tree):
-
-            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                markers.append({
-                    "startRow": node.lineno - 1,
-                    "startCol": 0,
-                    "endRow": (node.end_lineno or node.lineno) - 1,
-                    "endCol": 0,
-                    "className": "marker-function-scope",
-                    "type": "fullBlock"
-                })
-
-            elif isinstance(node, ast.ClassDef):
-                markers.append({
-                    "startRow": node.lineno - 1,
-                    "startCol": 0,
-                    "endRow": (node.end_lineno or node.lineno) - 1,
-                    "endCol": 0,
-                    "className": "marker-class-scope",
-                    "type": "fullBlock"
-                })
-
-    return markers
-
-# ============================================================
-# MÉTRICA DE QUALIDADE (DASHBOARD)
-# ============================================================
-def calcular_qualidade(codigo: str) -> Dict[str, Any]:
-    """Score profissional para dashboard da IDE."""
-    ann = Anotations_Editor(codigo)
-
-    erros = sum(1 for a in ann if a["type"] == "error")
-    warnings = sum(1 for a in ann if a["type"] == "warning")
-    info = sum(1 for a in ann if a["type"] == "info")
-    success = sum(1 for a in ann if a["type"] == "success")
-
-    score = max(0, 100 - (erros * 25 + warnings * 8))
-
-    return {
-        "score": round(score, 1),
-        "erros": erros,
-        "warnings": warnings,
-        "info": info,
-        "success": success,
-        "total": len(ann),
-        "status": "⭐ Excelente" if score > 90 else "⚡ Boa" if score > 70 else "🚨 Crítica"
-    }
 
 def Identificar_linguagem(arquivo):
     EXT_MAP = {
@@ -640,6 +460,43 @@ def controlar_altura(st,
         st.session_state[estado_altura] = maximo
 
     return st.session_state[estado_altura]
+
+
+import colorsys
+import re
+
+def cor_semelhante(cor_css, delta_l=0.08):
+    cor_css = cor_css.strip()
+
+    # Tenta extrair HEX
+    hex_match = re.search(r'#([0-9a-fA-F]{6})', cor_css)
+    if hex_match:
+        hex_color = hex_match.group(0)
+    else:
+        # Tenta extrair rgba(r,g,b,a)
+        rgba_match = re.search(r'rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})', cor_css)
+        if rgba_match:
+            r, g, b = map(int, rgba_match.groups())
+            hex_color = '#{:02X}{:02X}{:02X}'.format(r, g, b)
+        else:
+            raise ValueError(f"Não foi possível extrair cor de: {cor_css}")
+
+    # Conversão para HLS
+    r = int(hex_color[1:3], 16) / 255.0
+    g = int(hex_color[3:5], 16) / 255.0
+    b = int(hex_color[5:7], 16) / 255.0
+
+    h, l, s = colorsys.rgb_to_hls(r, g, b)
+
+    l = max(0.0, min(1.0, l + delta_l))
+
+    r, g, b = colorsys.hls_to_rgb(h, l, s)
+
+    return '#{:02X}{:02X}{:02X}'.format(
+        int(r * 255),
+        int(g * 255),
+        int(b * 255)
+    )
 
 
 

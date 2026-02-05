@@ -13,36 +13,17 @@ import os, time
 from APP_Catalogo import arquivo_ja_catalogado
 from APP_Editor_Codigo import editor_codigo_autosave
 from APP_Menus import Apagar_Arq
-from APP_SUB_Controle_Driretorios import _DIRETORIO_PROJETO_ATUAL_, VENVE_DO_PROJETO
-from APP_SUB_Funcitons import Identificar_linguagem, Button_Nao_Fecha, Sinbolos, Anotations_Editor, Marcadores_Editor, \
-    wrap_text, chec_se_arq_do_projeto, controlar_altura
+from APP_SUB_Controle_Driretorios import _DIRETORIO_PROJETO_ATUAL_, VENVE_DO_PROJETO, _DIRETORIO_EXECUTAVEL_
+from APP_SUB_Funcitons import Identificar_linguagem, Button_Nao_Fecha, Sinbolos, \
+    wrap_text, chec_se_arq_do_projeto, controlar_altura, Alerta
 from APP_SUB_Janela_Explorer import Abrir_Arquivo_Select_Tabs
+from APP_SUB_Run_Execut import netstat_streamlit, run_streamlit_process, is_streamlit_code, is_flask_code, \
+    run_flex_process, extract_flask_config, find_port_by_pid, stop_flex, stop_process_by_port, is_django_code, \
+    extract_django_config
 from SUB_Traduz_terminal import traduzir_saida
 
 
-def netstat_streamlit():
-    """Parse CORRETO com encoding BR e PID no final"""
-    portas_85xx = []
 
-    resultado = subprocess.run(
-        'netstat -ano',
-        shell=True, capture_output=True, text=True,
-        encoding='cp850'  # ← ENCODING BRASILEIRO!
-    )
-
-    for linha in resultado.stdout.splitlines():
-        if 'LISTENING' in linha and '850' in linha:
-            # Pega campos: Proto Endereço PID no FINAL
-            parts = linha.split()
-            if len(parts) >= 5:
-                pid = parts[-1]  # Último = PID
-                # Regex pega porta 850x
-                match = re.search(r'0\.0\.0\.0:(\d{4})', linha)
-                if match:
-                    porta = match.group(1)
-                    portas_85xx.append((porta, pid, linha.strip()))
-
-    return portas_85xx
 
 
 def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE, colStop, ColunaRun):
@@ -55,7 +36,6 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
         return nome[:limite]
 
     _ = st.session_state
-
     # ===== ESTADO DO SISTEMA - CORRIGIDO PARA MÚLTIPLAS ABAS =====
 
     _.setdefault("output", "")
@@ -68,19 +48,8 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
     _.setdefault("Diretorio", {})
     _.setdefault("conteudos_abas", {})
 
-    # ===== DETECTA SE É CÓDIGO STREAMLIT =====
-    def is_streamlit_code(code):
-        code_lower = code.lower()
-        return 'import streamlit' in code_lower or 'import st' in code_lower or 'st.' in code_lower
 
-    # ===== EXECUTA COM SUBPROCESS PARA STREAMLIT =====
-    def run_streamlit_process(file_path):
-        python_exe, root_path, _, _ = VENVE_DO_PROJETO()
-        cmd = [python_exe, "-m", "streamlit", "run", str(file_path)]
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                   text=True, bufsize=1, cwd=root_path)
-        return process
-
+    alerta = []
     def run_code_thread(code, input_q, output_q):
         # 🔥 USA A FUNÇÃO MESTRE - ZERO Path()
         python_exe, root_path, venv_path, _ = VENVE_DO_PROJETO()
@@ -121,6 +90,7 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
             })
             output_q.put("PROGRAM_FINISHED")
         except Exception as e:
+            alerta.append(e)
             output_q.put(f"\n❌ ERRO: {str(e)}\n")
             output_q.put("PROGRAM_FINISHED")
         finally:
@@ -175,11 +145,11 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
                     font_size=EDITOR_TAM_MENU,
                     fonte=FONTE
                 )
-                st.write(cod)
                 with Janela:
                     if is_streamlit_code(cod):
                         st.code(f'streamlit run {nome_arquivo}')
-
+                    if is_flask_code(cod):
+                        st.code(f'python {nome_arquivo} # flask')
                 if st.button(f'🗑️Apagar: {nome_arquivo}', key=f"botao_apagar_arquivos{I}"):
                     Apagar_Arq(st, nome_arquivo, caminho)
 
@@ -248,15 +218,19 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
     if 'streamlit_output' not in _:
         _['streamlit_output'] = []
 
+    _.setdefault("flask_port", [])
+
+    if 'django_port' not in _:
+        _['django_port'] = []
 
     # EXECUÇÃO - usa 'codigo' da aba ativa
     if ColunaRun.button("▶️", key="executar_aba_ativa", shortcut='Ctrl+Enter',width="stretch"):
-        st.session_state.output = f"{arquivo_selecionado_caminho}>\n"
+        _.output = f"{arquivo_selecionado_caminho}>\n"
         # Limpa queues...
         # ✅ DETECTA SE É STREAMLIT E USA SUBPROCESS
         if is_streamlit_code(codigo):
-            st.session_state.process_running = True
-            st.session_state.current_process = run_streamlit_process(arquivo_selecionado_caminho)
+            _.process_running = True
+            _.current_process = run_streamlit_process(arquivo_selecionado_caminho)
 
             # *** WHILE TRUE CONTÍNUO (atualiza sempre!) ***
             process = _.current_process
@@ -276,19 +250,117 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
                     break
             Exct = f'''
 {''.join(_['streamlit_output'])}\n{msg_fim_cod}'''
-            st.session_state.output = Exct
+            _.output = Exct
+        elif is_flask_code(codigo):
+            _.process_running = True
+
+            # 1. Primeiro tenta extrair config do código do usuário
+            config = extract_flask_config(codigo)
+            porta_detectada = config['port']
+            host = config['host']
+            debug = config['debug']
+
+            print(
+                f"🔍 Config detectada: Porta={'Específica: ' + str(porta_detectada) if porta_detectada else 'Automática'} | Host={host} | Debug={debug}")
+
+            _.current_process = run_flex_process(arquivo_selecionado_caminho)
+            process = _.current_process
+
+            # Armazena PID para busca posterior de porta
+            pid = process.pid
+            _.flask_pid = pid
+
+            # 2. Lê output em tempo real (melhorado)
+            _['flask_output'] = []
+            _['flask_port'] = []
+
+            while _.process_running:
+                try:
+                    line = process.stdout.readline()
+                    if line:
+                        _['flask_output'].append(line)
+                        # Procura por linha com porta no output
+                        if not porta_detectada and 'Running on http' in line:
+                            import re
+                            port_match = re.search(r'http[^:]*:([0-9]+)', line)
+                            if port_match:
+                                porta_detectada = int(port_match.group(1))
+                                print(f"📡 Porta encontrada no output: {porta_detectada}")
+                        time.sleep(0.01)
+                        st.rerun()
+                    elif process.poll() is not None:  # Processo terminou
+                        break
+                except:
+                    break
+
+            # 3. Se ainda não achou porta, usa netstat
+            if not porta_detectada:
+                print("🔎 Procurando porta via netstat...")
+                porta_detectada = find_port_by_pid(pid)
+                if porta_detectada:
+                    print(f"✅ Porta encontrada via netstat: {porta_detectada}")
+                else:
+                    porta_detectada = "5000"  # Default Flask
+
+            # 4. Monta resultado final com info da porta
+            msg_porta = f'🔌 Servidor Flask rodando em: http://localhost:{porta_detectada}'
+            Exct = f'''
+{''.join(_['flask_output'])}
+{msg_porta}
+{msg_fim_cod}
+            '''
+            _['flask_port'].append(porta_detectada)
+            _.output = Exct
+            # Django
+        elif is_django_code(codigo):
+            _.process_running = True
+            config = extract_django_config(codigo)
+            porta_detectada = config['port']
+            host = config['host']
+
+            # Inicia Django via subprocess
+            _.current_process = subprocess.Popen(
+                f'python manage.py runserver {host}:{porta_detectada}',
+                shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True
+            )
+            process = _.current_process
+            _.django_pid = process.pid
+
+            # Inicializa lista de output e portas
+            _['django_output'] = []
+            _['django_port'].append(porta_detectada)
+
+            while _.process_running:
+                try:
+                    line = process.stdout.readline()
+                    if line:
+                        _['django_output'].append(line)
+                        time.sleep(0.01)
+                        st.rerun()
+                    elif process.poll() is not None:
+                        break
+                except:
+                    break
+
+            msg_porta = f'🔌 Servidor Django rodando em: http://{host}:{porta_detectada}'
+            _.output = f"{''.join(_['django_output'])}\n{msg_porta}\n{msg_fim_cod}"
 
         else:
-            while not st.session_state.input_queue.empty():
-                st.session_state.input_queue.get()
-            while not st.session_state.output_queue.empty():
-                st.session_state.output_queue.get()
-            st.session_state.thread_running = True
+            while not _.input_queue.empty():
+                _.input_queue.get()
+            while not _.output_queue.empty():
+                _.output_queue.get()
+            _.thread_running = True
             threading.Thread(
                 target=run_code_thread,
-                args=(codigo, st.session_state.input_queue, st.session_state.output_queue),
+                args=(codigo, _.input_queue, _.output_queue),
                 daemon=True
             ).start()
+
+
             st.rerun()
 
     if colStop.button("⏹️", key=f"parar_{id_aba_ativa}", shortcut='Ctrl+Space',width='stretch'):  # *** BOTÃO STOP DE VOLTA! ***
@@ -298,14 +370,40 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
     with Janela:
         portas = netstat_streamlit()
         for porta, pid, linha in portas:
-            st.write(f"[**http://localhost:{porta}**](http://localhost:{porta}) ← PID **{pid}**")
+            st.write(f"[**http://streamlit:{porta}**](http://localhost:{porta})")
 
             if st.button(f"🛑 Parar {porta}", key=f"kill_{porta}"):
                 os.system(f'taskkill /PID {pid} /F')
                 st.rerun()
 
+        for porta in _.flask_port.copy():
+            st.markdown(f"[http://flask:{porta}](http://localhost:{porta})")
+            if st.button(f"🛑 Parar {porta}", key=f"kill_{porta}"):
+                try:
+                    pids = stop_flex(porta)
+                    if pids:
+                        for pid in pids:
+                            os.system(f'taskkill /PID {pid} /F')
+                    # limpa toda a lista de portas
+                    _['flask_port'].clear()
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Erro ao tentar parar a porta {porta}: {e}")
+        # Django
+        for porta in _.django_port.copy():
+            st.markdown(f"[http://django:{porta}](http://localhost:{porta})")
+            if st.button(f"🛑 Parar {porta}", key=f"kill_django_{porta}"):
+                try:
+                    pids = stop_process_by_port(porta)
+                    for pid in pids:
+                        os.system(f'taskkill /PID {pid} /F')
+                    _['django_port'].clear()
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Erro ao tentar parar a porta {porta}: {e}")
     # -------------------------------------------------------------------- TERMINAL Preview
     with st.container(border=True, key='Preview'):
+
         if Button_Nao_Fecha(f':material/directions_bike: **{arquivo_selecionado_nome}**', f':material/directions_bike: **{arquivo_selecionado_nome}**','BtnPreview'):
 
 
@@ -316,46 +414,46 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
             with col2.container(height=altura_prev):
                 output_placeholder = st.empty()
                 # Processa mensagens da fila
-                if st.session_state.thread_running:
+                if _.thread_running:
                     new_data = False
                     try:
                         while True:
-                            msg = st.session_state.output_queue.get_nowait()
+                            msg = _.output_queue.get_nowait()
                             if msg == "PROGRAM_FINISHED":
-                                st.session_state.thread_running = False
-                                st.session_state.output += msg_fim_cod
+                                _.thread_running = False
+                                _.output += msg_fim_cod
                                 new_data = True
                                 break
-                            st.session_state.output += msg
+                            _.output += msg
                             new_data = True
                     except queue.Empty:
                         pass
 
                     if new_data:
-                        output_placeholder.code(st.session_state.output, linguagem, wrap_lines=True ,height=altura_prev)
+                        output_placeholder.code(_.output, linguagem, wrap_lines=True ,height=altura_prev)
                     else:
-                        st.code(st.session_state.output, linguagem, wrap_lines=True ,height=altura_prev)
+                        st.code(_.output, linguagem, wrap_lines=True ,height=altura_prev)
                 else:
-                    st.code(st.session_state.output, linguagem, wrap_lines=True ,height=altura_prev)
+                    st.code(_.output, linguagem, wrap_lines=True ,height=altura_prev)
 
                 # Input do usuário (apenas quando executando)
-                if st.session_state.thread_running:
+                if _.thread_running:
                     user_input = st.chat_input("Digite sua entrada aqui: ")
                     if user_input:
-                        st.session_state.input_queue.put(user_input)
-                        st.session_state.output += f"> {user_input}\n"
+                        _.input_queue.put(user_input)
+                        _.output += f"> {user_input}\n"
                         st.rerun()
                 st.write('')
                 st.write('')
         # Auto-refresh enquanto rodando
-        if st.session_state.thread_running:
+        if _.thread_running:
             time.sleep(0.1)
             st.rerun()
 
     # -------------------------------------------------------------------- Explorer Jason
     codigo_completo_do_editor = codigo
-    saida_preview = st.session_state.output.strip().replace(f'{arquivo_selecionado_caminho}>', '').replace(msg_fim_cod, '')
-    st.write(saida_preview)
+    saida_preview = _.output.strip().replace(f'{arquivo_selecionado_caminho}>', '').replace(msg_fim_cod, '')
+
     with st.container(border=True, key='Preview_Jason'):
 
         if Button_Nao_Fecha(f':material/data_object: Explorer Jason', f':material/data_object: Explorer Jason',
@@ -590,7 +688,7 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
 
                             # Chama API do OpenRouter
                             headers = {
-                                "Authorization": "Bearer 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",
+                                "Authorization": f"Bearer {_DIRETORIO_EXECUTAVEL_('chave_api')}",
                                 "Content-Type": "application/json",
                                 "HTTP-Referer": "http://localhost:8501",
                                 "X-Title": "Stream-IDE IA"
@@ -615,7 +713,7 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
                                 with c2:
                                     # if st.button("📋 Copiar"):
                                     # st.write(f"Copiado! Cole no editor.")
-                                    # st.session_state.clipboard = novo_codigo  # guarda pra uso depois
+                                    # _.clipboard = novo_codigo  # guarda pra uso depois
                                     st.code(wrap_text(novo_codigo, 100), language=linguagem)
 
 
