@@ -9,17 +9,6 @@ import base64
 
 
 def Carregamento_BancoDados_Temas(st):
-	# ✅ CORREÇÃO 1: Chama funções ANTES de usar variáveis
-	try:
-		Pasta_Isntal_exec = _DIRETORIO_EXECUTAVEL_()
-		Pasta_RAIZ_projeto = _DIRETORIO_PROJETOS_()
-		Pasta_Projeto_Atual = _DIRETORIO_PROJETO_ATUAL_()
-	except IndexError: pass
-	if "estrutura_projeto" not in st.session_state:
-		dados = ler_B_ARQUIVOS_RECENTES()
-		st.session_state.estrutura_projeto = dados[0][1] if dados else ""
-
-	Estrutura_projeto = st.session_state.estrutura_projeto
 
 	# --------------------------------------------------------------------- CARREGAMENTO DE CUSTOMIZAÇÃO
 	@st.cache_data
@@ -480,7 +469,7 @@ def Carregamento_BancoDados_Temas(st):
 	div[data-testid="stVerticalBlock"] [class*="st-key-MenuTopo"] {{         /* CABEÇALHO MENU TOPO */
 		        background-color: {THEMA_APP1} !important;
 
-		height: 4% !important; 
+		height: 5% !important; 
 		padding-top: 1% !important;
 		padding-bottom: -10% !important;
 		position: fixed !important;
@@ -619,178 +608,152 @@ div[data-testid="stTabs"][class*="st-emotion-cache-8atqhb eh1nhsq0"] [data-basew
 
 	st.markdown(page_bg, unsafe_allow_html=True)
 
+	try:
+		def resumo_dict_para_html():
+			Pasta_Projeto_Atual = _DIRETORIO_PROJETO_ATUAL_()
+			dados_str = ler_B_ARQUIVOS_RECENTES(Pasta_Projeto_Atual)[0][0]
+			import ast
+			import os
+			from datetime import datetime
+			pastas = 0
+			arquivos = 0
+			extensoes = {}
+			criado = "-"
+			modificado = "-"
+			versoes_str = ""
 
-	def resumo_dict_para_html(dados_str: str) -> str:
-		import ast
-		import os
-		from datetime import datetime
-		pastas = 0
-		arquivos = 0
-		extensoes = {}
-		criado = "-"
-		modificado = "-"
-		versoes_str = ""
-
-		try:
-			# Tenta diferentes métodos de parsing
-			dados = None
-
-			# 1. Tenta ast.literal_eval primeiro (mais seguro)
 			try:
-				dados = ast.literal_eval(dados_str)
-			except (ValueError, SyntaxError):
+				# Tenta diferentes métodos de parsing
+				dados = None
+
+				# 1. Tenta ast.literal_eval primeiro (mais seguro)
+				try:
+					dados = ast.literal_eval(dados_str)
+				except (ValueError, SyntaxError):
+					pass
+
+				# 2. Se falhar, tenta json.loads
+				if dados is None:
+					try:
+						dados = json.loads(dados_str)
+					except:
+						pass
+
+				# 3. Se ainda falhar, tenta converter de str para dict simples
+				if dados is None and dados_str.strip():
+					try:
+						# Remove aspas extras se for string simples
+						cleaned_str = dados_str.strip().strip("'\"")
+						dados = ast.literal_eval(f"{{ {cleaned_str} }}")
+					except:
+						pass
+
+				# Se conseguiu parsear os dados
+				if isinstance(dados, dict):
+					pastas = dados.get("pastas", 0)
+					arquivos = dados.get("arquivos", 0)
+					extensoes = dados.get("extensao", {})
+					versoes = dados.get("versoes", [])
+
+					# Formata extensões
+					extensoes_str = " / ".join(f"{v}{k}" for k, v in extensoes.items())
+
+					# Formata versões
+					if versoes:
+						versoes_str = " / ".join(
+							", ".join(v) if isinstance(v, (set, list, tuple)) else str(v)
+							for v in versoes
+						)
+
+					# Processa datas
+					datas = dados.get("datas", [])
+					if datas and isinstance(datas, list) and len(datas) > 0:
+						data_info = datas[0]
+						criado_raw = data_info.get("criado", "-")
+						modificado_raw = data_info.get("modificado", "-")
+
+						# Converte datas
+						try:
+							if isinstance(criado_raw, str) and len(criado_raw) >= 19:
+								criado = datetime.strptime(criado_raw[:19], "%Y-%m-%d %H:%M:%S").strftime("%d/%m/%Y")
+						except:
+							criado = criado_raw if criado_raw != "-" else "-"
+
+						try:
+							if isinstance(modificado_raw, str) and len(modificado_raw) >= 19:
+								modificado = datetime.strptime(modificado_raw[:19], "%Y-%m-%d %H:%M:%S").strftime(
+									"%d/%m/%Y")
+						except:
+							modificado = modificado_raw if modificado_raw != "-" else "-"
+
+
+				return f"""
+		<span style="color: orange;">{versoes_str}</span>
+		<span style="opacity:0.1;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
+		<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">📚{saudacao_por_hora_sistema()} </span>
+		<span>{NOME_USUARIO} !</span>
+		<span style="opacity:0.1;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
+		<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">Custom atual:</span>
+		<span style="font-weight:500;"> {NOME_CUSTOM} </span>
+		<span style="opacity:0.1;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
+		<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">:material/content_paste:Projeto: </span>
+		<span style="font-weight:500;"> {os.path.basename(Pasta_Projeto_Atual)} </span>
+		<span style="opacity:0.1;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
+		<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">Criado:</span>
+		<span>{criado}</span>
+		<span style="opacity:0.1;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
+		<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">Modificado:</span>
+		<span>{modificado}</span>
+		<span style="opacity:0.1;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
+		<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;"> Conteudo:&nbsp;&nbsp;</span>
+		<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">:material/folder:</span>
+		<span>{pastas}</span>
+		<span style="opacity:0.1;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
+		<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">:material/insert_drive_file:</span>
+		<span>{arquivos}</span>
+		<span style="opacity:0.1;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
+		<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">:material/dynamic_feed:&nbsp;</span>
+		<span>{extensoes_str.lower().replace('/','&nbsp;')}</span>
+	
+	
+		"""
+			except Exception:
+				# Em caso de erro total, usa valores padrão
 				pass
 
-			# 2. Se falhar, tenta json.loads
-			if dados is None:
-				try:
-					dados = json.loads(dados_str)
-				except:
-					pass
 
-			# 3. Se ainda falhar, tenta converter de str para dict simples
-			if dados is None and dados_str.strip():
-				try:
-					# Remove aspas extras se for string simples
-					cleaned_str = dados_str.strip().strip("'\"")
-					dados = ast.literal_eval(f"{{ {cleaned_str} }}")
-				except:
-					pass
-
-			# Se conseguiu parsear os dados
-			if isinstance(dados, dict):
-				pastas = dados.get("pastas", 0)
-				arquivos = dados.get("arquivos", 0)
-				extensoes = dados.get("extensao", {})
-				versoes = dados.get("versoes", [])
-
-				# Formata extensões
-				extensoes_str = " / ".join(f"{v}{k}" for k, v in extensoes.items())
-
-				# Formata versões
-				if versoes:
-					versoes_str = " / ".join(
-						", ".join(v) if isinstance(v, (set, list, tuple)) else str(v)
-						for v in versoes
-					)
-
-				# Processa datas
-				datas = dados.get("datas", [])
-				if datas and isinstance(datas, list) and len(datas) > 0:
-					data_info = datas[0]
-					criado_raw = data_info.get("criado", "-")
-					modificado_raw = data_info.get("modificado", "-")
-
-					# Converte datas
-					try:
-						if isinstance(criado_raw, str) and len(criado_raw) >= 19:
-							criado = datetime.strptime(criado_raw[:19], "%Y-%m-%d %H:%M:%S").strftime("%d/%m/%Y")
-					except:
-						criado = criado_raw if criado_raw != "-" else "-"
-
-					try:
-						if isinstance(modificado_raw, str) and len(modificado_raw) >= 19:
-							modificado = datetime.strptime(modificado_raw[:19], "%Y-%m-%d %H:%M:%S").strftime(
-								"%d/%m/%Y")
-					except:
-						modificado = modificado_raw if modificado_raw != "-" else "-"
+		TOP_CAB = f"""
+		<style>
+		.footer {{
+			top: 0% !important;
+			left: 2% !important;
+			padding-left: 2% !important;
+			right: 0 !important;
+			height: 20px !important;
+			z-index: 9!important;
+			display: flex !important;
+			align-items: left !important;
+			padding-bottom: 0px !important;
+			color: white !important;
+			white-space: nowrap !important;
+		    
+		}}
+		</style>
+	
+		<div class="footer">
+		{resumo_dict_para_html()}
+		</div>
+		"""
 
 
-			return f"""
-	<span style="color: orange;">{versoes_str}</span>
-	<span style="opacity:0.1;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
-	<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">📚{saudacao_por_hora_sistema()} </span>
-	<span>{NOME_USUARIO} !</span>
-	<span style="opacity:0.1;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
-	<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">Custom atual:</span>
-	<span style="font-weight:500;"> {NOME_CUSTOM} </span>
-	<span style="opacity:0.1;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
-	<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">:material/content_paste:Projeto: </span>
-	<span style="font-weight:500;"> {os.path.basename(Pasta_Projeto_Atual)} </span>
-	<span style="opacity:0.1;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
-	<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">Criado:</span>
-	<span>{criado}</span>
-	<span style="opacity:0.1;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
-	<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">Modificado:</span>
-	<span>{modificado}</span>
-	<span style="opacity:0.1;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
-	<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;"> Conteudo:&nbsp;&nbsp;</span>
-	<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">:material/folder:</span>
-	<span>{pastas}</span>
-	<span style="opacity:0.1;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
-	<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">:material/insert_drive_file:</span>
-	<span>{arquivos}</span>
-	<span style="opacity:0.1;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
-	<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">:material/dynamic_feed:&nbsp;</span>
-	<span>{extensoes_str.lower().replace('/','&nbsp;')}</span>
 
 
-	"""
-		except Exception:
-			# Em caso de erro total, usa valores padrão
-			pass
-
-	@st.cache_data(ttl=30)  # Cache de 30s - ajustável
-	def gerar_footer_html():
-		"""Gera o HTML do footer uma vez a cada 30s"""
-		return resumo_dict_para_html(Estrutura_projeto)
-
-	TOP_CAB = f"""
-	<style>
-	.footer {{
-		top: 0% !important;
-		left: 2% !important;
-		padding-left: 2% !important;
-		right: 0 !important;
-		height: 20px !important;
-		z-index: 9!important;
-		display: flex !important;
-		align-items: left !important;
-		padding-bottom: 0px !important;
-		color: white !important;
-		white-space: nowrap !important;
-	    
-	    
-	}}
-	</style>
-
-	<div class="footer">
-	{gerar_footer_html()}
-	</div>
-	"""
-
-
-	# Injeta CSS para mudar o fundo do Ace Editor.)
-
-	def criar_estilos_botao():  # ainda noa usei
-		"""Estilos CSS personalizados"""
-		return f"""		         
-	    <style>
-	    @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap');
-
-	    .main-title {{ font-family: 'Fira Code', monospace; font-size: 3rem; 
-	        background: linear-gradient(45deg, #00d4ff, #ff6b6b, #4ecdc4);
-	        -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
-	        text-align: center; margin-bottom: 2rem; font-weight: 700; }}
-
-	    .stButton > button {{ background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
-	        border: none; color: white; font-family: 'JetBrains Mono', monospace;
-	        font-weight: 600; border-radius: 12px; padding: 12px 24px; 
-	        transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); }}
-
-	    .stButton > button:hover {{ transform: translateY(-2px); 
-	        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6); }}
-
-	    .config-section, .sobre-section {{ background: rgba(15, 15, 25, 0.95); padding: 2rem;
-	        border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1); 
-	        backdrop-filter: blur(10px); margin-bottom: 1rem; }}
-
-	    .path-section {{ background: linear-gradient(135deg, rgba(0, 170, 255, 0.1), rgba(0, 255, 127, 0.1));
-	        border-left: 5px solid #00aaff; padding: 1.5rem; margin: 1rem 0; border-radius: 10px; }}
-	    </style>
-	    """
-
-	return (IMAGEM_LOGO, NOME_CUSTOM, NOME_USUARIO, COR_CAMPO, COR_MENU, THEMA_EDITOR,EDITOR_TAM_MENU,THEMA_PREVIEW,
-	        PREVIEW_TAM_MENU,THEMA_TERMINAL,TERMINAL_TAM_MENU,TOP_CAB,FONTE_MENU,FONTE_CAMPO)
-
+		return (IMAGEM_LOGO, NOME_CUSTOM, NOME_USUARIO, COR_CAMPO, COR_MENU, THEMA_EDITOR,EDITOR_TAM_MENU,THEMA_PREVIEW,
+		        PREVIEW_TAM_MENU,THEMA_TERMINAL,TERMINAL_TAM_MENU,TOP_CAB,FONTE_MENU,FONTE_CAMPO)
+	except IndexError:
+		TOP_CAB = f'''<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">📚{saudacao_por_hora_sistema()} </span>
+		<span>{NOME_USUARIO} !</span>'''
+		return (
+		IMAGEM_LOGO, NOME_CUSTOM, NOME_USUARIO, COR_CAMPO, COR_MENU, THEMA_EDITOR, EDITOR_TAM_MENU, THEMA_PREVIEW,
+		PREVIEW_TAM_MENU, THEMA_TERMINAL, TERMINAL_TAM_MENU, TOP_CAB, FONTE_MENU, FONTE_CAMPO)
 # ✅ IMPORTS NO TOPO (CORRIGIDO)

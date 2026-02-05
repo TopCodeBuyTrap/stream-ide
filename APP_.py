@@ -138,7 +138,7 @@ def app():
     else:
         with st.container(border=True, key='MenuTopo'):
             cab1, cab2 , cab3 , cab4 = st.columns([8, 1,1,.3])
-            cab1.markdown(TOP_CAB, width ='stretch')
+            cab1.markdown(TOP_CAB,unsafe_allow_html=True, width ='stretch')
             with cab3:pass
 
             with cab4:

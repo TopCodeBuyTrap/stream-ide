@@ -557,6 +557,7 @@ Extensões: {r['extensoes']}''')
                         st.rerun()
                     except Exception as e:
                         st.error(f"❌ Erro ao salvar projeto: {e}")
+                    fechar_dialogo()
 
     # Inicializar estado do dialog
     if "Abrir_Projeto_state" not in st.session_state:
