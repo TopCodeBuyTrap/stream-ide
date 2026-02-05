@@ -5,13 +5,14 @@ from pathlib import Path
 from time import sleep
 
 import streamlit
+from code_editor import code_editor
 
 from APP_SUB_Funcitons import Criar_Arquivo_TEXTO, data_sistema, resumo_pasta, limpar_CASH, Button_Nao_Fecha, Alerta
 from APP_SUB_Janela_Explorer import listar_pythons_windows, Apagar_Arquivos, Janela_PESQUIZA_PASTAS_ARQUIVOS, \
     Janela_PESQUIZA
 from Abertura_TCBT import Janela_Lista_Arquivos
 from Banco_dados import ler_CUSTOMIZATION, ler_cut, ATUAL_CUSTOMIZATION_nome, \
-    esc_CONTROLE_ARQUIVOS, esc_A_CONTROLE_PROJETOS
+    esc_CONTROLE_ARQUIVOS, esc_A_CONTROLE_PROJETOS, ler_A_CONTROLE_ABSOLUTO, ler_A_CONT_ABS_unico
 from APP_SUB_Controle_Driretorios import _DIRETORIO_EXECUTAVEL_, _DIRETORIO_PROJETO_ATUAL_, _DIRETORIO_PROJETOS_
 
 # Pega a pasta Downloads do usuário
@@ -141,7 +142,7 @@ def Custom(st):
             st.session_state['custom_loaded'] = None
 
         from Banco_dados import esc_CUSTOMIZATION
-        from streamlit_ace import st_ace
+
 
         st.session_state.get('IMAGEM_LOGO')
 
@@ -183,14 +184,14 @@ def Custom(st):
         main()
     '''
 
-            st_ace(
-                value=value,
-                language='python',
-                theme=THEMA_EDITOR,
-                height=200,
-                show_gutter=False,
 
-                font_size=EDITOR_TAM_MENU, )
+            code_editor(value,
+                lang='python',
+                options= {"fontSize": EDITOR_TAM_MENU,
+                          "theme": f"ace/theme/{THEMA_EDITOR}","showLineNumbers": True,"showInvisibles": True}, # Tamanho da fonte}, ,
+                height=f'200px'
+
+            )
 
             st.divider()
             st1, st2, st3 = st.columns([3, 4, 1.5])
@@ -215,15 +216,14 @@ def Custom(st):
     
     Process finished with exit code 0
                 '''
-            st_ace(
-                value=value,
-                language='python',
-                theme=THEMA_PREVIEW,
-                height=200,
-                show_gutter=False,
+            code_editor(value,
+                        lang='python',
+                        options={"fontSize": PREVIEW_TAM_MENU,
+                                 "theme": f"ace/theme/{THEMA_PREVIEW}",
+                        "showGutter": False},
+            height=f'200px'
 
-                font_size=PREVIEW_TAM_MENU, )
-
+                        )
             st.divider()
             value = rf'''O Windows PowerShell
     Copyright (C) Microsoft Corporation. Todos os direitos reservados.
@@ -245,14 +245,14 @@ def Custom(st):
 
             TERMINAL_TAM_MENU = st3.number_input("Tam Term", 8, 48, 13)
 
-            st_ace(
-                value=value,
-                language='powershell',
-                theme=THEMA_TERMINAL,
-                show_gutter=False,
-                height=200,
-                font_size=TERMINAL_TAM_MENU,
-            )
+            code_editor(value,
+                        lang='powershell',
+                        options={"fontSize": TERMINAL_TAM_MENU,
+                                 "theme": f"ace/theme/{THEMA_TERMINAL}",
+                                 "showGutter": False,},
+                        height=f'200px'
+
+                        )
             st.divider()
             st0, st1, st2, st3 = st.columns([1, 2, 1.5, 1])
 
@@ -424,6 +424,7 @@ def Custom(st):
 
                     ATUAL_CUSTOMIZATION_nome(NOME_CUSTOM)
                 st.session_state.dialog_criar_customizar = False
+                st.session_state["Customizar_state"] = False
                 st.rerun()
         else:
             if st.session_state.get('IMAGEM_LOGO'):
@@ -785,7 +786,7 @@ def Cria_Projeto(st):
     menu_principal()
 
 
-def Cria_Projeto_pouppap(st):
+def Cria_Projeto_pouppap(st):# só usado um unica vez quando inicia o programa pela primeira vez
     from Banco_Predefinitions import listar_templates, salvar_template, carregar_template
     st.session_state.setdefault("dialog_criar_projeto", True)
     @st.dialog("Criar 1° Projeto ")
@@ -815,7 +816,7 @@ def Cria_Projeto_pouppap(st):
 
         # =========================
         # DADOS DO PROJETO
-        caminho_base = st.text_input("**Criar em:**", _DIRETORIO_PROJETOS_())
+        caminho_base = st.text_input("**Criar em:**", Path(ler_A_CONT_ABS_unico()[0][1]).resolve())
         nome_projeto = st.text_input("Nome do projeto")
         # =========================
         # ARQUIVOS INICIAIS

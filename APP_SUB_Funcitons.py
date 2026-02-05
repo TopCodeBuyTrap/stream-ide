@@ -500,6 +500,40 @@ def cor_semelhante(cor_css, delta_l=0.08):
 
 
 
+def carregar_imagem_segura(caminho_relativo: str, titulo: str = ""):
+    import streamlit as st
+    import pathlib
+    from PIL import Image
+    import os
+
+    """
+    Função segura para carregar imagens no Streamlit
+    """
+    # Converte para caminho absoluto
+    caminho = pathlib.Path(caminho_relativo)
+
+    # Verifica se existe
+    if not caminho.exists():
+        st.error(f"❌ Imagem não encontrada: {caminho.absolute()}")
+        st.info(f"Pasta atual: {pathlib.Path.cwd()}")
+        return None
+
+    # Verifica permissões
+    if not os.access(caminho, os.R_OK):
+        st.error(f"❌ Sem permissão para ler: {caminho}")
+        return None
+
+    try:
+        # Carrega com PIL e mostra no Streamlit
+        imagem = Image.open(caminho)
+        st.image(imagem, caption=titulo, width='stretch')
+        return imagem
+    except Exception as e:
+        st.error(f"❌ Erro ao abrir imagem: {str(e)}")
+        return None
+
+
+
 
 def escreve(texto):
     import  streamlit as st

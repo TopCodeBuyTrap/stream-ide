@@ -110,6 +110,14 @@ def ler_A_CONTROLE_ABSOLUTO():
 	conn.close()
 	return result
 
+def ler_A_CONT_ABS_unico():# só usado um unica vez quando inicia o programa pela primeira vez
+	conn = get_conn()
+	c = conn.cursor()
+	c.execute("SELECT * FROM A_CONTROLE_ABSOLUTO")
+	result = c.fetchall()
+	c.close()
+	conn.close()
+	return result
 
 def Del_A_CONTROLE_ABSOLUTO(ID=''):
 	max_retries = 3

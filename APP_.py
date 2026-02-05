@@ -131,13 +131,14 @@ def app():
         footer_container = st.container(border=True)
         with footer_container:
             st.write('Seja Bem Vindo Ordinario/a !')
-            st.image('.arquivos/simbolo.png')
+
+            carregar_imagem_segura('.arquivos/simbolo.png')
         Cria_Projeto_pouppap(st)
 
     else:
         with st.container(border=True, key='MenuTopo'):
             cab1, cab2 , cab3 , cab4 = st.columns([8, 1,1,.3])
-            cab1.markdown(TOP_CAB, unsafe_allow_html=True)
+            cab1.markdown(TOP_CAB, width ='stretch')
             with cab3:pass
 
             with cab4:
@@ -232,6 +233,7 @@ def app():
         val = ''
         with Tab2.container(border=True, key='Terminal_cmd', width=900):
             if Button_Nao_Fecha(':material/terminal: Terminal:', ':material/terminal: Terminal:', 'BtnTerminal'):
+                from APP_Terminal import Terminal
                 Terminal()
 
 
@@ -243,7 +245,7 @@ if __name__ == "__main__":
     from APP_Catalogo import conf_baix_catalogo
     from APP_SUB_Customizar import Customization
     from APP_SUB_Funcitons import Identificar_linguagem, escreve, chec_se_arq_do_projeto, contar_estrutura, \
-        Button_Nao_Fecha, data_sistema, resumo_pasta, limpar_CASH, Linha_Sep
+    Button_Nao_Fecha, data_sistema, resumo_pasta, limpar_CASH, Linha_Sep, carregar_imagem_segura
     from APP_SUB_Janela_Explorer import listar_arquivos_e_pastas, Open_Explorer, Abrir_Arquivo_Select_Tabs
     from APP_Sidebar import Sidebar_Diretorios
     from Banco_dados import ler_A_CONTROLE_PROJETOS, ler_B_ARQUIVOS_RECENTES, ATUAL_B_ARQUIVOS_RECENTES, \
@@ -253,7 +255,6 @@ if __name__ == "__main__":
 
     import os
     from pathlib import Path
-    from APP_Terminal import Terminal
     st.set_page_config(page_title="Stream-IDE", layout="wide",page_icon='icon.ico',initial_sidebar_state='collapsed')
 
     if 'config_absoluta_ok' not in st.session_state:

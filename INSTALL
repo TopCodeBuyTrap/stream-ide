@@ -15,34 +15,19 @@ author: ohtaman
 author-email: ohtamans@gmail.com
 
 # ---------------------------- Editor de Codigos
-pip install streamlit_ace
+pip install streamlit-code-editor    # instalei pq tem como controlar os reruns de teclas digitadas
+Home-page: https://github.com/bouzidanas/streamlit-code-editor
+Author: Anas Bouzid
+Author-email: anasbouzid@gmail.com
 
-Name: streamlit-ace
-Version: 0.1.1
-Summary: Ace editor component for Streamlit.
-Home-page: https://share.streamlit.io/okld/streamlit-gallery/main?p=ace-editor
-Author: okld
-License: MIT
 
 # ---------------------------- Rodar
 streamlit run APP_.py
 
-pip install streamlit-code-editor # instalei pq tem como controlar os rerus de teclas digitadas
-Summary: React-ace editor customized for Streamlit
-Home-page: https://github.com/bouzidanas/streamlit-code-editor
-Author: Anas Bouzid
-Author-email: anasbouzid@gmail.com
-License:
-Location: C:\Users\henri\PycharmProjects\Stream-IDE\.venv\Lib\site-packages
-Requires: streamlit
 
-
+pip uninstall streamlit_ace
 
 # FALTA IMPLEMENTAR:
-1. salvar arquivos automaticamente
-todo código que o usuário digitar deve ser salvo automaticamente em uma pasta específica.
-essa pasta vai armazenar todos os arquivos de todos os projetos que o usuário criar.
-funciona como um repositório local de projetos da ide.
 
 2. botão para baixar arquivos
 implementar uma função que permita ao usuário baixar qualquer arquivo criado ou usado na ide.
@@ -61,7 +46,7 @@ usar o terminal, fazer eh usar o o dos ou sei lá o que que é que tá usando aq
 preview do editor de código com o python, que está instalado na venv
 
 4. criar botao traduzir terminal
-5. colocar o chat de ias
+
 6. Implementar github e atualização automatica
 
 
@@ -70,9 +55,9 @@ streamlit-desktop-app build APP_.py `
     --name Stream_IDE `
     --streamlit-options --theme.base=dark `
     --pyinstaller-options `
-    --onedir --noconsole --noconfirm `
-    --collect - data certifi `
-    --icon icon.ico `
+    --onedir --noconfirm `
+    --icon icon.ico
+
 
 
 

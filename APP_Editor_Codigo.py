@@ -295,10 +295,6 @@ def Component_props():
         "readOnly": False, # Apenas leitura
         "highlightActiveLine": True, # Destaca linha atual
 
-        # Estados avançados
-        "showPrintMargin": True, # Margem de impressão
-        "printMarginColumn": 80, # Coluna da margem
-
         # Performance
         "maxLines": 1000, # Máx linhas carregadas
         "minLines": 10, # Mín linhas visíveis

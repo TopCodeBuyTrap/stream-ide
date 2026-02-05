@@ -5,15 +5,16 @@ from APP_SUB_Controle_Driretorios import _DIRETORIO_EXECUTAVEL_, _DIRETORIO_PROJ
 from APP_SUB_Funcitons import saudacao_por_hora_sistema, cor_semelhante
 from Banco_dados import  ler_B_ARQUIVOS_RECENTES
 import base64
-import streamlit as st
-import os
+
 
 
 def Carregamento_BancoDados_Temas(st):
 	# ✅ CORREÇÃO 1: Chama funções ANTES de usar variáveis
-	Pasta_Isntal_exec = _DIRETORIO_EXECUTAVEL_()
-	Pasta_RAIZ_projeto = _DIRETORIO_PROJETOS_()
-	Pasta_Projeto_Atual = _DIRETORIO_PROJETO_ATUAL_()
+	try:
+		Pasta_Isntal_exec = _DIRETORIO_EXECUTAVEL_()
+		Pasta_RAIZ_projeto = _DIRETORIO_PROJETOS_()
+		Pasta_Projeto_Atual = _DIRETORIO_PROJETO_ATUAL_()
+	except IndexError: pass
 	if "estrutura_projeto" not in st.session_state:
 		dados = ler_B_ARQUIVOS_RECENTES()
 		st.session_state.estrutura_projeto = dados[0][1] if dados else ""

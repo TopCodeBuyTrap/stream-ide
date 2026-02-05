@@ -151,12 +151,12 @@ def Abertura():
 				placeholder="Ex: llama3.2"
 			)
 
-			st.markdown("### 🔑 **4. Credenciais GPT** *(Opcional)*")
+			st.markdown("### 🔑 **4. Credenciais  IAS ** *(Opcional)*")
 			col_gpt1, col_gpt2 = st.columns(2)
 			with col_gpt1:
-				login_gpt = st.text_input("👤 Login GPT", placeholder="seu@email.com")
+				login_gpt = st.text_input("👤 Login", placeholder="seu@email.com")
 			with col_gpt2:
-				chave_gpt = st.text_input("🔑 Chave GPT", type="password", placeholder="sk-...")
+				chave_gpt = st.text_input("🔑 Chave", type="password", placeholder="sk-...")
 
 			if st.button("💾 **SALVAR CONFIGURAÇÃO ABSOLUTA**", type="primary", width='stretch'):
 				try:
