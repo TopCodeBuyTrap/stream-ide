@@ -502,16 +502,16 @@ def controlar_altura_horiz(st,
     minimo=0,
     maximo=None
 ):
-    estado_altura = f"{chave}_altura"
+    estado_altura = f"{chave}_altura1"
 
     if estado_altura not in st.session_state:
         st.session_state[estado_altura] = altura_inicial
     st1,st2 = st.columns(2)
 
-    if st1.button(":material/keyboard_double_arrow_down:", key=f"{chave}_mais"):
+    if st1.button(":material/keyboard_double_arrow_down:", key=f"{chave}_mais1"):
         st.session_state[estado_altura] += passo
 
-    if st2.button(":material/keyboard_double_arrow_up:", key=f"{chave}_menos"):
+    if st2.button(":material/keyboard_double_arrow_up:", key=f"{chave}_menos1"):
         st.session_state[estado_altura] -= passo
 
     if st.session_state[estado_altura] < minimo:

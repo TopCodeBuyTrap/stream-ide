@@ -6,15 +6,9 @@
   <component name="ChangeListManager">
     <list default="true" id="563116a2-fbe7-4a8b-bdf8-3df381587b9d" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/APP_.py" beforeDir="false" afterPath="$PROJECT_DIR$/APP_.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/APP_Editor_Codigo.py" beforeDir="false" afterPath="$PROJECT_DIR$/APP_Editor_Codigo.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/APP_Editor_Run_Preview.py" beforeDir="false" afterPath="$PROJECT_DIR$/APP_Editor_Run_Preview.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/APP_Htmls.py" beforeDir="false" afterPath="$PROJECT_DIR$/APP_Htmls.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/APP_Menus.py" beforeDir="false" afterPath="$PROJECT_DIR$/APP_Menus.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/APP_SUB_Funcitons.py" beforeDir="false" afterPath="$PROJECT_DIR$/APP_SUB_Funcitons.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/APP_Sidebar.py" beforeDir="false" afterPath="$PROJECT_DIR$/APP_Sidebar.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/INSTALL" beforeDir="false" afterPath="$PROJECT_DIR$/INSTALL" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Main.py" beforeDir="false" afterPath="$PROJECT_DIR$/Main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

@@ -1,7 +1,7 @@
 import ast
 import subprocess
 from pathlib import Path
-
+import  flask
 import streamlit as st
 import sys
 import threading
@@ -21,6 +21,10 @@ from APP_SUB_Run_Execut import netstat_streamlit, run_streamlit_process, is_stre
     extract_django_config
 from SUB_Traduz_terminal import traduzir_saida
 
+python_exe, root_path, venv_path, prompt = VENVE_DO_PROJETO()
+
+
+
 def scrl(val):
     if val == False:
         sc= """<style>
@@ -28,10 +32,92 @@ section[data-testid="stMain"] { /* REMOVER SCROLL */
     overflow: hidden !important
 </style>"""
         st.markdown(sc,unsafe_allow_html=True)
+def status_bar_pro(
+    state,
+    linguagem,
+    cod,
+    linha_atual=1,
+    coluna_atual=1,
+    arquivo_path=None,
+    readonly=False,
+):
+    if not isinstance(cod, str):
+        cod = ""
 
+    total_linhas = cod.count("\n") + 1 if cod else 0
+    total_chars = len(cod)
+    tamanho_bytes = len(cod.encode("utf-8"))
+
+    modificado = False
+    if hasattr(state, "conteudos_abas") and hasattr(state, "id_aba_ativa"):
+        anterior = state.conteudos_abas.get(state.id_aba_ativa)
+        if anterior is not None:
+            modificado = anterior != cod
+
+    encoding = "UTF-8"
+    modo = "READONLY" if readonly else "EDIT"
+
+    nome_arquivo = ""
+    if arquivo_path:
+        nome_arquivo = os.path.basename(arquivo_path)
+
+    col1, col2, col3, col4, col5, col6 = st.columns(
+        [1.2, 1.6, 2.2, 1.6, 2.4, 2.8]
+    )
+
+    with col1:
+        st.caption(f"{total_linhas} linhas")
+
+    with col2:
+        st.caption(f"{total_chars} chars")
+
+    with col3:
+        st.caption(f"{tamanho_bytes} bytes")
+
+    with col4:
+        if hasattr(state, "autosave_status"):
+            st.caption(state.autosave_status)
+        else:
+            st.caption("")
+
+    with col5:
+        status_mod = "MOD" if modificado else "OK"
+        st.caption(f"{modo} | {status_mod} | {encoding}")
+
+    with col6:
+        st.caption(
+            f"{nome_arquivo}  Ln {linha_atual}, Col {coluna_atual} | {linguagem}"
+        )
+
+
+# 🔥 DETECTOR MÓDULOS SIMPLES (sem dicionário inútil)
+def checar_modulos_no_venv(codigo, python_exe):
+    """Checa se módulo tá NO VENV ANTES de instalar"""
+    faltando = []
+    try:
+        tree = ast.parse(codigo)
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                for alias in node.names:
+                    mod = alias.name.split('.')[0]
+                    # CHECA NO VENV COM PIP LIST!
+                    resultado = os.popen(f'"{python_exe}" -m pip list').read()
+                    if mod.lower() not in resultado.lower():
+                        faltando.append(mod)
+            elif isinstance(node, ast.ImportFrom) and node.module:
+                mod = node.module.split('.')[0]
+                resultado = os.popen(f'"{python_exe}" -m pip list').read()
+                if mod.lower() not in resultado.lower():
+                    faltando.append(mod)
+        return list(set(faltando))
+    except:
+        return []
 
 def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE, colStop, ColunaRun,CorBACK):
     msg_fim_cod = "🏁 Fim do Codigo!"
+    # CSS VSCode Style (logo após imports)
+
+
     # Função para nome curto (mantida)
     def nome_curto(nome, limite=20):
         base, ext = os.path.splitext(nome)
@@ -52,6 +138,7 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
     _.setdefault("Diretorio", {})
     _.setdefault("conteudos_abas", {})
 
+
     with st.container(border=True,key='MenuServidor'):
         MS1,MS2,MS3 = st.columns([8,1.5,1.2])
         with MS2:
@@ -63,9 +150,9 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
         menuserv = MS1.expander('Menu Servidor')
 
     alerta = []
+
     def run_code_thread(code, input_q, output_q):
         # 🔥 USA A FUNÇÃO MESTRE - ZERO Path()
-        python_exe, root_path, venv_path, _ = VENVE_DO_PROJETO()
 
         # ADICIONA VENV NO sys.path
         if Path(venv_path).exists():
@@ -121,6 +208,8 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
 
     abas = st.tabs(nomes_completos)
 
+
+
     # *** CORREÇÃO: INICIALIZA 'cod' COMO None ANTES DO LOOP ***
     cod = None
     midia_exts = {
@@ -155,18 +244,43 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
                     thema_editor=THEMA_EDITOR,font_size=EDITOR_TAM_MENU,
                     fonte=FONTE, altura=altura, backgroud = CorBACK,
                 )
+
                 with Janela:
                     if is_streamlit_code(cod):
                         st.code(f'streamlit run {nome_arquivo}')
                     if is_flask_code(cod):
                         st.code(f'python {nome_arquivo} # flask')
-                bot1,bot2,bot3 = st.columns(3)
+                bot1,bot2,bot3 = st.columns([2,3,5])
 
                 if bot1.button(f'🗑️Apagar: {nome_arquivo}', key=f"botao_apagar_arquivos{I}"):
                     Apagar_Arq(st, nome_arquivo, caminho)
 
                 # Salva no session_state por aba
                 _.conteudos_abas[I] = cod
+
+                # 🔥 DETECTOR MÓDULOS FALTANDO (PREVIEW)
+                modulos_faltando = checar_modulos_no_venv(cod, python_exe)  # ← VENV!
+                with bot2:
+                    if modulos_faltando:
+                        col1, col2 = st.columns([1, 1])
+
+                        col1.write(f"⚠️ FALTAM: {', '.join(modulos_faltando)}")
+
+                        if col2.button(f"🔧 INSTALAR {', '.join(modulos_faltando)}", type="primary"):
+                            for mod in modulos_faltando:
+                                with st.spinner(f"📦 {mod}..."):
+                                    os.system(f'"{python_exe}" -m pip install {mod}')
+                            col1.write("✅ Instalados! Pode executar!")
+                            st.rerun()
+
+                        st.toast("👆 Instale primeiro")
+                    else:
+                        st.write("✅ Tudo instalado - pode rodar!")
+
+                # CHAMA STATUS BAR (só na aba ativa)
+                if len(nomes_arquivos) > 0:
+                    with bot3:
+                        status_bar_pro(_, linguagem, cod)
             except AttributeError:
                 with st.container(border=True,height=altura):
                     if extensao in midia_exts or not conteudo_inicial or '�' in conteudo_inicial[:100]:
@@ -235,16 +349,8 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
     arquivo_selecionado_caminho = _.Diretorio.get(id_aba_ativa, "")
     arquivo_selecionado_conteudo = codigo
 
-    # Salva no disco a aba ativa (auto-save) - SÓ ARQUIVOS DE TEXTO
-    if codigo and id_aba_ativa < len(nomes_arquivos):  # ✅ Proteção extra
-        extensao_ativa = os.path.splitext(nome_arquivo_sectbox)[1].lower()
 
-        if extensao_ativa not in midia_exts:
-            try:
-                with open(_.Diretorio[id_aba_ativa], 'w', encoding='utf-8') as f:
-                    f.write(codigo)
-            except Exception as e:
-                st.error(f"Erro salvar {nome_arquivo_sectbox}: {e}")
+
 
     # INICIALIZA output
     if 'streamlit_output' not in _:
@@ -391,8 +497,6 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
                 args=(codigo, _.input_queue, _.output_queue),
                 daemon=True
             ).start()
-
-
             st.rerun()
 
     if colStop.button("⏹️", key=f"parar_{id_aba_ativa}", shortcut='Ctrl+Space',width='stretch'):  # *** BOTÃO STOP DE VOLTA! ***
@@ -775,10 +879,31 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
                         st.write(traduzir_saida(e))
             st.write('')
             st.write('')
+
+    # 🔥 AUTOSAVE MILITAR - LIMPEZA AUTOMÁTICA
+    def limpar_autosave_velho():
+        agora = time.time()
+        chaves_para_limpar = []
+        for key in list(_.keys()):
+            if key.startswith(('autosave_cache_', 'autosave_saved_')):
+                # Só limpa se tem mais de 1h (3600s)
+                if agora - _.get(key + '_timestamp', 0) > 3600:
+                    chaves_para_limpar.append(key)
+
+        for key in chaves_para_limpar:
+            if key in _:
+                del _[key]
+            timestamp_key = key + '_timestamp'
+            if timestamp_key in _:
+                del _[timestamp_key]
+
+    limpar_autosave_velho()  # Executa sempre
+
+    # 👇 AGORA sim o return original:
     return (
         arquivos_abertos_nomes,
         arquivos_abertos_caminhos,
         arquivo_selecionado_nome,
         arquivo_selecionado_caminho,
-        arquivo_selecionado_conteudo  # ✅ AGORA RETORNA o código da aba ativa!
+        arquivo_selecionado_conteudo
     )
