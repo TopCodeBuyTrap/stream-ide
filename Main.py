@@ -1,28 +1,40 @@
-import json
-import subprocess
-import textwrap
-from datetime import datetime
+# pip install streamlit_option_menu
+# pip install streamlit-multi-menu
+import streamlit as st
+from streamlit import expander
+from streamlit_option_menu import option_menu
 
+# 1. as sidebar menu
+with st.sidebar:
+	selected = option_menu("Main Menu", ["Home", 'Settings'],
+	                       icons=['house', 'gear'], menu_icon="cast", default_index=1)
+	selected
 
+# 2. horizontal menu
+with st.popover("Open popover"):
+	selected2 = option_menu(None, ["Home", "Upload", "Tasks", 'Settings'],
+                        icons=['house', 'cloud-upload', "list-task", 'gear'],
+                        menu_icon="cast", default_index=0, orientation="vertical")
+selected2
 
-from APP_SUB_Controle_Driretorios import _DIRETORIO_PROJETO_ATUAL_
-# ===== FIX WINDOWS: NÃO ABRIR CMD / POWERSHELL =====
-STARTUPINFO = subprocess.STARTUPINFO()
-STARTUPINFO.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-STARTUPINFO.wShowWindow = subprocess.SW_HIDE
-CREATE_FLAGS = subprocess.CREATE_NO_WINDOW
+from streamlit_multi_menu import streamlit_multi_menu
 
-def data_sistema():
-    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+### Define Menu
+sub_menus = {"Finance":["Stock prediction","Turn around rate"],
+             "Cars":["Drift","Garage"],
+             "Food":["Ramen","Bubble Tea","Kitchen Design"]}
 
-def Alerta(st,msg):
-    @st.dialog("Alerta ")
-    def menu_principal():
-        st.warning(msg)
-    menu_principal()
+# Optinally you can supply google icons
+sub_menu_icons = {
+    "Finance": ["trending_up", "sync_alt"],
+    "Cars": ["directions_car", "garage"],
+    "Food": ["restaurant", "local_cafe", "kitchen"]
+}
 
-def Linha_Sep(Cor,Larg):
-    import streamlit.components.v1 as components
+selected_menu = streamlit_multi_menu(menu_titles=list(sub_menus.keys()),
+                              sub_menus=sub_menus,
+                            sub_menu_icons = sub_menu_icons,
+                            use_container_width=True)
 
-    HtmL =f'<div style="display: block; background-color: {Cor}; width: 100%; height: {Larg}px;"></div>'
-    return components.html(HtmL, height=Larg+9, scrolling=False)
+if selected_menu != None:
+    st.write("The selected menu is:",selected_menu)

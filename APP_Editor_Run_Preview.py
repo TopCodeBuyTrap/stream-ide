@@ -14,15 +14,20 @@ from APP_Editor_Codigo import editor_codigo_autosave
 from APP_Menus import Apagar_Arq
 from APP_SUB_Controle_Driretorios import _DIRETORIO_PROJETO_ATUAL_, VENVE_DO_PROJETO, _DIRETORIO_EXECUTAVEL_
 from APP_SUB_Funcitons import Identificar_linguagem, Button_Nao_Fecha, Sinbolos, \
-    wrap_text, chec_se_arq_do_projeto, controlar_altura, Alerta
+    wrap_text, chec_se_arq_do_projeto, controlar_altura, Alerta, controlar_altura_horiz
 from APP_SUB_Janela_Explorer import Abrir_Arquivo_Select_Tabs
 from APP_SUB_Run_Execut import netstat_streamlit, run_streamlit_process, is_streamlit_code, is_flask_code, \
     run_flex_process, extract_flask_config, find_port_by_pid, stop_flex, stop_process_by_port, is_django_code, \
     extract_django_config
 from SUB_Traduz_terminal import traduzir_saida
 
-
-
+def scrl(val):
+    if val == False:
+        sc= """<style>
+section[data-testid="stMain"] { /* REMOVER SCROLL */
+    overflow: hidden !important
+</style>"""
+        st.markdown(sc,unsafe_allow_html=True)
 
 
 def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE, colStop, ColunaRun,CorBACK):
@@ -47,6 +52,15 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
     _.setdefault("Diretorio", {})
     _.setdefault("conteudos_abas", {})
 
+    with st.container(border=True,key='MenuServidor'):
+        MS1,MS2,MS3 = st.columns([8,1.5,1.2])
+        with MS2:
+            altura = controlar_altura_horiz(st, "Preview", altura_inicial=700, passo=50, maximo=900, minimo=200)
+
+        with MS3:
+            scrl(st.toggle('|'))
+
+        menuserv = MS1.expander('Menu Servidor')
 
     alerta = []
     def run_code_thread(code, input_q, output_q):
@@ -133,18 +147,13 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
             # ===== NOVA VERIFICAÇÃO DE TIPO DE ARQUIVO =====
             extensao = os.path.splitext(nome_arquivo)[1].lower()
             try:
-
-
                 # *** st_ace RETORNA o código ATUALIZADO da aba ***
-                cod = editor_codigo_autosave(
-                    st=st,
-                    aba_id=I,
+                cod = editor_codigo_autosave(st=st,aba_id=I,
                     caminho_arquivo=_.Diretorio[I],
                     conteudo_inicial=conteudo_inicial,
                     linguagem=linguagem,
-                    thema_editor=THEMA_EDITOR,
-                    font_size=EDITOR_TAM_MENU,
-                    fonte=FONTE, backgroud = CorBACK
+                    thema_editor=THEMA_EDITOR,font_size=EDITOR_TAM_MENU,
+                    fonte=FONTE, altura=altura, backgroud = CorBACK,
                 )
                 with Janela:
                     if is_streamlit_code(cod):
@@ -159,55 +168,85 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
                 # Salva no session_state por aba
                 _.conteudos_abas[I] = cod
             except AttributeError:
-                if extensao in midia_exts or not conteudo_inicial or '�' in conteudo_inicial[:100]:
-                    tp1, tp2 = st.columns([1, 1])
-
-                    # VISUALIZAÇÃO POR TIPO
-                    if extensao in {'.png', '.jpg', '.jpeg', '.gif', '.bmp'}:
-                        tp1.image(caminho,width=600)
-                    elif extensao == '.pdf':
-                        with open(caminho, 'rb') as f:
-                            tp1.download_button("📥 Download PDF", f.read(), nome_arquivo)
-                    elif extensao in {'.mp3', '.wav', '.ogg'}:
-                        tp1.audio(caminho)
-                    elif extensao in {'.mp4', '.avi', '.mkv'}:
-                        tp1.video(caminho,width=300)
-                    else:  # Binários genéricos
-                        with open(caminho, 'rb') as f:
-                            tp2.download_button("📥 Download", f.read(), nome_arquivo,
-                                               mime="application/octet-stream")
+                with st.container(border=True,height=altura):
+                    if extensao in midia_exts or not conteudo_inicial or '�' in conteudo_inicial[:100]:
+                        tp1, tp2 = st.columns([1, 1])
+                        bot1, bot2, bot3 = st.columns(3)
+                        # VISUALIZAÇÃO POR TIPO
+                        if extensao in {'.png', '.jpg', '.jpeg', '.gif', '.bmp'}:
+                            tp1.image(caminho,width=600)
+                            if bot1.button(f'🗑️Apagar: {nome_arquivo}', key=f"botao_apagar_arquivos{I}"):
+                                Apagar_Arq(st, nome_arquivo, caminho)
+                        elif extensao == '.pdf':
+                            with open(caminho, 'rb') as f:
+                                tp1.download_button("📥 Download PDF", f.read(), nome_arquivo)
+                            if bot1.button(f'🗑️Apagar: {nome_arquivo}', key=f"botao_apagar_arquivos{I}"):
+                                Apagar_Arq(st, nome_arquivo, caminho)
+                        elif extensao in {'.mp3', '.wav', '.ogg'}:
+                            tp1.audio(caminho)
+                            if bot1.button(f'🗑️Apagar: {nome_arquivo}', key=f"botao_apagar_arquivos{I}"):
+                                Apagar_Arq(st, nome_arquivo, caminho)
+                        elif extensao in {'.mp4', '.avi', '.mkv'}:
+                            tp1.video(caminho,width=300)
+                            if bot1.button(f'🗑️Apagar: {nome_arquivo}', key=f"botao_apagar_arquivos{I}"):
+                                Apagar_Arq(st, nome_arquivo, caminho)
+                        else:  # Binários genéricos
+                            with open(caminho, 'rb') as f:
+                                tp2.download_button("📥 Download", f.read(), nome_arquivo,
+                                                   mime="application/octet-stream")
+                                if bot1.button(f'🗑️Apagar: {nome_arquivo}', key=f"botao_apagar_arquivos{I}"):
+                                    Apagar_Arq(st, nome_arquivo, caminho)
 
                     # *** CORREÇÃO: Define 'cod' como string vazia para arquivos de mídia ***
                     cod = ""
 
+    # === SUBSTITUA TODO ESSE CÓDIGO (da linha do selectbox até o autosave) ===
 
+    # ✅ VALIDAÇÃO SEGURA ANTES DO SELECTBOX
+    if len(nomes_arquivos) == 0:
+        st.warning("Nenhum arquivo aberto!")
+        return ([], [], "", "", "")
 
+    # ✅ CORREÇÃO: Garante index válido
+    total_abas = len(nomes_arquivos)
+    index_seguro = 0
+    if hasattr(_.get('id_aba_ativa'), '__index__'):
+        index_seguro = min(max(_.id_aba_ativa, 0), total_abas - 1)
 
     id_aba_ativa = Select.selectbox(
         "Aba ativa ▶️",
-        range(len(nomes_arquivos)),
+        range(total_abas),
         format_func=lambda i: nomes_arquivos[i],
-        index=_.id_aba_ativa,
-        key="select_aba_ativa", label_visibility='collapsed')
+        index=index_seguro,  # ✅ SEMPRE VÁLIDO: 0 até len-1
+        key="select_aba_ativa",
+        label_visibility='collapsed'
+    )
 
     _.id_aba_ativa = id_aba_ativa
 
-    # *** CÓDIGO ATUAL DA ABA ATIVA ***
-    codigo = _.conteudos_abas.get(_.id_aba_ativa, "")
-    nome_arquivo_sectbox = nomes_arquivos[_.id_aba_ativa]
+    # *** CÓDIGO ATUAL DA ABA ATIVA (SEGURO) ***
+    codigo = _.conteudos_abas.get(id_aba_ativa, "")
+    nome_arquivo_sectbox = nomes_arquivos[id_aba_ativa]
 
     arquivos_abertos_nomes = nomes_arquivos
     arquivos_abertos_caminhos = CAMINHHOS
 
     arquivo_selecionado_nome = nome_arquivo_sectbox
-    arquivo_selecionado_caminho = _.Diretorio.get(_.id_aba_ativa, "")
+    arquivo_selecionado_caminho = _.Diretorio.get(id_aba_ativa, "")
     arquivo_selecionado_conteudo = codigo
 
     # Salva no disco a aba ativa (auto-save) - SÓ ARQUIVOS DE TEXTO
-    if codigo:
+    if codigo and id_aba_ativa < len(nomes_arquivos):  # ✅ Proteção extra
         extensao_ativa = os.path.splitext(nome_arquivo_sectbox)[1].lower()
 
-      # INICIALIZA output
+        if extensao_ativa not in midia_exts:
+            try:
+                with open(_.Diretorio[id_aba_ativa], 'w', encoding='utf-8') as f:
+                    f.write(codigo)
+            except Exception as e:
+                st.error(f"Erro salvar {nome_arquivo_sectbox}: {e}")
+
+    # INICIALIZA output
     if 'streamlit_output' not in _:
         _['streamlit_output'] = []
 
@@ -360,7 +399,7 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
         _.thread_running = False
         _.output += "\n⏹️ Execução interrompida\n"
 
-    with Janela:
+    with menuserv:
         portas = netstat_streamlit()
         for porta, pid, linha in portas:
             st.write(f"[**http://streamlit:{porta}**](http://localhost:{porta})")
@@ -429,6 +468,7 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
                 else:
                     st.code(_.output, linguagem, wrap_lines=True ,height=altura_prev)
 
+                # Input do usuário (apenas quando executando)
                 # Input do usuário (apenas quando executando)
                 if _.thread_running:
                     user_input = st.chat_input("Digite sua entrada aqui: ")

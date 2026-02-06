@@ -23,6 +23,7 @@ Author-email: anasbouzid@gmail.com
 
 # ---------------------------- Rodar
 streamlit run APP_.py
+streamlit run Main.py
 
 
 pip uninstall streamlit_ace

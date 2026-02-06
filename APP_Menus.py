@@ -6,8 +6,10 @@ from time import sleep
 
 import streamlit
 from code_editor import code_editor
+from streamlit_option_menu import option_menu
 
-from APP_SUB_Funcitons import Criar_Arquivo_TEXTO, data_sistema, resumo_pasta, limpar_CASH, Button_Nao_Fecha, Alerta
+from APP_SUB_Funcitons import Criar_Arquivo_TEXTO, data_sistema, resumo_pasta, limpar_CASH, Button_Nao_Fecha, Alerta, \
+    Sinbolos
 from APP_SUB_Janela_Explorer import listar_pythons_windows, Apagar_Arquivos, Janela_PESQUIZA_PASTAS_ARQUIVOS, \
     Janela_PESQUIZA
 from Abertura_TCBT import Janela_Lista_Arquivos
@@ -459,7 +461,7 @@ LANGUAGE_EXTENSIONS = {
 
 
 def Cria_Arquivos(st):
-    @st.dialog("Criar Arquivos Pastas: ",dismissible=False)
+    @st.dialog("Criar Arquivos Pastas: ", dismissible=False)
     def menu_principal():
         st1, st2 = st.columns([8, 1])
 
@@ -470,38 +472,171 @@ def Cria_Arquivos(st):
         if "linguagem" not in st.session_state:
             st.session_state.linguagem = None
 
+        if "tipo_criacao" not in st.session_state:
+            st.session_state.tipo_criacao = "Arquivo"
+
         Menu_Principal, Sub_Menu = st.columns([1, 2])
 
         with Menu_Principal:
-            linguagem = st.selectbox(
-                "Linguagem:",
-                ["Novo:"] + list(LANGUAGE_EXTENSIONS.keys()),
-                index=0,
+            tipo_criacao = st.selectbox(
+                "Tipo:",
+                ["Arquivo", "Pasta Simples", "Pasta com __init__"],
                 label_visibility="collapsed",
-                key="select_linguagem"
+                key="select_tipo_criacao"
             )
-            st.session_state.linguagem = linguagem
+            st.session_state.tipo_criacao = tipo_criacao
 
-        if linguagem and linguagem != "Novo:":
-            extensao = LANGUAGE_EXTENSIONS[linguagem]
+            if tipo_criacao == "Arquivo":
+                linguagem = st.selectbox(
+                    "Linguagem:",
+                    ["Novo:"] + list(LANGUAGE_EXTENSIONS.keys()),
+                    index=0,
+                    label_visibility="collapsed",
+                    key="select_linguagem"
+                )
+                st.session_state.linguagem = linguagem
+            else:
+                st.session_state.linguagem = None
 
-            with Sub_Menu:
-                nome_arquivo = st.text_input("Nome do arquivo")
+        with Sub_Menu:
+            nome = st.chat_input("Nome")
 
-                if st.button("Confirmar"):
-                    if nome_arquivo:
-                        Pasta_RAIZ_projeto = _DIRETORIO_PROJETO_ATUAL_()
-                        nome_final = nome_arquivo + extensao
+            if nome:
+                Pasta_RAIZ_projeto = _DIRETORIO_PROJETO_ATUAL_()
+                nome_limpo = str(nome).strip().replace(" ", "_")
+
+                if st.session_state.tipo_criacao == "Arquivo":
+                    if st.session_state.linguagem and st.session_state.linguagem != "Novo:":
+                        extensao = LANGUAGE_EXTENSIONS[st.session_state.linguagem]
+                        nome_final = nome_limpo + extensao
                         Caminho_Absoluto = os.path.join(Pasta_RAIZ_projeto, nome_final)
 
-                        Criar_Arquivo_TEXTO(Pasta_RAIZ_projeto, str(nome_arquivo).strip().replace(' ', "_"), "", extensao)
-                        #esc_A_CONTROLE_ARQUIVOS(nome_final,Caminho_Absoluto,linguagem,extensao,"","CRIADO")
+                        Criar_Arquivo_TEXTO(
+                            Pasta_RAIZ_projeto,
+                            nome_limpo,
+                            "",
+                            extensao
+                        )
 
                         st.success(f"Arquivo criado: {nome_final}")
                         st.session_state["Cria_Arquivos_state"] = False
                         st.rerun()
-                    else:
-                        st.warning('🤔 Uai de um Nome Né!')
+
+                elif st.session_state.tipo_criacao == "Pasta Simples":
+                    caminho_pasta = os.path.join(Pasta_RAIZ_projeto, nome_limpo)
+                    os.makedirs(caminho_pasta, exist_ok=True)
+
+                    st.success(f"Pasta criada: {nome_limpo}")
+                    st.session_state["Cria_Arquivos_state"] = False
+                    st.rerun()
+
+                elif st.session_state.tipo_criacao == "Pasta com __init__":
+                    caminho_pasta = os.path.join(Pasta_RAIZ_projeto, nome_limpo)
+                    os.makedirs(caminho_pasta, exist_ok=True)
+
+                    caminho_init = os.path.join(caminho_pasta, "__init__.py")
+                    if not os.path.exists(caminho_init):
+                        with open(caminho_init, "w", encoding="utf-8") as f:
+                            f.write("")
+
+                    st.success(f"Pasta package criada: {nome_limpo}")
+                    st.session_state["Cria_Arquivos_state"] = False
+                    st.rerun()
+
+    menu_principal()
+
+
+def Cria_Arq_loc(st, caminho):
+    @st.dialog("Criar Arquivos Pastas :", dismissible=True)
+    def menu_principal():
+
+        if "acoes" not in st.session_state:
+            st.session_state["acoes"] = []
+
+        col_menu, col_main = st.columns([1, 3])
+
+        with col_menu:
+
+
+            if st.button("📁 Pasta", use_container_width=True):
+                st.session_state["acoes"].append(
+                    {"tipo": "Pasta Simples", "nome": ""}
+                )
+
+            if st.button("📦 Pasta + __init__", use_container_width=True):
+                st.session_state["acoes"].append(
+                    {"tipo": "Pasta com __init__", "nome": ""}
+                )
+
+            st.divider()
+
+            for lang, ext in LANGUAGE_EXTENSIONS.items():
+                icone = Sinbolos("x" + ext)
+                if st.button(f"{icone} {lang}", use_container_width=True):
+                    st.session_state["acoes"].append(
+                        {"tipo": "Arquivo", "ext": ext, "nome": ""}
+                    )
+
+        with col_main:
+
+            for i, acao in enumerate(st.session_state["acoes"]):
+
+                icone = ""
+                if acao["tipo"] == "Arquivo" and acao.get("ext"):
+                    icone = Sinbolos("x" + acao["ext"])
+                elif acao["tipo"] == "Pasta Simples":
+                    icone = "📁"
+                elif acao["tipo"] == "Pasta com __init__":
+                    icone = "📦"
+
+                label = f"{icone} {acao['tipo']}"
+                if acao.get("ext"):
+                    label += f" ({acao['ext']})"
+
+                st.session_state["acoes"][i]["nome"] = st.text_input(
+                    f"Nome para {label}",
+                    key=f"nome_{i}"
+                )
+
+            if st.session_state["acoes"]:
+                if st.button("CRIAR TUDO", use_container_width=True):
+
+                    for acao in st.session_state["acoes"]:
+                        nome = acao.get("nome", "").strip()
+                        if not nome:
+                            continue
+
+                        nome_limpo = nome.replace(" ", "_")
+
+                        if acao["tipo"] == "Arquivo":
+                            Criar_Arquivo_TEXTO(
+                                caminho,
+                                nome_limpo,
+                                "",
+                                acao["ext"]
+                            )
+
+                        elif acao["tipo"] == "Pasta Simples":
+                            os.makedirs(
+                                os.path.join(caminho, nome_limpo),
+                                exist_ok=True
+                            )
+
+                        elif acao["tipo"] == "Pasta com __init__":
+                            pasta = os.path.join(caminho, nome_limpo)
+                            os.makedirs(pasta, exist_ok=True)
+
+                            init_file = os.path.join(pasta, "__init__.py")
+                            if not os.path.exists(init_file):
+                                with open(init_file, "w", encoding="utf-8") as f:
+                                    f.write("")
+
+                    st.session_state["acoes"].clear()
+                    limpar_CASH()
+                    st.rerun()
+
+        return True
+
     menu_principal()
 
 
@@ -570,34 +705,30 @@ Extensões: {r['extensoes']}''')
 
 
 def Abrir_Menu(st):
-    try:
-        #st.link_button(label="",url="https://www.youtube.com/@topcodebuytrap",icon=":material/link:",icon_position="left")
-        s1, s2 , s3 , s4 = st.columns(4)
+    with st.popover("Menu"):
 
-        with s1:
-            if Button_Nao_Fecha(':material/dashboard_customize:',
-                                    ':material/dashboard_customize:',
+        try:
+            #st.link_button(label="",url="https://www.youtube.com/@topcodebuytrap",icon=":material/link:",icon_position="left")
+            if Button_Nao_Fecha(':material/dashboard_customize: ',
+                                    ':material/dashboard_customize: Cria_Projeto',
                                     key="Cria_Projeto"):
                 Cria_Projeto(st)
 
-        with s2:
             if Button_Nao_Fecha(':material/folder_open:',
-                                ':material/folder_open:',
+                                ':material/folder_open: Abrir_Projeto',
                                     key="Abrir_Projeto"):
                 Abrir_Projeto(st)
 
-        with s3:
             if Button_Nao_Fecha(':material/library_add:',
-                                    ':material/library_add:',
+                                    ':material/library_add: Cria_Arquivos',
                                     key="Cria_Arquivos"):
                 Cria_Arquivos(st)
-        with s4:
-            if Button_Nao_Fecha(":material/format_paint:", ':material/format_paint:',
+            if Button_Nao_Fecha(":material/format_paint:", ':material/format_paint: Customizar',
                                 key="Customizar"):
                 Custom(st)
 
-    except streamlit.errors.StreamlitDuplicateElementKey as e:
-        Alerta(st,f'Mano/a YOU Deixou 2 Botões Clicado! \nPtqp...')
+        except streamlit.errors.StreamlitDuplicateElementKey as e:
+            Alerta(st,f'Mano/a YOU Deixou 2 Botões Clicado! \nPtqp...')
 
 def Cria_Projeto(st):
     st.session_state.setdefault("criar_projeto", True)
@@ -799,6 +930,7 @@ def Cria_Projeto_pouppap(st):# só usado um unica vez quando inicia o programa p
         if st2.button("X", key="Cria_Projeto"):
             st.session_state["Cria_Projeto_state"] = False
             st.rerun()
+
         st.write("'Henriq colocar para instalar modulos pre configurados!'")
         if "abas" not in st.session_state:
             st.session_state.abas = ["Terminal"]

@@ -25,28 +25,9 @@ def Linha_Sep(Cor,Larg):
     import streamlit.components.v1 as components
 
     HtmL =f'<div style="display: block; background-color: {Cor}; width: 100%; height: {Larg}px;"></div>'
-    return components.html(HtmL, height=Larg+9, scrolling=False)
+    return components.html(HtmL, height=Larg, scrolling=False)
 
 
-
-def Identificar_linguagem(arquivo):
-    EXT_MAP = {
-    ".py": "python",
-    ".txt": "texto",
-    ".js": "javaScript",
-    ".html": "html",
-    ".css": "css",
-    ".json": "json",
-    ".md": "markdown",
-    ".cpp": "c++",
-    ".java": "java",
-    ".php": "php",
-    ".rb": "ruby",
-
-}
-
-    _, ext = os.path.splitext(arquivo)
-    return EXT_MAP.get(ext.lower(), "Desconhecido")
 
 def Criar_Arquivo_TEXTO(caminho, titulo, conteudo, ext):
     caminho_txt =rf"{caminho}\\{titulo}{ext}"
@@ -292,25 +273,78 @@ def sincronizar_estrutura(caminho_arquivo=None):
 
 from pathlib import Path
 
+def Identificar_linguagem(arquivo):
+    EXT_MAP = {
+        ".py": "python",
+        ".txt": "texto",
+        ".js": "javaScript",
+        ".html": "html",
+        ".css": "css",
+        ".json": "json",
+        ".md": "markdown",
+        ".cpp": "c++",
+        ".java": "java",
+        ".php": "php",
+        ".rb": "ruby",
+
+        ".mp4": "video",
+        ".avi": "video",
+        ".mov": "video",
+        ".mkv": "video",
+
+        ".mp3": "audio",
+        ".wav": "audio",
+        ".ogg": "audio",
+
+        ".png": "imagem",
+        ".jpg": "imagem",
+        ".jpeg": "imagem",
+        ".gif": "imagem",
+        ".webp": "imagem",
+
+        ".pdf": "pdf"
+    }
+
+    _, ext = os.path.splitext(arquivo)
+    return EXT_MAP.get(ext.lower(), "Desconhecido")
+
+
 def Sinbolos(arquivo):
     arquivo = Path(arquivo)
 
     ICONES_EXT = {
-        ".py": "🐍",  # Python - PERFEITO
-        ".txt": "📄",  # TXT - PERFEITO
-        ".js": "⚡",  # JavaScript - ⚡ Elétrico/Moderno
-        ".html": "🌐",  # HTML - PERFEITO
-        ".css": "🎨",  # CSS - PERFEITO
-        ".json": "📋",    # JSON - Lista/configuração perfeita!
-        ".md": "📝",  # Markdown - PERFEITO
-        ".cpp": "🔧",  # C++ - 🔧 Ferramenta (compilado)
-        ".java": "☕",  # Java - PERFEITO
-        ".php": "🐘",  # PHP - PERFEITO
-        ".rb": "💎",  # Ruby - PERFEITO
-        ".cfg": "⚙️",  # Config
-        ".pth": "🧠",  # PTH - PyTorch/Pesos de modelo 🧠
-        ".db": "🗄️",  # PTH - PyTorch/Pesos de modelo 🧠
+        ".py": "🐍",
+        ".txt": "📄",
+        ".js": "⚡",
+        ".html": "🌐",
+        ".css": "🎨",
+        ".json": "📋",
+        ".md": "📝",
+        ".cpp": "🔧",
+        ".java": "☕",
+        ".php": "🐘",
+        ".rb": "💎",
 
+        ".mp4": "🎬",
+        ".avi": "🎬",
+        ".mov": "🎬",
+        ".mkv": "🎬",
+
+        ".mp3": "🎵",
+        ".wav": "🎵",
+        ".ogg": "🎵",
+
+        ".png": "🖼️",
+        ".jpg": "🖼️",
+        ".jpeg": "🖼️",
+        ".gif": "🖼️",
+        ".webp": "🖼️",
+
+        ".pdf": "📕",
+
+        ".cfg": "⚙️",
+        ".pth": "🧠",
+        ".db": "🗄️"
     }
 
     return ICONES_EXT.get(arquivo.suffix.lower(), "📦")
@@ -461,7 +495,32 @@ def controlar_altura(st,
 
     return st.session_state[estado_altura]
 
+def controlar_altura_horiz(st,
+    chave,
+    altura_inicial=100,
+    passo=10,
+    minimo=0,
+    maximo=None
+):
+    estado_altura = f"{chave}_altura"
 
+    if estado_altura not in st.session_state:
+        st.session_state[estado_altura] = altura_inicial
+    st1,st2 = st.columns(2)
+
+    if st1.button(":material/keyboard_double_arrow_down:", key=f"{chave}_mais"):
+        st.session_state[estado_altura] += passo
+
+    if st2.button(":material/keyboard_double_arrow_up:", key=f"{chave}_menos"):
+        st.session_state[estado_altura] -= passo
+
+    if st.session_state[estado_altura] < minimo:
+        st.session_state[estado_altura] = minimo
+
+    if maximo is not None and st.session_state[estado_altura] > maximo:
+        st.session_state[estado_altura] = maximo
+
+    return st.session_state[estado_altura]
 import colorsys
 import re
 

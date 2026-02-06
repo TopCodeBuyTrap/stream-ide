@@ -143,45 +143,47 @@ def Carregamento_BancoDados_Temas(st):
 	    @import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&display=swap');
 	    @import url('https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap');
 	    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
-
-
-	/* CONTEÚDO CENTRAL */
-	section[data-testid="stMain2"] {{ /* REMOVER SCROLL */
-	    overflow: hidden !important;
-	}}
 	
-
-	
-    P {{                                                          /* VALORES  SUBHEADERS */
-        font-family: {FONTE_MENU} !important;
-        font-size: {TAM_MENU}px !important; 
-    }}
                                                                                           
 
-    
+    [data-testid="stPopoverButton"]{{                                               /* POPOVER */
+        background-color: {COR_WIDGET} !important;
+		border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important;   
+    }}
+                                                                                          
+    .stPopover button {{                                                            /* POPOVER label */
+		color: {COR_MENU} !important;		
+		font-family: {FONTE_MENU} !important;
+		font-size: {TAM_MENU}px !important;
+        
+    }}
     [data-testid="stMarkdown"] p {{                               /* MARKDOWS E WRITES */
         color: {COR_CAMPO} !important;
-        font-size: {FONTE_MENU}px !important;
+        font-size: {TAM_MENU}px !important;
         font-style: italic !important;        
     }}
         
     input {{                                                        /* PARA TODOS OS INPUTS */ 
         color: {COR_CAMPO} !important;
         font-family: {FONTE_CAMPO} !important;
-        font-size: {FONTE_MENU}px !important;
+        font-size: {TAM_MENU}px !important;
     }}
     
     div[data-testid="stButton"] button {{                               /* Botões */
 		color: {COR_MENU} !important;		
-		font-family: {FONTE_MENU} !important;
 		min-height: 10px !important;
 		border-radius: {RADIO}px !important;
-		border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important;   
 		padding: none !important;
 		padding-top: 0% !important;
 		padding-bottom: 0% !important;           
  
     }}
+    .st-emotion-cache-1kl7f1u p {{                                  /* Botões labal*/
+        font-family: {FONTE_MENU} !important;
+        font-size: {TAM_MENU}px !important;
+	    margin: 0 !important;
+	}}
+	
     
 	div[data-testid="stButton"] button:hover {{                             /* AO PASSAR O MAUSE */
 	    background-color: {PASSR_COR} !important;  
@@ -190,13 +192,19 @@ def Carregamento_BancoDados_Temas(st):
 	
 	.stButton[data-testid="stButton"] button[kind="primary"] {{             /* AO PASSAR O MAUSE kind */
 	    background-color: {cor_semelhante(COR_WIDGET)} !important;  
+		border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important;   
 
 	}}
 	.stButton[data-testid="stButton"] button[kind="secondary"] {{             /* AO PASSAR O MAUSE kind */
 	    	    background-color: {cor_semelhante(COR_WIDGET)} !important;  
-
+		border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important;  
+	}}
+	.stButton[data-testid="stButton"] button[kind="tertiary"] {{             /* AO PASSAR O MAUSE kind */
+        color: {COR_CAMPO} !important;	
+        	
 
 	}}
+	
 	
 	div[data-testid="stForm"] {{                                            /* FORM  FORMULARIO */
        	    background-color: {cor_semelhante(COR_WIDGET)} !important;  
@@ -232,23 +240,31 @@ def Carregamento_BancoDados_Temas(st):
 	                                            
     [data-testid="stSlider"] p {{                                           /* SLIDER */ 
         color: {COR_MENU} !important;
-        font-family: {FONTE_MENU} !important;
         font-size: {TAM_MENU}px !important;
     }}
 
-    [data-testid="stRadio"] p, {{                                           /* RADIO */ 
+    [data-testid="stRadio"] p {{                                           /* RADIO */ 
         color: {COR_MENU} !important;
         font-family: {FONTE_MENU} !important;
         font-size: {TAM_MENU}px !important;
     }}
                                                                                   /* CHECKBOX */
     [data-testid="stCheckbox"] div {{
+        font-family: {FONTE_CAMPO} !important;
+        font-size: {TAM_CAMPO-2}px !important;
+        
         text-decoration: underline !important;
         padding: 1px !important;
 	    color: white !important;
         
     }}
-    
+    .stChatInput textarea {{
+	    font-family: {FONTE_CAMPO}, sans-serif !important;
+	    font-size: {TAM_CAMPO}px !important;
+	    color: {COR_CAMPO} !important;
+
+	}}
+
 	div[data-testid="stCheckbox"] label:hover {{                             /* AO PASSAR O MAUSE CHECKBOX */
 	    background-color: {PASSR_COR} !important;  
 	    transform: scale(1.05) !important; 
@@ -262,52 +278,71 @@ def Carregamento_BancoDados_Temas(st):
     
    [data-testid="stColorPicker"] {{                                           /* COLOR PICK */ 
         color: {COR_MENU} !important;
+        font-family: {FONTE_CAMPO} !important;
+        font-size: {TAM_CAMPO}px !important;
+        
+    }}
+    .stColorPicker label p {{                                        /* COLOR labrl */ 
+        font-family: {FONTE_MENU} !important;
+	}}
+	
+    [data-testid="stNumberInput"]  {{                                            /* NUMBER */ 
+        color: {COR_MENU} !important;
         font-family: {FONTE_MENU} !important;
         font-size: {TAM_MENU}px !important;
         
     }}
     
-    [data-testid="stNumberInput"]  {{                                      /* NUMBER */ 
-        color: {COR_MENU} !important;
+    .stNumberInput label p {{                                                   /* NUMBER labrl */ 
         font-family: {FONTE_MENU} !important;
-        font-size: {TAM_MENU}px !important;
-    }}
-    
+	}}
+
 	div[data-testid="stSelectbox"] div[data-baseweb="select"] {{                                         /* SELCTBOX */ 
         background-color: {COR_WIDGET} !important;
         color: {COR_CAMPO} !important;
         font-family: {FONTE_CAMPO} !important;
-        font-size: {FONTE_MENU}px !important;
+        font-size: {TAM_MENU}px !important;
         border-radius: {RADIO}px !important;
         border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important;
     }}
+    
         [data-testid="stSelectbox"] p{{                           /* LABEL SELCBOX*/
         color: {COR_MENU} !important;
-        
+        font-family: {FONTE_MENU} !important;
+        font-size: {TAM_MENU}px !important;
     }}
     
 	ul[data-testid="stSelectboxVirtualDropdown"]  {{                                         /* SELCTBOX */ 
         background-color: {THEMA_APP1} !important;
         color: {COR_CAMPO} !important;
         font-family: {FONTE_CAMPO} !important;
-        font-size: {FONTE_MENU}px !important;
+        font-size: {TAM_MENU}px !important;
         border-radius: {RADIO}px !important;
         border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important;
     }}
 
-
     [data-testid="stTextInput"] p{{                                            /* TEXT INPUT */ 
         color: {COR_MENU} !important;
-        font-family: {FONTE_MENU} !important;
         font-size: {TAM_MENU}px !important;
+        
     }}
-
+	.stTextInput label .st-emotion-cache-3nb1lh p {{
+		font-family: {FONTE_MENU} !important;
+		font-size: {TAM_MENU}px !important;
+	
+	}}
+	
     [data-testid="stExpander"] {{                                               /* EXPANDER */ 
         background-color: {COR_WIDGET} !important;
-        color: {COR_MENU} !important;
         border-radius: 0px !important;
     }}
     
+    .stExpander summary .st-emotion-cache-11fa8fd p {{                          /* EXPANDER lABEL */ 
+	    font-family: {FONTE_MENU} !important;
+	    font-size: {TAM_MENU}px !important;
+        color: {COR_MENU} !important;
+	    
+	}}
 
     [data-testid="stElementContainerTTTT"] {{                               /* TODOS ELEMENTOSCONTAINER INCLUSOVE SELECT E EXPANDER */
         color: {COR_MENU} !important;
@@ -324,7 +359,6 @@ def Carregamento_BancoDados_Temas(st):
          /* BACKGROUND TRANSPARENTE */
 	    background: transparent !important;
 	    background-color: transparent !important;
-	    
 	    /* Borda transparente também */
 	    border: none !important;
 	    box-shadow: none !important;
@@ -349,7 +383,7 @@ def Carregamento_BancoDados_Temas(st):
         margin-top: -1% !important;
         margin-left: -0% !important;
         
-        border: {BORDA+1}px solid  {cor_semelhante(THEMA_APP2)} !important;
+        border: {BORDA+1}px solid  {cor_semelhante(COR_CAMPO)} !important;
     }}
 
     [data-testid="stSidebarCollapseButton"] {{                                  /* BOTÃO DO SIDEBAR DE CIMA >> */
@@ -438,10 +472,8 @@ def Carregamento_BancoDados_Temas(st):
     }}
 
     div[data-testid="stVerticalBlock"][class*="st-key-menu_lado_sidebar"] {{             /* stVerticalBlock st-key-menu_lado_sidebar st-emotion-cache-1gz5zxc e12zf7d53 */
-               {WD_STYLE}
-    border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important;
-
-        
+		background-color: {THEMA_APP1} !important;
+	    border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important;	        
     }}
     
     div[data-testid="stButton"][class*="st-key-nome_da_sua_key"] {{             /* CONTAINERS */
@@ -467,11 +499,11 @@ def Carregamento_BancoDados_Temas(st):
 	    color: {COR_CAMPO}  !important;             /* Cor do texto */
 	    border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important;
         font-family: {FONTE_CAMPO} !important;
-        font-size: {FONTE_MENU}px !important;
+        font-size: {TAM_MENU}px !important;
 	}}
     
 	div[data-testid="stVerticalBlock"] [class*="st-key-MenuTopo"] {{         /* CABEÇALHO MENU TOPO */
-		        background-color: {THEMA_APP1} !important;
+        background-color: {THEMA_APP1} !important;
 
 		height: 5% !important; 
 		padding-top: 1% !important;
@@ -487,6 +519,11 @@ def Carregamento_BancoDados_Temas(st):
 
     }} 
     
+    [data-baseweb="tab"] p{{
+    font-family: {FONTE_MENU} !important;
+    font-size: {TAM_MENU}px !important;
+}}
+
 div[data-testid="stTabs"][class*="st-emotion-cache-8atqhb eh1nhsq0"] {{
     {WD_STYLE}
     border-radius: {RADIO}px !important;
@@ -602,7 +639,25 @@ div[data-testid="stTabs"][class*="st-emotion-cache-8atqhb eh1nhsq0"] [data-basew
 	    height: 30px !important;
 
 	}}
+     div[data-testid="stVerticalBlock"][class*="st-key-MenuServidor"] {{       /* MENU SERVIDOR */
+       {BG_STYLE}
+        position: fixed !important;
+        bottom: 0% !important;
+        padding-left:0% !important;
+        right: 0% !important;
+        z-index: 99999999 !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        padding: 0px !important;
+        width:20% !important; 		
+    }}
+    .st-key-BtnCatalogar_widget .stButton button > div {{
+	    justify-content: flex-start !important;
+	    text-align: left !important;
+	    margin-left: 20px !important;
+	    height: 30px !important;
 
+	}}
 
     
     </style>
@@ -694,29 +749,29 @@ div[data-testid="stTabs"][class*="st-emotion-cache-8atqhb eh1nhsq0"] [data-basew
 				return f"""
 		<span style="color: orange;">{versoes_str}</span>
 		<span style="opacity:0.3;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
-		<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">📚{saudacao_por_hora_sistema()} </span>
+		<span style="color:{COR_MENU};font-family: {FONTE_MENU}; font-size: {TAM_MENU}px; opacity:0.85;">📚{saudacao_por_hora_sistema()} </span>
 		<span>{NOME_USUARIO} !</span>
 		<span style="opacity:0.3;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
-		<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">Custom atual:</span>
+		<span style="color:{COR_MENU};font-family: {FONTE_MENU}; font-size: {TAM_MENU}px; opacity:0.85;">Custom atual:</span>
 		<span style="font-weight:500;"> {NOME_CUSTOM} </span>
 		<span style="opacity:0.3;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
-		<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">:material/content_paste:Projeto: </span>
+		<span style="color:{COR_MENU};font-family: {FONTE_MENU}; font-size: {TAM_MENU}px; opacity:0.85;">:material/content_paste:Projeto: </span>
 		<span style="font-weight:500;"> {os.path.basename(Pasta_Projeto_Atual)} </span>
 		<span style="opacity:0.3;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
-		<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">Criado:</span>
+		<span style="color:{COR_MENU};font-family: {FONTE_MENU}; font-size: {TAM_MENU}px; opacity:0.85;">Criado:</span>
 		<span>{criado}</span>
 		<span style="opacity:0.3;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
-		<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">Modificado:</span>
+		<span style="color:{COR_MENU};font-family: {FONTE_MENU}; font-size: {TAM_MENU}px; opacity:0.85;">Modificado:</span>
 		<span>{modificado}</span>
 		<span style="opacity:0.3;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
-		<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;"> Conteudo:&nbsp;&nbsp;</span>
-		<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">:material/folder:</span>
+		<span style="color:{COR_MENU};font-family: {FONTE_MENU}; font-size: {TAM_MENU}px; opacity:0.85;"> Conteudo:&nbsp;&nbsp;</span>
+		<span style="color:{COR_MENU};font-family: {FONTE_MENU}; font-size: {TAM_MENU}px; opacity:0.85;">:material/folder:</span>
 		<span>{pastas}</span>
 		<span style="opacity:0.3;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
-		<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">:material/insert_drive_file:</span>
+		<span style="color:{COR_MENU};font-family: {FONTE_MENU}; font-size: {TAM_MENU}px; opacity:0.85;">:material/insert_drive_file:</span>
 		<span>{arquivos}</span>
 		<span style="opacity:0.3;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
-		<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">:material/dynamic_feed:&nbsp;</span>
+		<span style="color:{COR_MENU};font-family: {FONTE_MENU}; font-size: {TAM_MENU}px; opacity:0.85;">:material/dynamic_feed:&nbsp;</span>
 		<span>{extensoes_str.lower().replace('/','&nbsp;')}</span>
 	
 	
@@ -730,10 +785,9 @@ div[data-testid="stTabs"][class*="st-emotion-cache-8atqhb eh1nhsq0"] [data-basew
 		<style>
 		.footer {{
 			top: 0% !important;
-			left: 2% !important;
+			left: 1% !important;
 			padding-left: 2% !important;
 			right: 0 !important;
-			height: 20px !important;
 			z-index: 9!important;
 			display: flex !important;
 			align-items: left !important;
@@ -755,7 +809,7 @@ div[data-testid="stTabs"][class*="st-emotion-cache-8atqhb eh1nhsq0"] [data-basew
 		return (IMAGEM_LOGO, NOME_CUSTOM, NOME_USUARIO, COR_CAMPO, COR_MENU, THEMA_EDITOR,EDITOR_TAM_MENU,THEMA_PREVIEW,
 		        PREVIEW_TAM_MENU,THEMA_TERMINAL,TERMINAL_TAM_MENU,TOP_CAB,FONTE_MENU,FONTE_CAMPO,FUNDO_EDTOR)
 	except IndexError:
-		TOP_CAB = f'''<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">📚{saudacao_por_hora_sistema()} </span>
+		TOP_CAB = f'''<span style="color:{COR_MENU};font-family: {FONTE_MENU}; font-size: {TAM_MENU}px; opacity:0.85;">📚{saudacao_por_hora_sistema()} </span>
 		<span>{NOME_USUARIO} !</span>'''
 		return (
 		IMAGEM_LOGO, NOME_CUSTOM, NOME_USUARIO, COR_CAMPO, COR_MENU, THEMA_EDITOR, EDITOR_TAM_MENU, THEMA_PREVIEW,

@@ -355,35 +355,12 @@ def Estilo(cor):
         "background": cor,
 
     }}
-def editor_codigo_autosave(st, aba_id, caminho_arquivo, conteudo_inicial, linguagem, thema_editor, font_size,fonte,backgroud=None):
-    _ = st.session_state
-    st.markdown("""
-    <style>
-    .marker-missing-import {
-        background-color: rgba(255, 80, 80, 0.3) !important;
-        border-bottom: 2px solid red !important;
-        animation: blink 1s infinite alternate; /* opcional */
-    }
-    @keyframes blink { from { opacity: 0.7; } to { opacity: 1; } }
-    </style>
-    """, unsafe_allow_html=True)
-    # Estado local da aba
-    content_key = f"editor_content_{aba_id}"
-    _.setdefault(content_key, conteudo_inicial or "")
-
-    # Conteúdo atualizado do session_state
-    conteudo_atual = _[content_key]
-    if not isinstance(conteudo_atual, str):
-        conteudo_atual = str(conteudo_atual)
-
-    # Opções personalizadas para parecer profissional
-
-
+def editor_codigo_autosave(st, aba_id, caminho_arquivo, conteudo_inicial, linguagem, thema_editor, font_size,fonte,altura,backgroud=None):
 
     cod = code_editor(conteudo_inicial,
         lang=linguagem.lower(), # garante minúsculo
 
-        height=f'770px', # Altura dinâmica (min, max linhas) ou fixa "850px"
+        height=f'{altura}px', # Altura dinâmica (min, max linhas) ou fixa "850px"
         shortcuts='vscode', # ["emacs", "vim", "vscode", "sublime"]
         response_mode=["blur"],  # ← ADICIONE AQUI (linha 142, junto com lang=, theme=, etc)
 
@@ -401,16 +378,10 @@ def editor_codigo_autosave(st, aba_id, caminho_arquivo, conteudo_inicial, lingua
 
         buttons = Botoes(),
         ghost_text="Digita ai bora",
-        key=content_key
+        key=caminho_arquivo
         )
 
     # Extrai código editado
-    novo_codigo = cod.get('text', '') if isinstance(cod, dict) else str(cod) if cod else conteudo_atual
-
-    save_key = f"last_saved_{aba_id}"
-    if novo_codigo.strip() and novo_codigo != _.get(save_key, "") and caminho_arquivo:
-        _[save_key] = novo_codigo
-        with open(caminho_arquivo, 'w', encoding='utf-8') as f:
-            f.write(novo_codigo)
+    novo_codigo = cod.get('text', '') if isinstance(cod, dict) else str(cod) if cod else conteudo_inicial
 
     return novo_codigo # ← SEMPRE STRING

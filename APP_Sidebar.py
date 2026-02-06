@@ -1,6 +1,8 @@
 import os
+
+from APP_Menus import Cria_Arq_loc
 from APP_SUB_Funcitons import Identificar_linguagem, sincronizar_estrutura, Sinbolos
-from APP_SUB_Janela_Explorer import listar_arquivos_e_pastas
+from APP_SUB_Janela_Explorer import listar_arquivos_e_pastas, Open_Explorer
 from Banco_dados import ler_CONTROLE_ARQUIVOS, Del_CONTROLE_ARQUIVOS, se_CONTROLE_ARQUIVOS
 import streamlit as st
 
@@ -105,7 +107,7 @@ def Sidebar_Diretorios_(st, lista_projeto, qt_col):
 	return Arquivo_Selecionado_Nomes, Arquivo_Selecionado_Completo
 
 # com checbox
-def Sidebar_Diretorios(st, lista_projeto, qt_col):
+def Sidebar_Diretorios__(st, lista_projeto, qt_col):
 
 	"""Sidebar: Projeto + Banco NUM MESMO LUGAR - VERSÃO CORRIGIDA SEM DUPLICAÇÃO"""
 
@@ -196,7 +198,108 @@ def Sidebar_Diretorios(st, lista_projeto, qt_col):
 	return Arquivo_Selecionado_Nomes, Arquivo_Selecionado_Completo
 
 
+def Sidebar_Diretorios(st, lista_projeto,  caminho_completo,nome_pasta):
+	"""Sidebar: Projeto + Banco NUM MESMO LUGAR - VERSÃO SIMPLES QUE FUNCIONA"""
+	qt_col = 7
+	if 'expanders_abertos_sidebar' not in st.session_state:
+		st.session_state.expanders_abertos_sidebar = set()
+	if 'file_status_sidebar' not in st.session_state:
+		st.session_state.file_status_sidebar = {}
 
+	todos_abertos = []
 
+	def processar_projeto(nome_item, caminho_item, nivel=0):
+		abertos_locais = []
 
+		if os.path.isdir(caminho_item):
+			pasta_id = f"exp_sidebar_{caminho_item.replace('/', '_').replace('\\\\', '_')}"
+			emoji = '🛠️' if any(venv in nome_item.lower() for venv in ['.venv', 'virtual','virto_stream']) else '📁'
+			pst, btn = st.columns([4,1])
+			mostrar_conteudo = pst.checkbox(
+				f"{nome_item} {emoji}",
+				key=pasta_id,
+				value=pasta_id in st.session_state.expanders_abertos_sidebar
+			)
+
+			if mostrar_conteudo:
+				st.session_state.expanders_abertos_sidebar.add(pasta_id)
+				l, Container_Sidebar = st.columns([0.5, 9])
+				with Container_Sidebar:
+
+					if btn.button(":material/library_add:", key=f"btn_arq_{pasta_id}",width='stretch',type='tertiary'):
+						# *** MARCA QUE PRECISA ATUALIZAR ***
+						st.session_state[f"atualizar_{caminho_item}"] = True
+
+						if Cria_Arq_loc(st, caminho_item):
+							st.toast('✅ Arquivo criado!')
+							# *** FORÇA ATUALIZAÇÃO ***
+							st.session_state[f"atualizar_{caminho_item}"] = True
+							st.rerun()
+
+					# *** LISTA ARQUIVOS SEM CACHE COMPLICADO ***
+					try:
+						itens = listar_arquivos_e_pastas(caminho_item)
+						for nome_sub, caminho_sub in itens:
+							sub_abertos = processar_projeto(nome_sub, caminho_sub, nivel + 1)
+							abertos_locais.extend(sub_abertos)
+					except:
+						pass
+			else:
+				st.session_state.expanders_abertos_sidebar.discard(pasta_id)
+		else:
+			em = Sinbolos(nome_item)
+			status = st.checkbox(f'{em}{nome_item}',
+			                     key=f"chk_{caminho_item.replace('/', '_').replace('\\\\', '_')}")
+			if status:
+				abertos_locais.append((nome_item, caminho_item, "projeto"))
+
+		return abertos_locais
+
+	# Processa projetos
+	lista_projeto = [item for item in lista_projeto if item is not None and len(item) == 2]
+	with st.container(border=True):
+		pst, btn = st.columns([4, 1])
+
+		if pst.button(f':material/search: {os.path.join(nome_pasta)} :material/folder_open: ',
+		                 width='stretch', type="tertiary"):
+			Open_Explorer(caminho_completo)
+		if btn.button(":material/library_add:", key=f"btn_arq_{nome_pasta}", width='stretch', type='tertiary'):
+			# *** MARCA QUE PRECISA ATUALIZAR ***
+			st.session_state[f"atualizar_{caminho_completo}"] = True
+			st.write(caminho_completo)
+			if Cria_Arq_loc(st, caminho_completo):
+				st.toast('✅ Arquivo criado!')
+				# *** FORÇA ATUALIZAÇÃO ***
+				st.session_state[f"atualizar_{caminho_completo}"] = True
+				st.rerun()
+
+		for nome_item, caminho_item in lista_projeto:
+			abertos_item = processar_projeto(nome_item, caminho_item)
+			todos_abertos.extend(abertos_item)
+
+	# Adiciona banco
+	banco_arquivos = ler_CONTROLE_ARQUIVOS()
+	for nome_arq, caminho, conteudo, ext in banco_arquivos:
+		if not sincronizar_estrutura(caminho) and se_CONTROLE_ARQUIVOS(caminho, None):
+			todos_abertos.append((nome_arq, caminho, "banco"))
+
+	# Remove duplicatas
+	vistos = set()
+	todos_abertos = [item for item in reversed(todos_abertos) if not (item[0] in vistos or vistos.add(item[0]))][::-1]
+
+	# Loop principal
+	Arquivo_Selecionado_Nomes = []
+	Arquivo_Selecionado_Completo = []
+	if todos_abertos:
+		for im in range(0, len(todos_abertos), qt_col):
+			for j, (arquivo, diretorio, origem) in enumerate(todos_abertos[im:im + qt_col]):
+				Arquivo_Selecionado_Nomes.append(arquivo)
+				Arquivo_Selecionado_Completo.append(diretorio)
+				if origem == "banco":
+					if st.button(f"{Sinbolos(arquivo)}{arquivo} X", key=f"btn_banco_{arquivo}_{j}",
+					             width='stretch', type='tertiary'):
+						Del_CONTROLE_ARQUIVOS(arquivo)
+						st.rerun()
+
+	return Arquivo_Selecionado_Nomes, Arquivo_Selecionado_Completo
 

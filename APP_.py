@@ -98,10 +98,12 @@ def select_arquivo_recente(col2):
         st.session_state.ultimo_idx = selecionado
 
     item = dados[selecionado]
-    if st.button(f'Acesar',width='stretch'):
+    if st.button(f'Acessar',width='stretch'):
         data = contar_estrutura(item["caminho"])
         versao_set = data["versoes"][0]
         esc_A_CONTROLE_PROJETOS(str(item["caminho"]), list(versao_set)[0], data_sistema(), data["pastas"], data["arquivos"] , '')
+        limpar_CASH()
+        st.rerun()
 
 
 def app():
@@ -114,14 +116,22 @@ def app():
 
     global arquivo_selecionado_caminho, arquivo_selecionado_nome, arquivo_selecionado_conteudo
     try:
+
+        Pasta_Executavel = _DIRETORIO_EXECUTAVEL_()
+        Pasta_Todos_Projetos = _DIRETORIO_PROJETOS_()
         pjt = ler_A_CONTROLE_PROJETOS()[-1]
-        caminho = pjt[0]
+        Pasta_Projeto_Atual = pjt[0]
         versao = pjt[1]
         data = pjt[2]
 
-        if se_B_ARQUIVOS_RECENTES(caminho) == False:
+        unidade = os.path.splitdrive(Pasta_Projeto_Atual)[0]  # Ex: "C:"
+        nome_pasta = os.path.basename(Pasta_Projeto_Atual)
+        caminho_completo = os.path.join(Pasta_Projeto_Atual)
+
+
+        if se_B_ARQUIVOS_RECENTES(Pasta_Projeto_Atual) == False:
             Del_B_ARQUIVOS_RECENTES()
-            esc_B_ARQUIVOS_RECENTES(Path(caminho), str(contar_estrutura(caminho)))
+            esc_B_ARQUIVOS_RECENTES(Path(Pasta_Projeto_Atual), str(contar_estrutura(Pasta_Projeto_Atual)))
     except IndexError: pass
 
     if len(ler_B_ARQUIVOS_RECENTES()) == 0:
@@ -136,8 +146,12 @@ def app():
 
     else:
         with st.container(border=True, key='MenuTopo'):
-            cab1, cab2 , cab3 , cab4 = st.columns([8, 1,1,.3])
-            cab1.markdown(TOP_CAB,unsafe_allow_html=True, width ='stretch')
+            cab1, cab2 , cab3 , cab4 = st.columns([1, 8,1,.3])
+            with cab1:
+                from APP_Menus import Abrir_Menu
+                Abrir_Menu(st)
+            with cab2:
+                st.markdown(TOP_CAB,unsafe_allow_html=True, width ='stretch')
             with cab3:pass
 
             with cab4:
@@ -145,25 +159,8 @@ def app():
 
         Tab1, Tab2 = st.columns([2, 9])
 
-        #btnt = Button_Nao_Fecha(':material/folder_open:' + ":material/keyboard_double_arrow_left:", ':material/folder:' + ':material/keyboard_double_arrow_right:',
-                                        #key="botao_diretorio")
 
-
-
-        from APP_Menus import Abrir_Menu
-        #Abrir_Menu(st)
-        # ============================================================= MENU SUPERIOR
-
-        #st.markdown('<style>' + open('./style.css').read() + '</style>', unsafe_allow_html=True)
-
-        #--------------------------------------------------------------------- MENUS DE EDIÇÃO E CRIAÇÃO DE ARQUIVOS
-        from  APP_Menus import  Abrir_Menu,Custom
-        Pasta_Executavel = _DIRETORIO_EXECUTAVEL_()
-        Pasta_Todos_Projetos = _DIRETORIO_PROJETOS_()
-        Pasta_Projeto_Atual = caminho
         Meus_Arquivos = listar_arquivos_e_pastas(Pasta_Projeto_Atual)
-
-
 
         Janela = Tab1.container(border=True,key='menu_lado_sidebar',height=1000)
         with Janela:
@@ -171,7 +168,7 @@ def app():
             # :material/settings:  :material/emoji_symbols:
             Tt1, Tt2 = st.columns([1,9])  # Botão de run e stop
             Ttp1, Ttp2 = st.columns(2)  # Botão de run e stop
-            Arq_Selec_Nomes, Arq_Selec_Diretorios = Sidebar_Diretorios(st, Meus_Arquivos, 7)
+            Arq_Selec_Nomes, Arq_Selec_Diretorios = Sidebar_Diretorios(st, Meus_Arquivos, caminho_completo,nome_pasta)
 
 
         #------------------z--------------------------------------------------- SIDIBAR LATERAL
@@ -182,13 +179,9 @@ def app():
                 from APP_Atualizador import checar_atualizacao
                 checar_atualizacao()
             #s2.image('.arquivos/logo_.png',caption='By TopCodeBuyTrap')
-            Abrir_Menu(st)
 
             select_arquivo_recente(st)
-            caminho_pai = Pasta_Projeto_Atual  # Ex: "C:\\Users\\henri\\PycharmProjects\\IDE_TOP"
-            unidade = os.path.splitdrive(caminho_pai)[0]  # Ex: "C:"
-            nome_pasta = os.path.basename(caminho_pai)
-            caminho_completo = os.path.join(caminho_pai,nome_pasta)
+
             from APP_SUB_Backup import BAKCUP
             if NOME_CUSTOM != 'Padrão':
                 btcst = Button_Nao_Fecha(
@@ -199,20 +192,12 @@ def app():
                     Customization(st, NOME_CUSTOM)
             catalogo = Button_Nao_Fecha("📚 Arquivos Catalogados", "📚 Arquivos Catalogados", 'catalogo')
             if catalogo:
-                caminho_pai = Pasta_Projeto_Atual  # Ex: "C:\\Users\\henri\\PycharmProjects\\IDE_TOP"
-                nome_pasta = os.path.basename(caminho_pai)
-                caminho_pai = Pasta_Projeto_Atual  # Ex: "C:\\Users\\henri\\PycharmProjects\\IDE_TOP"
-                caminho_completo = os.path.join(caminho_pai, nome_pasta)
-
-                conf_baix_catalogo(st, caminho_pai, nome_pasta)
+                conf_baix_catalogo(st, Pasta_Todos_Projetos, nome_pasta)
             ignores = ['.idea', '.venv', 'build', 'dist','.virto_stream','.gitignore']
             MINUTOS_ATUALIZAR = 60
-            BAKCUP(st,MINUTOS_ATUALIZAR, Path(caminho_completo).parent, os.path.join(_DIRETORIO_EXECUTAVEL_('backup'),nome_pasta), ignores)
+            BAKCUP(st,MINUTOS_ATUALIZAR, Path(caminho_completo), os.path.join(_DIRETORIO_EXECUTAVEL_('backup'),nome_pasta), ignores)
 
 
-        if Janela.button(f':material/search: {os.path.join(nome_pasta)} :material/folder_open: ',
-                               width='stretch', type="secondary"):
-                    Open_Explorer(caminho_completo)
 
 
         if len(Arq_Selec_Diretorios) > 0:
