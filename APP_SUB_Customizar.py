@@ -99,6 +99,7 @@ def Customization(st,NOME_CUSTOM):
 	THEMA_APP2 = ler_CUSTOMIZATION_coluna_por_usuario(usuario, 'THEMA_APP2')
 	FUNDO_OUTROS = ler_CUSTOMIZATION_coluna_por_usuario(usuario, 'OPC1')
 	OPC3 = ler_CUSTOMIZATION_coluna_por_usuario(usuario, 'OPC3')
+	OPC2 = ler_CUSTOMIZATION_coluna_por_usuario(usuario, 'OPC2')
 
 	def detectar_modo_por_tema(tema):
 		if tema in TEMAS_CLAROS:
@@ -181,6 +182,7 @@ def Customization(st,NOME_CUSTOM):
 
 			THEMA_APP1 = col1.color_picker("Menu", THEMA_APP1, key=f'app1_{usuario}')
 			FUNDO_OUTROS = col2.color_picker("Widget", FUNDO_OUTROS, key=f'app3_{usuario}')
+			FUNDO_EDTOR = col2.color_picker("Editor", '#ffffff' if OPC2 == '' else OPC2, key=f'appEdit_{usuario}')
 			col1, col2 = st.columns(2)
 
 			THEMA_APP2 = col1.color_picker("Corpo", THEMA_APP2, key=f'app2_{usuario}')
@@ -214,7 +216,7 @@ def Customization(st,NOME_CUSTOM):
 			ATUAL_CUSTOM_agora(st, usuario, 'THEMA_APP1', THEMA_APP1)
 			ATUAL_CUSTOM_agora(st, usuario, 'THEMA_APP2', THEMA_APP2)
 			ATUAL_CUSTOM_agora(st, usuario, 'OPC1', FUNDO_OUTROS)
-
+			ATUAL_CUSTOM_agora(st, usuario, 'OPC2', FUNDO_EDTOR)
 			ATUAL_CUSTOM_agora(st, usuario, 'OPC3', ESCURECER_IMAGEM)
 
 			st.success("✅ **TODAS** configs salvas!")

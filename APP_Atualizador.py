@@ -46,8 +46,7 @@ def checar_atualizacao():
 
 def atualizar_tudo(nova_versao):
 	app_root = get_app_root()
-	salvar_versao(nova_versao)
-	st.success(f"✅ BANCO v{nova_versao}")
+
 
 	# 1. DOWNLOAD ZIP
 	zip_url = "https://github.com/TopCodeBuyTrap/stream-ide/archive/refs/heads/main.zip"
@@ -152,6 +151,8 @@ def atualizar_tudo(nova_versao):
 	st.info("✅ .arquivos/ atualizado")
 	st.info("✅ style.css atualizado")
 	st.balloons()
+	salvar_versao(nova_versao)
+	st.success(f"✅ BANCO v{nova_versao}")
 	st.warning("🔄 FECHE E REABRA!")
 	time.sleep(5)
 	sys.exit(0)

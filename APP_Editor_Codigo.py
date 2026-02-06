@@ -300,7 +300,7 @@ def Component_props():
         "minLines": 10, # Mín linhas visíveis
 
         # Debug/Dev
-        "showInvisibles": False, # Mostra espaços/tabs
+        "showInvisibles": True, # Mostra espaços/tabs
         "displayIndentGuides": True # Guias de indentação
     }
 
@@ -336,7 +336,7 @@ def Opcoes_editor(font_size,thema,fonte):
         "fontFamily": f'{fonte}, "Courier New", monospace',  # ← ISSO RESOLVE  # Fonte (use 'Fira Code', 'JetBrains Mono', etc.)
         "showLineNumbers": True, # Mostrar números de linha
         "showPrintMargin": True, # Mostrar margem de impressão
-        "printMarginColumn": -.1, # Coluna da margem de impressão
+        "printMarginColumn": 100, # Coluna da margem de impressão
         "theme": f"ace/theme/{thema}",
 
         # CURSOR E SELEÇÃO
@@ -355,7 +355,7 @@ def Estilo(cor):
         "background": cor,
 
     }}
-def editor_codigo_autosave(st, aba_id, caminho_arquivo, conteudo_inicial, linguagem, thema_editor, font_size,fonte):
+def editor_codigo_autosave(st, aba_id, caminho_arquivo, conteudo_inicial, linguagem, thema_editor, font_size,fonte,backgroud=None):
     _ = st.session_state
     st.markdown("""
     <style>
@@ -390,7 +390,7 @@ def editor_codigo_autosave(st, aba_id, caminho_arquivo, conteudo_inicial, lingua
         options = Opcoes_editor(font_size,thema_editor.lower(),fonte),
         keybindings = Atalhos(),
         info = Info_ide(), # NAO ACONTECEU NADA
-        props = Estilo('black'), # CSS
+        props = Estilo(backgroud), # CSS
         component_props = Component_props(), # NAO ACONTECEU NADA
         completions = Completar(), # NAO ACONTECEU NADA
         menu = Menus(), # NAO ACONTECEU NADA

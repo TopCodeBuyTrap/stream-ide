@@ -46,7 +46,7 @@ def Carregamento_BancoDados_Temas(st):
 	BORDA = cfg.get('BORDA')
 	BORDA_STIL = cfg.get('DECORA') # AQUI NO DECORA COLOQUEI TIPOS DE BORDA
 	COR_WIDGET = cfg.get('OPC1') # coloquei fundo dos botes e expander etc..
-	OPC2 = cfg.get('OPC2')
+	FUNDO_EDTOR = cfg.get('OPC2') # cor de background do editor
 	OPC3 = cfg.get('OPC3') # COLOQUEI AQUI IMAGEM CONFIG
 	OBS = cfg.get('OBS')
 
@@ -252,6 +252,7 @@ def Carregamento_BancoDados_Temas(st):
 	div[data-testid="stCheckbox"] label:hover {{                             /* AO PASSAR O MAUSE CHECKBOX */
 	    background-color: {PASSR_COR} !important;  
 	    transform: scale(1.05) !important; 
+	    
 	}}
 	
 	
@@ -316,9 +317,10 @@ def Carregamento_BancoDados_Temas(st):
     
         header.stAppHeader {{                                               /* HEADER */
         padding-left: 0% !important;
-        margin-top: 15px !important;
-        left:auto !important;
+        margin-top: 3% !important;
+        left:  83% !important;
         width: 15% !important;
+        height: 3% !important;
          /* BACKGROUND TRANSPARENTE */
 	    background: transparent !important;
 	    background-color: transparent !important;
@@ -337,6 +339,7 @@ def Carregamento_BancoDados_Temas(st):
         width: 109% !important;
         max-width: none !important;
         {BG_STYLE}
+        
     }}
    
 	section[data-testid="stSidebar"] {{                                         /* SIDEBAR */
@@ -346,7 +349,7 @@ def Carregamento_BancoDados_Temas(st):
         margin-top: -1% !important;
         margin-left: -0% !important;
         
-        border: {BORDA+1}px solid {THEMA_APP2} !important;
+        border: {BORDA+1}px solid  {cor_semelhante(THEMA_APP2)} !important;
     }}
 
     [data-testid="stSidebarCollapseButton"] {{                                  /* BOTÃO DO SIDEBAR DE CIMA >> */
@@ -436,6 +439,7 @@ def Carregamento_BancoDados_Temas(st):
 
     div[data-testid="stVerticalBlock"][class*="st-key-menu_lado_sidebar"] {{             /* stVerticalBlock st-key-menu_lado_sidebar st-emotion-cache-1gz5zxc e12zf7d53 */
                {WD_STYLE}
+    border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important;
 
         
     }}
@@ -478,6 +482,7 @@ def Carregamento_BancoDados_Temas(st):
 		top: -1.5% !important;
 		z-index: 99999 !important;
 		display: flex !important;
+    border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important;
 
 
     }} 
@@ -485,7 +490,6 @@ def Carregamento_BancoDados_Temas(st):
 div[data-testid="stTabs"][class*="st-emotion-cache-8atqhb eh1nhsq0"] {{
     {WD_STYLE}
     border-radius: {RADIO}px !important;
-    border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important;
     padding-left: 0% !important;
 }}
 
@@ -689,29 +693,29 @@ div[data-testid="stTabs"][class*="st-emotion-cache-8atqhb eh1nhsq0"] [data-basew
 
 				return f"""
 		<span style="color: orange;">{versoes_str}</span>
-		<span style="opacity:0.1;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
+		<span style="opacity:0.3;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
 		<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">📚{saudacao_por_hora_sistema()} </span>
 		<span>{NOME_USUARIO} !</span>
-		<span style="opacity:0.1;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
+		<span style="opacity:0.3;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
 		<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">Custom atual:</span>
 		<span style="font-weight:500;"> {NOME_CUSTOM} </span>
-		<span style="opacity:0.1;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
+		<span style="opacity:0.3;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
 		<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">:material/content_paste:Projeto: </span>
 		<span style="font-weight:500;"> {os.path.basename(Pasta_Projeto_Atual)} </span>
-		<span style="opacity:0.1;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
+		<span style="opacity:0.3;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
 		<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">Criado:</span>
 		<span>{criado}</span>
-		<span style="opacity:0.1;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
+		<span style="opacity:0.3;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
 		<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">Modificado:</span>
 		<span>{modificado}</span>
-		<span style="opacity:0.1;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
+		<span style="opacity:0.3;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
 		<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;"> Conteudo:&nbsp;&nbsp;</span>
 		<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">:material/folder:</span>
 		<span>{pastas}</span>
-		<span style="opacity:0.1;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
+		<span style="opacity:0.3;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
 		<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">:material/insert_drive_file:</span>
 		<span>{arquivos}</span>
-		<span style="opacity:0.1;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
+		<span style="opacity:0.3;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
 		<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">:material/dynamic_feed:&nbsp;</span>
 		<span>{extensoes_str.lower().replace('/','&nbsp;')}</span>
 	
@@ -749,11 +753,11 @@ div[data-testid="stTabs"][class*="st-emotion-cache-8atqhb eh1nhsq0"] [data-basew
 
 
 		return (IMAGEM_LOGO, NOME_CUSTOM, NOME_USUARIO, COR_CAMPO, COR_MENU, THEMA_EDITOR,EDITOR_TAM_MENU,THEMA_PREVIEW,
-		        PREVIEW_TAM_MENU,THEMA_TERMINAL,TERMINAL_TAM_MENU,TOP_CAB,FONTE_MENU,FONTE_CAMPO)
+		        PREVIEW_TAM_MENU,THEMA_TERMINAL,TERMINAL_TAM_MENU,TOP_CAB,FONTE_MENU,FONTE_CAMPO,FUNDO_EDTOR)
 	except IndexError:
 		TOP_CAB = f'''<span style="color:{COR_MENU}; font-size: {FONTE_MENU}px; opacity:0.85;">📚{saudacao_por_hora_sistema()} </span>
 		<span>{NOME_USUARIO} !</span>'''
 		return (
 		IMAGEM_LOGO, NOME_CUSTOM, NOME_USUARIO, COR_CAMPO, COR_MENU, THEMA_EDITOR, EDITOR_TAM_MENU, THEMA_PREVIEW,
-		PREVIEW_TAM_MENU, THEMA_TERMINAL, TERMINAL_TAM_MENU, TOP_CAB, FONTE_MENU, FONTE_CAMPO)
+		PREVIEW_TAM_MENU, THEMA_TERMINAL, TERMINAL_TAM_MENU, TOP_CAB, FONTE_MENU, FONTE_CAMPO,FUNDO_EDTOR)
 # ✅ IMPORTS NO TOPO (CORRIGIDO)

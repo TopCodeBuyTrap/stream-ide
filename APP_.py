@@ -105,7 +105,6 @@ def select_arquivo_recente(col2):
 
 
 def app():
-
     from Banco_Predefinitions import ultima_versao
 
     # =====================================================
@@ -168,11 +167,10 @@ def app():
 
         Janela = Tab1.container(border=True,key='menu_lado_sidebar',height=1000)
         with Janela:
+            _ = st.session_state
             # :material/settings:  :material/emoji_symbols:
             Tt1, Tt2 = st.columns([1,9])  # Botão de run e stop
             Ttp1, Ttp2 = st.columns(2)  # Botão de run e stop
-
-
             Arq_Selec_Nomes, Arq_Selec_Diretorios = Sidebar_Diretorios(st, Meus_Arquivos, 7)
 
 
@@ -212,7 +210,6 @@ def app():
             BAKCUP(st,MINUTOS_ATUALIZAR, Path(caminho_completo).parent, os.path.join(_DIRETORIO_EXECUTAVEL_('backup'),nome_pasta), ignores)
 
 
-
         if Janela.button(f':material/search: {os.path.join(nome_pasta)} :material/folder_open: ',
                                width='stretch', type="secondary"):
                     Open_Explorer(caminho_completo)
@@ -224,7 +221,7 @@ def app():
             try:
                 with Tab2:
                     arquivos_abertos_nomes, arquivos_abertos_caminhos, arquivo_selecionado_nome, arquivo_selecionado_caminho,arquivo_selecionado_conteudo\
-                    = Editor_Simples(Janela,Tt2,Arq_Selec_Diretorios,THEMA_EDITOR, EDITOR_TAM_MENU,FONTE_CAMPO,Ttp2,Ttp1,)
+                    = Editor_Simples(Janela,Tt2,Arq_Selec_Diretorios,THEMA_EDITOR, EDITOR_TAM_MENU,FONTE_CAMPO,Ttp2,Ttp1,FUNDO_EDTOR)
             except UnicodeDecodeError:
                 st.warning('Arquivo não Reconhecido GmeOver!')
 
@@ -264,7 +261,7 @@ if __name__ == "__main__":
     if len(ler_A_CONTROLE_ABSOLUTO()) > 0 or st.session_state.config_absoluta_ok:
         from APP_Htmls import Carregamento_BancoDados_Temas
         (IMAGEM_LOGO, NOME_CUSTOM, NOME_USUARIO, COR_CAMPO, COR_MENU, THEMA_EDITOR, EDITOR_TAM_MENU,THEMA_PREVIEW,PREVIEW_TAM_MENU,
-         THEMA_TERMINAL,TERMINAL_TAM_MENU,TOP_CAB,FONTE_MENU,FONTE_CAMPO) = Carregamento_BancoDados_Temas(st)
+         THEMA_TERMINAL,TERMINAL_TAM_MENU,TOP_CAB,FONTE_MENU,FONTE_CAMPO,FUNDO_EDTOR) = Carregamento_BancoDados_Temas(st)
 
         app( )
 

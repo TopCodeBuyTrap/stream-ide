@@ -1,5 +1,4 @@
 import ast
-import re
 import subprocess
 from pathlib import Path
 
@@ -26,7 +25,7 @@ from SUB_Traduz_terminal import traduzir_saida
 
 
 
-def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE, colStop, ColunaRun):
+def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE, colStop, ColunaRun,CorBACK):
     msg_fim_cod = "🏁 Fim do Codigo!"
     # Função para nome curto (mantida)
     def nome_curto(nome, limite=20):
@@ -134,6 +133,8 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
             # ===== NOVA VERIFICAÇÃO DE TIPO DE ARQUIVO =====
             extensao = os.path.splitext(nome_arquivo)[1].lower()
             try:
+
+
                 # *** st_ace RETORNA o código ATUALIZADO da aba ***
                 cod = editor_codigo_autosave(
                     st=st,
@@ -143,14 +144,16 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
                     linguagem=linguagem,
                     thema_editor=THEMA_EDITOR,
                     font_size=EDITOR_TAM_MENU,
-                    fonte=FONTE
+                    fonte=FONTE, backgroud = CorBACK
                 )
                 with Janela:
                     if is_streamlit_code(cod):
                         st.code(f'streamlit run {nome_arquivo}')
                     if is_flask_code(cod):
                         st.code(f'python {nome_arquivo} # flask')
-                if st.button(f'🗑️Apagar: {nome_arquivo}', key=f"botao_apagar_arquivos{I}"):
+                bot1,bot2,bot3 = st.columns(3)
+
+                if bot1.button(f'🗑️Apagar: {nome_arquivo}', key=f"botao_apagar_arquivos{I}"):
                     Apagar_Arq(st, nome_arquivo, caminho)
 
                 # Salva no session_state por aba
@@ -203,16 +206,6 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
     # Salva no disco a aba ativa (auto-save) - SÓ ARQUIVOS DE TEXTO
     if codigo:
         extensao_ativa = os.path.splitext(nome_arquivo_sectbox)[1].lower()
-
-
-        # ✅ SALVA APENAS SE FOR ARQUIVO DE TEXTO/CÓDIGO
-        if extensao_ativa not in midia_exts:
-            try:
-                with open(_.Diretorio[_.id_aba_ativa], 'w', encoding='utf-8') as f:
-                    f.write(codigo)
-            except Exception as e:
-                st.error(f"Erro salvar {nome_arquivo_sectbox}: {e}")
-
 
       # INICIALIZA output
     if 'streamlit_output' not in _:
