@@ -205,8 +205,8 @@ def app():
 
             try:
                 with Tab2:
-                    arquivos_abertos_nomes, arquivos_abertos_caminhos, arquivo_selecionado_nome, arquivo_selecionado_caminho,arquivo_selecionado_conteudo\
-                    = Editor_Simples(Janela,Tt2,Arq_Selec_Diretorios,THEMA_EDITOR, EDITOR_TAM_MENU,FONTE_CAMPO,Ttp2,Ttp1,FUNDO_EDTOR)
+                    Editor_Simples(Janela,Tt2,Arq_Selec_Diretorios,THEMA_EDITOR, EDITOR_TAM_MENU,FONTE_CAMPO,Ttp2,Ttp1,FUNDO_EDTOR)
+
             except UnicodeDecodeError:
                 st.warning('Arquivo não Reconhecido GmeOver!')
 
@@ -224,16 +224,15 @@ if __name__ == "__main__":
     #try:
     import streamlit as st
     from datetime import datetime
-    from APP_Catalogo import conf_baix_catalogo
+    from APP_Editores_Auxiliares.APP_Catalogo import conf_baix_catalogo
     from APP_SUB_Customizar import Customization
-    from APP_SUB_Funcitons import Identificar_linguagem, escreve, chec_se_arq_do_projeto, contar_estrutura, \
-    Button_Nao_Fecha, data_sistema, resumo_pasta, limpar_CASH, Linha_Sep, carregar_imagem_segura
-    from APP_SUB_Janela_Explorer import listar_arquivos_e_pastas, Open_Explorer, Abrir_Arquivo_Select_Tabs
+    from APP_SUB_Funcitons import contar_estrutura, \
+    Button_Nao_Fecha, data_sistema, limpar_CASH, carregar_imagem_segura
+    from APP_SUB_Janela_Explorer import listar_arquivos_e_pastas
     from APP_Sidebar import Sidebar_Diretorios
-    from Banco_dados import ler_A_CONTROLE_PROJETOS, ler_B_ARQUIVOS_RECENTES, ATUAL_B_ARQUIVOS_RECENTES, \
-        se_B_ARQUIVOS_RECENTES, esc_B_ARQUIVOS_RECENTES, Del_B_ARQUIVOS_RECENTES, ler_A_CONTROLE_ABSOLUTO, \
-        Del_A_CONTROLE_ABSOLUTO, Del_CUSTOMIZATION, esc_A_CONTROLE_PROJETOS
-    from APP_SUB_Controle_Driretorios import _DIRETORIO_EXECUTAVEL_, _DIRETORIO_PROJETOS_, _DIRETORIO_PROJETO_ATUAL_
+    from Banco_dados import ler_A_CONTROLE_PROJETOS, ler_B_ARQUIVOS_RECENTES, se_B_ARQUIVOS_RECENTES, esc_B_ARQUIVOS_RECENTES, Del_B_ARQUIVOS_RECENTES, ler_A_CONTROLE_ABSOLUTO, \
+        Del_CUSTOMIZATION, esc_A_CONTROLE_PROJETOS
+    from APP_SUB_Controle_Driretorios import _DIRETORIO_EXECUTAVEL_, _DIRETORIO_PROJETOS_
 
     import os
     from pathlib import Path

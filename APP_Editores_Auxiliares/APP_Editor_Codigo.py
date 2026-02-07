@@ -1,14 +1,6 @@
-import os
-import time
-
-import streamlit
 from code_editor import code_editor
-
-import ast
-import re
-from typing import List, Dict, Any, Optional
-import ast
-import re
+import os, time, ast, re
+from pathlib import Path
 import importlib.util
 from typing import List, Dict, Any, Optional
 
@@ -359,6 +351,84 @@ def Estilo(cor):
 
     }}
 
+# AUTO-COMPLETE INTELIGENTE (igual VS Code/PyCharm)
+# 1. INDEXAR: scripts.py → funções/classes/variáveis
+# 2. COMPLETER: Ace custom (from Strean → conta)
+# 3. LIVETIME: atualiza quando salva arquivo
+
+def editor_codigo_autosave(st, aba_id, caminho_arquivo, conteudo_inicial, linguagem, thema_editor, font_size, fonte,
+                           altura, backgroud=None):
+    _ = st.session_state
+
+    # 🔐 CHAVES ÚNICAS MILITARES (IMPROVÁVEL COLIDIR)
+    nome_arq = os.path.basename(caminho_arquivo) if caminho_arquivo else f"aba_{aba_id}"
+    cache_key = f"autosave_cache_{aba_id}_{nome_arq}_{hash(caminho_arquivo or '')}"
+    save_key = f"autosave_saved_{aba_id}_{nome_arq}_{hash(caminho_arquivo or '')}"
+
+    # 🛡️ CARREGA ESTADO ANTERIOR (persiste reloads)
+    codigo_anterior = _.get(cache_key, conteudo_inicial or "")
+
+    # 📝 EDITOR COM KEY ÚNICA
+    cod = code_editor(
+        codigo_anterior,  # ← CARREGA DO CACHE!
+        lang=linguagem.lower(),
+        height=f'{altura}px',
+        shortcuts='vscode',
+        response_mode=["blur"],
+        options=Opcoes_editor(font_size, thema_editor.lower(), fonte),
+        keybindings=Atalhos(),
+        info=Info_ide(),
+        props=Estilo(backgroud),
+        component_props=Component_props(),
+        completions=Completar(),
+        menu=Menus(),
+        editor_props={
+            "annotations": Anotations_Editor(codigo_anterior),
+            "markers": Marcadores_Editor(codigo_anterior),
+            "debounceChangePeriod": 1500  # 1.5s - PERFEITO
+        },
+        buttons=Botoes(),
+        key=f"editor_militar_{aba_id}_{nome_arq}"  # 🔐 ÚNICA!
+    )
+
+    # 📥 EXTRAI CÓDIGO ATUAL
+    novo_codigo = cod.get('text', '') if isinstance(cod, dict) else str(cod) if cod else ""
+
+    # 🔥 AUTOSAVE MILITAR (3 camadas)
+    if novo_codigo.strip() and novo_codigo != codigo_anterior and caminho_arquivo:
+
+        # CAMADA 1: CACHE IMEDIATO (0.001s)
+        _[cache_key] = novo_codigo
+
+        # CAMADA 2: DISCO COM BACKUP (0.1s)
+        try:
+            Path(caminho_arquivo).parent.mkdir(parents=True, exist_ok=True)
+
+            # Backup temporal
+            backup_path = Path(caminho_arquivo).with_suffix('.py.bak')
+            Path(caminho_arquivo).write_text(novo_codigo, encoding='utf-8')
+
+            # Remove backup antigo se salvo com sucesso
+            if backup_path.exists():
+                backup_path.unlink()
+
+            _[save_key] = novo_codigo
+            _['autosave_status'] = f"💾 {nome_arq}"
+
+        except Exception as e:
+            # CAMADA 3: EMERGÊNCIA (JSON no projeto)
+            emergencia_path = Path(_DIRETORIO_PROJETO_ATUAL_()) / f"EMERGENCIA_{nome_arq}.json"
+            emergencia_path.write_text({
+                "timestamp": time.time(),
+                "codigo": novo_codigo,
+                "erro": str(e)
+            }, encoding='utf-8')
+            _['autosave_status'] = f"⚠️ Emergência {nome_arq}"
+
+    return novo_codigo  # ← SEMPRE RETORNA ATUALIZADO
+
+
+
 
 def editor_codigo_autosave_(st, aba_id, caminho_arquivo, conteudo_inicial, linguagem, thema_editor, font_size, fonte,
                            altura, backgroud=None):
@@ -415,82 +485,3 @@ def editor_codigo_autosave_(st, aba_id, caminho_arquivo, conteudo_inicial, lingu
             st.session_state.autosave_status = f"❌ {str(e)[:30]}..."
 
     return novo_codigo  # ← SEMPRE ATUAL
-
-
-import os
-import time
-from pathlib import Path
-
-
-def editor_codigo_autosave(st, aba_id, caminho_arquivo, conteudo_inicial, linguagem, thema_editor, font_size, fonte,
-                           altura, backgroud=None):
-    _ = st.session_state
-
-    # 🔐 CHAVES ÚNICAS MILITARES (IMPROVÁVEL COLIDIR)
-    nome_arq = os.path.basename(caminho_arquivo) if caminho_arquivo else f"aba_{aba_id}"
-    cache_key = f"autosave_cache_{aba_id}_{nome_arq}_{hash(caminho_arquivo or '')}"
-    save_key = f"autosave_saved_{aba_id}_{nome_arq}_{hash(caminho_arquivo or '')}"
-
-    # 🛡️ CARREGA ESTADO ANTERIOR (persiste reloads)
-    codigo_anterior = _.get(cache_key, conteudo_inicial or "")
-
-    # 📝 EDITOR COM KEY ÚNICA
-    cod = code_editor(
-        codigo_anterior,  # ← CARREGA DO CACHE!
-        lang=linguagem.lower(),
-        height=f'{altura}px',
-        shortcuts='vscode',
-        response_mode=["blur"],
-        options=Opcoes_editor(font_size, thema_editor.lower(), fonte),
-        keybindings=Atalhos(),
-        info=Info_ide(),
-        props=Estilo(backgroud),
-        component_props=Component_props(),
-        completions=Completar(),
-        menu=Menus(),
-        editor_props={
-            "annotations": Anotations_Editor(codigo_anterior),
-            "markers": Marcadores_Editor(codigo_anterior),
-            "debounceChangePeriod": 1500  # 1.5s - PERFEITO
-        },
-        buttons=Botoes(),
-        ghost_text="💾 Autosave ativo - digite tranquilo!",
-        key=f"editor_militar_{aba_id}_{nome_arq}"  # 🔐 ÚNICA!
-    )
-
-    # 📥 EXTRAI CÓDIGO ATUAL
-    novo_codigo = cod.get('text', '') if isinstance(cod, dict) else str(cod) if cod else ""
-
-    # 🔥 AUTOSAVE MILITAR (3 camadas)
-    if novo_codigo.strip() and novo_codigo != codigo_anterior and caminho_arquivo:
-
-        # CAMADA 1: CACHE IMEDIATO (0.001s)
-        _[cache_key] = novo_codigo
-
-        # CAMADA 2: DISCO COM BACKUP (0.1s)
-        try:
-            Path(caminho_arquivo).parent.mkdir(parents=True, exist_ok=True)
-
-            # Backup temporal
-            backup_path = Path(caminho_arquivo).with_suffix('.py.bak')
-            Path(caminho_arquivo).write_text(novo_codigo, encoding='utf-8')
-
-            # Remove backup antigo se salvo com sucesso
-            if backup_path.exists():
-                backup_path.unlink()
-
-            _[save_key] = novo_codigo
-            _['autosave_status'] = f"💾 {nome_arq}"
-
-        except Exception as e:
-            # CAMADA 3: EMERGÊNCIA (JSON no projeto)
-            emergencia_path = Path(_DIRETORIO_PROJETO_ATUAL_()) / f"EMERGENCIA_{nome_arq}.json"
-            emergencia_path.write_text({
-                "timestamp": time.time(),
-                "codigo": novo_codigo,
-                "erro": str(e)
-            }, encoding='utf-8')
-            _['autosave_status'] = f"⚠️ Emergência {nome_arq}"
-
-    return novo_codigo  # ← SEMPRE RETORNA ATUALIZADO
-

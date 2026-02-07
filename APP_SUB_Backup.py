@@ -7,7 +7,7 @@ from Banco_Predefinitions import (
 	ler_BACKUP_HORAS_ATUALIZOU, verifica_minutos, ATUAL_BACKUP,
 	ler_BACKUP_QTDS_HORAS_ATUALIZOU, backups_feito
 )
-from APP_Catalogo import conf_baix_catalogo_bacup
+from APP_Editores_Auxiliares.APP_Catalogo import conf_baix_catalogo_bacup
 
 
 def Criar_pasta(nome_pasta):

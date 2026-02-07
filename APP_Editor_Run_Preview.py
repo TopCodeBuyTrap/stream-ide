@@ -1,27 +1,25 @@
-import ast
 import subprocess
 from pathlib import Path
-import  flask
 import streamlit as st
-import sys
 import threading
 import queue
-import requests
-import os, time
+import os, time, re, sys, ast
 
-from APP_Catalogo import arquivo_ja_catalogado
-from APP_Editor_Codigo import editor_codigo_autosave
+from APP_Editores_Auxiliares.APP_Catalogo import arquivo_ja_catalogado
+from APP_Editores_Auxiliares.APP_Editor_Codigo import editor_codigo_autosave
+
 from APP_Menus import Apagar_Arq
-from APP_SUB_Controle_Driretorios import _DIRETORIO_PROJETO_ATUAL_, VENVE_DO_PROJETO, _DIRETORIO_EXECUTAVEL_
+from APP_SUB_Controle_Driretorios import VENVE_DO_PROJETO
 from APP_SUB_Funcitons import Identificar_linguagem, Button_Nao_Fecha, Sinbolos, \
-    wrap_text, chec_se_arq_do_projeto, controlar_altura, Alerta, controlar_altura_horiz
+    controlar_altura, controlar_altura_horiz
 from APP_SUB_Janela_Explorer import Abrir_Arquivo_Select_Tabs
-from APP_SUB_Run_Execut import netstat_streamlit, run_streamlit_process, is_streamlit_code, is_flask_code, \
+from APP_Editores_Auxiliares.SUB_Run_servidores import netstat_streamlit, run_streamlit_process, is_streamlit_code, is_flask_code, \
     run_flex_process, extract_flask_config, find_port_by_pid, stop_flex, stop_process_by_port, is_django_code, \
     extract_django_config
-from SUB_Traduz_terminal import traduzir_saida
+from APP_Editores_Auxiliares.SUB_Traduz_terminal import traduzir_saida
 
-python_exe, root_path, venv_path, prompt = VENVE_DO_PROJETO()
+# 🔥 USA A FUNÇÃO MESTRE - ZERO Path()
+_Python_exe, _Root_path, _Venv_path, _Prompt_venv = VENVE_DO_PROJETO()
 
 
 
@@ -91,7 +89,7 @@ def status_bar_pro(
 
 
 # 🔥 DETECTOR MÓDULOS SIMPLES (sem dicionário inútil)
-def checar_modulos_no_venv(codigo, python_exe):
+def checar_modulos_no_venv_(codigo, _Python_exe):
     """Checa se módulo tá NO VENV ANTES de instalar"""
     faltando = []
     try:
@@ -101,21 +99,67 @@ def checar_modulos_no_venv(codigo, python_exe):
                 for alias in node.names:
                     mod = alias.name.split('.')[0]
                     # CHECA NO VENV COM PIP LIST!
-                    resultado = os.popen(f'"{python_exe}" -m pip list').read()
+                    resultado = os.popen(f'"{_Python_exe}" -m pip list').read()
                     if mod.lower() not in resultado.lower():
                         faltando.append(mod)
             elif isinstance(node, ast.ImportFrom) and node.module:
                 mod = node.module.split('.')[0]
-                resultado = os.popen(f'"{python_exe}" -m pip list').read()
+                resultado = os.popen(f'"{_Python_exe}" -m pip list').read()
                 if mod.lower() not in resultado.lower():
                     faltando.append(mod)
         return list(set(faltando))
     except:
         return []
 
+
+# 🔥 DETECTOR MÓDULOS FALTANDO (PIP + SCRIPTS)
+def checar_modulos_no_venv(codigo, nome_arquivo, caminho, _Python_exe):
+    """Retorna: {'pip': [...], 'local': [...]}"""
+    modulos_pip = []
+    modulos_local = []
+
+    try:
+        tree = ast.parse(codigo)
+
+        todos_modulos = set()
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                for alias in node.names:
+                    mod = alias.name.split('.')[0]
+                    todos_modulos.add(mod)
+            elif isinstance(node, ast.ImportFrom) and node.module:
+                mod = node.module.split('.')[0]
+                todos_modulos.add(mod)
+
+        # PIP
+        pip_resultado = os.popen(f'"{_Python_exe}" -m pip list').read().lower()
+        arquivos_locais = [f[:-3].lower() for f in os.listdir('.') if f.endswith('.py')]
+
+        for mod in todos_modulos:
+            mod_lower = mod.lower()
+            if mod_lower not in arquivos_locais and mod_lower not in pip_resultado:
+                # É pip ou local? (tenta importar)
+                try:
+                    __import__(mod)
+                except ImportError:
+                    modulos_pip.append(mod)
+                else:
+                    modulos_local.append(mod)
+
+    except:
+        pass
+
+    return {'pip': modulos_pip, 'local': modulos_local}
+
+
+# USO:
+
+
+
+
 def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE, colStop, ColunaRun,CorBACK):
     msg_fim_cod = "🏁 Fim do Codigo!"
-    # CSS VSCode Style (logo após imports)
+    Most_Logs = False
 
 
     # Função para nome curto (mantida)
@@ -149,28 +193,46 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
 
         menuserv = MS1.expander('Menu Servidor')
 
-    alerta = []
+    def run_code_thread(codigo, input_q, output_q, arquivo_selecionado_caminho):
 
-    def run_code_thread(code, input_q, output_q):
-        # 🔥 USA A FUNÇÃO MESTRE - ZERO Path()
+        # 🔥 LOGS DE DEBUG
 
-        # ADICIONA VENV NO sys.path
-        if Path(venv_path).exists():
-            site_packages = Path(venv_path) / "Lib" / "site-packages"
-            if site_packages.exists():
-                sys.path.insert(0, str(site_packages))
-                # output_q.put(f"✅ VENV: {venv_path}\n📦 MÓDULOS: {site_packages}\n")
+        output_q.put("🔍 [DEBUG] Thread iniciada\n") if Most_Logs == True else ''
 
-        # RESTO IGUAL
+        script_path = Path(arquivo_selecionado_caminho).resolve()
+        project_dir = script_path.parent
+
+        output_q.put(f"🔍 [DEBUG] Script: {script_path}\n") if Most_Logs == True else ''
+        output_q.put(f"🔍 [DEBUG] Pasta: {project_dir}\n") if Most_Logs == True else ''
+        output_q.put(f"🔍 [DEBUG] sys.path ANTES: {sys.path[0]}\n") if Most_Logs == True else ''
+
+        # sys.path (SEM chdir)
+        if str(project_dir) not in sys.path:
+            sys.path.insert(0, str(project_dir))
+            output_q.put(f"✅ [DEBUG] Pasta adicionada: {project_dir}\n") if Most_Logs == True else ''
+        output_q.put(f"🔍 [DEBUG] sys.path DEPOIS: {sys.path[0]}\n") if Most_Logs == True else ''
+
+        # VENV
+        try:
+            if Path(_Venv_path).exists():
+                site_packages = Path(_Venv_path) / "Lib" / "site-packages"
+                if site_packages.exists():
+                    sys.path.insert(0, str(site_packages))
+                    output_q.put(f"✅ [DEBUG] VENV adicionado: {site_packages}\n") if Most_Logs == True else ''
+        except:
+            output_q.put("⚠️ [DEBUG] VENV não encontrado\n") if Most_Logs == True else ''
+
+        output_q.put("🚀 [DEBUG] Iniciando exec...\n") if Most_Logs == True else ''
+        output_q.put(f"📝 [DEBUG] Código: {codigo[:100]}...\n") if Most_Logs == True else ''
+
         def custom_input(prompt=""):
             if prompt:
                 output_q.put(prompt)
-            val = input_q.get()
-            return val
+            return input_q.get()
 
         class CustomStdout:
             def write(self, s):
-                if s:
+                if s and s.strip():
                     output_q.put(s)
 
             def flush(self):
@@ -180,21 +242,23 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
         sys.stdout = CustomStdout()
 
         try:
-            exec(code, {
+            exec(codigo, {
+                '__name__': '__main__',
+                '__file__': str(script_path),
                 'input': custom_input,
                 'print': lambda *args: output_q.put(" ".join(map(str, args)) + "\n"),
                 'time': time,
                 'sleep': time.sleep,
-                '__name__': '__main__',
                 'st': st
             })
-            output_q.put("PROGRAM_FINISHED")
+            output_q.put("✅ PROGRAM_FINISHED\n")
         except Exception as e:
-            alerta.append(e)
             output_q.put(f"\n❌ ERRO: {str(e)}\n")
-            output_q.put("PROGRAM_FINISHED")
+            output_q.put(f"❌ TRACEBACK: {str(e.__traceback__)}\n")
+            output_q.put("❌ PROGRAM_FINISHED\n")
         finally:
             sys.stdout = old_stdout
+            output_q.put("🔍 [DEBUG] Thread finalizada\n") if Most_Logs == True else ''
 
     nomes_arquivos = [os.path.basename(c) for c in CAMINHHOS]
     nomes_completos = []
@@ -207,8 +271,6 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
         nomes_completos.append(nome_formatado)
 
     abas = st.tabs(nomes_completos)
-
-
 
     # *** CORREÇÃO: INICIALIZA 'cod' COMO None ANTES DO LOOP ***
     cod = None
@@ -256,24 +318,43 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
                     Apagar_Arq(st, nome_arquivo, caminho)
 
                 # Salva no session_state por aba
+                # 🔥 FIX LINHAS VAZIAS
+                cod = cod.rstrip('\n')
+                while cod.endswith('\n\n'):
+                    cod = cod[:-2]
+
                 _.conteudos_abas[I] = cod
 
                 # 🔥 DETECTOR MÓDULOS FALTANDO (PREVIEW)
-                modulos_faltando = checar_modulos_no_venv(cod, python_exe)  # ← VENV!
+                modulos_faltando = checar_modulos_no_venv(cod, nome_arquivo, caminho, _Python_exe)
+
                 with bot2:
-                    if modulos_faltando:
-                        col1, col2 = st.columns([1, 1])
+                    if modulos_faltando['pip'] or modulos_faltando['local']:
+                        col1, col2, col3 = st.columns([1, 1, 1])
 
-                        col1.write(f"⚠️ FALTAM: {', '.join(modulos_faltando)}")
+                        if modulos_faltando['pip']:
+                            col1.write(f"📦 PIP: {', '.join(modulos_faltando['pip'])}")
+                            if col2.button(f"🔧 INSTALAR PIP", type="primary"):
+                                for mod in modulos_faltando['pip']:
+                                    with st.spinner(f"📦 {mod}..."):
+                                        os.system(f'"{_Python_exe}" -m pip install {mod}')
+                                st.success("✅ PIP Instalado!")
+                                st.rerun()
 
-                        if col2.button(f"🔧 INSTALAR {', '.join(modulos_faltando)}", type="primary"):
-                            for mod in modulos_faltando:
-                                with st.spinner(f"📦 {mod}..."):
-                                    os.system(f'"{python_exe}" -m pip install {mod}')
-                            col1.write("✅ Instalados! Pode executar!")
-                            st.rerun()
+                        if modulos_faltando['local']:
+                            col1.write(f"📁 LOCAL: {', '.join(modulos_faltando['local'])}")
+                            if col3.button(f"➕ COLOCAR IMPORTS", type="secondary"):
+                                # 🔥 ESCREVE NO TOPO DO ARQUIVO
+                                imports_locais = "\n".join(
+                                    [f"from {mod} import *" for mod in modulos_faltando['local']])
+                                novo_codigo = f"{imports_locais}\n\n{cod}"
 
-                        st.toast("👆 Instale primeiro")
+                                # SALVA ARQUIVO
+                                with open(caminho, 'w', encoding='utf-8') as f:
+                                    f.write(novo_codigo)
+
+                                st.success(f"✅ Imports adicionados em {nome_arquivo}!")
+                                st.rerun()
                     else:
                         st.write("✅ Tudo instalado - pode rodar!")
 
@@ -342,14 +423,9 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
     codigo = _.conteudos_abas.get(id_aba_ativa, "")
     nome_arquivo_sectbox = nomes_arquivos[id_aba_ativa]
 
-    arquivos_abertos_nomes = nomes_arquivos
-    arquivos_abertos_caminhos = CAMINHHOS
 
     arquivo_selecionado_nome = nome_arquivo_sectbox
     arquivo_selecionado_caminho = _.Diretorio.get(id_aba_ativa, "")
-    arquivo_selecionado_conteudo = codigo
-
-
 
 
     # INICIALIZA output
@@ -419,7 +495,6 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
                         _['flask_output'].append(line)
                         # Procura por linha com porta no output
                         if not porta_detectada and 'Running on http' in line:
-                            import re
                             port_match = re.search(r'http[^:]*:([0-9]+)', line)
                             if port_match:
                                 porta_detectada = int(port_match.group(1))
@@ -485,19 +560,44 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
 
             msg_porta = f'🔌 Servidor Django rodando em: http://{host}:{porta_detectada}'
             _.output = f"{''.join(_['django_output'])}\n{msg_porta}\n{msg_fim_cod}"
-
         else:
+            # Limpa tudo
+            _.output = f"{arquivo_selecionado_caminho}>\n"
             while not _.input_queue.empty():
                 _.input_queue.get()
             while not _.output_queue.empty():
                 _.output_queue.get()
+            # 🔥 TESTE IMEDIATO (USA _.output_queue)
+            _.output_queue.put("🔥 [TESTE] QUEUE VIVA!\n") if Most_Logs == True else ''
             _.thread_running = True
-            threading.Thread(
+            # Thread
+            thread = threading.Thread(
                 target=run_code_thread,
-                args=(codigo, _.input_queue, _.output_queue),
+                args=(codigo, _.input_queue, _.output_queue, arquivo_selecionado_caminho),
                 daemon=True
-            ).start()
-            st.rerun()
+            )
+            thread.start()
+            # 🔥 LEITOR SIMPLES COM TIMEOUT
+            start_time = time.time()
+            st.toast("🔍 Executando...")
+            while _.thread_running and (time.time() - start_time) < 5:
+                try:
+                    if not _.output_queue.empty():
+                        line = _.output_queue.get_nowait()
+                        _.output += line
+                        st.write(f"📨 DEBUG: {repr(line)}")  if Most_Logs == True else ''
+                        if "PROGRAM_FINISHED" in line:
+                            _.thread_running = False
+                            _.output += "\n🏁 Fim do Código!\n"
+                            break
+                    time.sleep(0.05)
+                    st.rerun()
+                except:
+                    time.sleep(0.05)
+                    continue
+
+            _.thread_running = False
+            st.success("✅ Execução finalizada!")
 
     if colStop.button("⏹️", key=f"parar_{id_aba_ativa}", shortcut='Ctrl+Space',width='stretch'):  # *** BOTÃO STOP DE VOLTA! ***
         _.thread_running = False
@@ -539,49 +639,11 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
                     st.error(f"Erro ao tentar parar a porta {porta}: {e}")
     # -------------------------------------------------------------------- TERMINAL Preview
     with st.container(border=True, key='Preview'):
+        if Button_Nao_Fecha(f':material/directions_bike: **{arquivo_selecionado_nome}**', f':material/directions_bike: '
+                                                                                          f'**{arquivo_selecionado_nome}**','BtnPreview'):
+            from APP_Editores_Auxiliares.APP_Preview import Previews
 
-        if Button_Nao_Fecha(f':material/directions_bike: **{arquivo_selecionado_nome}**', f':material/directions_bike: **{arquivo_selecionado_nome}**','BtnPreview'):
-
-
-            col1, col2 = st.columns([1, 30])
-            with col1:
-                altura_prev = controlar_altura(st, "Preview", altura_inicial=400, passo=300, maximo=800, minimo=200)
-
-            with col2.container(height=altura_prev):
-                output_placeholder = st.empty()
-                # Processa mensagens da fila
-                if _.thread_running:
-                    new_data = False
-                    try:
-                        while True:
-                            msg = _.output_queue.get_nowait()
-                            if msg == "PROGRAM_FINISHED":
-                                _.thread_running = False
-                                _.output += msg_fim_cod
-                                new_data = True
-                                break
-                            _.output += msg
-                            new_data = True
-                    except queue.Empty:
-                        pass
-
-                    if new_data:
-                        output_placeholder.code(_.output, linguagem, wrap_lines=True ,height=altura_prev)
-                    else:
-                        st.code(_.output, linguagem, wrap_lines=True ,height=altura_prev)
-                else:
-                    st.code(_.output, linguagem, wrap_lines=True ,height=altura_prev)
-
-                # Input do usuário (apenas quando executando)
-                # Input do usuário (apenas quando executando)
-                if _.thread_running:
-                    user_input = st.chat_input("Digite sua entrada aqui: ")
-                    if user_input:
-                        _.input_queue.put(user_input)
-                        _.output += f"> {user_input}\n"
-                        st.rerun()
-                st.write('')
-                st.write('')
+            Previews(st, _, linguagem, msg_fim_cod)
         # Auto-refresh enquanto rodando
         if _.thread_running:
             time.sleep(0.1)
@@ -592,275 +654,20 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
     saida_preview = _.output.strip().replace(f'{arquivo_selecionado_caminho}>', '').replace(msg_fim_cod, '')
 
     with st.container(border=True, key='Preview_Jason'):
-
         if Button_Nao_Fecha(f':material/data_object: Explorer Jason', f':material/data_object: Explorer Jason',
                             'BtnJson'):
+            from APP_Editores_Auxiliares.APP_Json import Jsnon
+            Jsnon(st, saida_preview)
 
-            col1, col2 = st.columns([1, 30])
-            with col1:
-                altura_prev = controlar_altura(st, "Explorer", altura_inicial=400, passo=300, maximo=800, minimo=200)
-            try:
-                with col2.container(height=altura_prev):
-
-                    dados = ast.literal_eval(saida_preview)
-
-                    linhas_tabela = []
-                    codigo_gerado = [
-                        "# === CÓDIGO PRONTO ===",
-                        "data = response.json()",
-                        ""
-                    ]
-
-                    def montar_caminho(partes):
-                        caminho = "data"
-                        for p in partes:
-                            if isinstance(p, int):
-                                caminho += "[i]"
-                            else:
-                                caminho += f"['{p}']"
-                        return caminho
-
-                    def percorrer(obj, partes=None, indent=0):
-                        if partes is None:
-                            partes = []
-
-                        esp = " " * indent
-
-                        if isinstance(obj, dict):
-                            for k, v in obj.items():
-                                percorrer(v, partes + [k], indent)
-
-                        elif isinstance(obj, list):
-                            linhas_tabela.append({
-                                "Chave": ".".join(map(str, partes)),
-                                "Tipo": f"list[{len(obj)}]",
-                                "Valor": f"[{len(obj)} itens]"
-                            })
-
-                            codigo_gerado.append("")
-                            codigo_gerado.append(
-                                f"{esp}for i, item in enumerate({montar_caminho(partes)}):"
-                            )
-
-                            for item in obj:
-                                percorrer(item, partes + ["item"], indent + 4)
-
-                        else:
-                            linhas_tabela.append({
-                                "Chave": ".".join(map(str, partes)),
-                                "Tipo": type(obj).__name__,
-                                "Valor": str(obj)
-                            })
-
-                            nome_var = "_".join(str(p) for p in partes if p != "item")
-                            codigo_gerado.append(
-                                f"{esp}{nome_var} = {montar_caminho(partes)}"
-                            )
-
-                    percorrer(dados)
-
-                    col1, col2 = st.columns([3, 2])
-
-                    with col1:
-                        st.dataframe(linhas_tabela, width='stretch', hide_index=True)
-                        st.json(dados)
-
-                    with col2:
-                        st.code("\n".join(codigo_gerado), language="python")
-                        st.metric("Total de chaves", len(linhas_tabela))
-
-                    def percorrer(obj, caminho=""):
-                        if isinstance(obj, dict):
-                            for k, v in obj.items():
-                                novo_caminho = f"{caminho}.{k}" if caminho else k
-                                percorrer(v, novo_caminho)
-                        elif isinstance(obj, list):
-                            for i, item in enumerate(obj):
-                                percorrer(item, f"{caminho}[{i}]")
-                            linhas_tabela.append({
-                                "Chave": caminho,
-                                "Tipo": f"list[{len(obj)}]",
-                                "Valor": f"[{len(obj)} itens]"
-                            })
-                        else:
-                            valor = str(obj)[:100] + "..." if len(str(obj)) > 100 else str(obj)
-                            linhas_tabela.append({
-                                "Chave": caminho,
-                                "Tipo": type(obj).__name__,
-                                "Valor": valor
-                            })
-                            nome_var = caminho.replace(".", "_").replace("[", "_").replace("]", "").strip("_")
-                            caminho_json = caminho.replace(".", "['").replace("[", "['")
-                            codigo_gerado.append(f"{nome_var} = data{caminho_json}")
-                            codigo_gerado.append(f'print(f"{nome_var.upper()}: {{ {nome_var} }}")')
-
-                    percorrer(dados)
-
-                    col1.success(f"✅ {len(linhas_tabela)} chaves")
-
-                    col2.code("\n".join(codigo_gerado), language="python")
-            except SyntaxError:
-                pass
-            except ValueError:
-                pass
-            st.write('')
-            st.write('')
-        # -------------------------------------------------------------------- Api IA
+    # -------------------------------------------------------------------- Api IA
     with st.container(border=True, key='Api_IA'):
-
         if Button_Nao_Fecha(f':material/psychology: Chat IA', f':material/psychology: Chat IA','BtnChat'):
-            col1, col2 = st.columns([1, 30])
-            with col1:
-                altura_prev = controlar_altura(st, "Ajuda", altura_inicial=400, passo=300, maximo=800, minimo=200)
-            with col2.container(border=True, height=altura_prev):
+            from APP_Editores_Auxiliares.APP_Api_IAs import IA_openrouter
+            IA_openrouter(st, codigo_completo_do_editor, saida_preview, linguagem)
 
-                c1, c2 = st.columns([1, 3])
-
-                # Pega código do editor (ajuste se a key/variável for diferente de "codigo_completo_do_editor")
-                # st.write(codigo_completo_do_editor)
-                # st.write(saida_preview)
-                # Selectbox de ações (fora do expander para sempre visível)
-                acao_ia = c1.selectbox(
-                    "Ação da IA",
-                    [
-                        "Gerar código novo",
-                        "Completar código automaticamente",
-                        "Refatorar código existente",
-                        "Explicar código",
-                        "Encontrar bugs e corrigir",
-                        "Otimizar performance",
-                        "Gerar testes",
-                        "Gerar documentação",
-                        "Analisar segurança",
-                        "Converter código entre linguagens"
-                    ],
-                    index=0
-                )
-
-                prompt_ia = c1.text_area(
-                    "Descreva o pedido (detalhes ajudam!):",
-                    placeholder="ex: 'otimize esse loop para rodar mais rápido' ou 'gere testes com pytest'",
-                    key="prompt_ia_unique"
-                )
-                with c1:
-                    if c1.button("Gerar / Aplicar", type="primary", width='stretch'):
-
-                        with st.spinner("Consultando IA..."):
-                            # Adapta instrução
-                            instrucoes = {
-                                "Gerar código novo": "Gere código Python novo e completo baseado na descrição.",
-                                "Completar código automaticamente": "Complete o código incompleto mantendo estilo e imports.",
-                                "Refatorar código existente": "Refatore o código: melhore clareza, performance e robustez.",
-                                "Explicar código": "Explique o código de forma clara, passo a passo.",
-                                "Encontrar bugs e corrigir": "Identifique bugs e sugira correções.",
-                                "Otimizar performance": "Otimize o código para melhor velocidade e eficiência.",
-                                "Gerar testes": "Gere testes unitários (pytest ou unittest).",
-                                "Gerar documentação": "Gere docstrings e comentários técnicos.",
-                                "Analisar segurança": "Analise vulnerabilidades e sugira fixes.",
-                                "Converter código entre linguagens": "Converta para outra linguagem (especifique qual)."
-                            }
-
-                            contexto = codigo_completo_do_editor + "\n====\n" + saida_preview
-                            instrucao_base = instrucoes.get(acao_ia, "Auxilie com o código.")
-
-                            if acao_ia == "Explicar código":
-                                full_prompt = f"""
-                            Você é um desenvolvedor sênior.
-                            Explique o código abaixo de forma clara e sequencial.
-
-                            {contexto}
-
-                            Pedido do usuário:
-                            {prompt_ia}
-
-                            Responda somente em texto.
-                            """
-                            elif acao_ia == "Gerar testes":
-                                full_prompt = f"""
-                            Você é especialista em testes unitários em linguagens de programação.
-                            Gere testes usando pytest ou unittest para o código abaixo.
-
-                            {contexto}
-
-                            Pedido do usuário:
-                            {prompt_ia}
-
-                            Responda somente com o código dos testes.
-                            """
-                            elif acao_ia == "Gerar documentação":
-                                full_prompt = f"""
-                            Você é especialista em documentação técnica.
-                            Adicione docstrings e comentários ao código abaixo.
-
-                            {contexto}
-
-                            Pedido do usuário:
-                            {prompt_ia}
-
-                            Responda somente com o código documentado.
-                            """
-                            elif acao_ia == "Analisar segurança":
-                                full_prompt = f"""
-                            Você é especialista em segurança de software.
-                            Analise o código abaixo, descreva vulnerabilidades e apresente correções.
-
-                            {contexto}
-
-                            Pedido do usuário:
-                            {prompt_ia}
-
-                            Responda com análise em texto e, quando aplicável, código corrigido.
-                            """
-                            else:
-                                full_prompt = f"""
-                            Você é um desenvolvedor sênior em linguagens de programação.
-                            Aplique a instrução abaixo ao código fornecido.
-
-                            {contexto}
-
-                            Pedido do usuário:
-                            {prompt_ia}
-                            {instrucao_base}
-                            Responda somente com o código final."""
-
-                            # Chama API do OpenRouter
-                            headers = {
-                                "Authorization": f"Bearer {_DIRETORIO_EXECUTAVEL_('chave_api')}",
-                                "Content-Type": "application/json",
-                                "HTTP-Referer": "http://localhost:8501",
-                                "X-Title": "Stream-IDE IA"
-                            }
-                            payload = {
-                                "model": "arcee-ai/trinity-large-preview:free",
-                                "messages": [{"role": "user", "content": full_prompt}],
-                                "temperature": 0.7
-                            }
-
-                            try:
-                                resp = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers,
-                                                     json=payload)
-                                resp.raise_for_status()
-                                novo_codigo = resp.json()["choices"][0]["message"]["content"].strip()
-
-                                # Cola no editor
-                                _ = novo_codigo
-                                novo_codigo = re.sub(r'```(?:\w*)', '', novo_codigo, flags=re.MULTILINE | re.IGNORECASE)
-                                novo_codigo = re.sub(r'```', '', novo_codigo, flags=re.MULTILINE | re.IGNORECASE)
-                                novo_codigo = novo_codigo.strip()
-                                with c2:
-                                    # if st.button("📋 Copiar"):
-                                    # st.write(f"Copiado! Cole no editor.")
-                                    # _.clipboard = novo_codigo  # guarda pra uso depois
-                                    st.code(wrap_text(novo_codigo, 100), language=linguagem)
-
-
-                            except Exception as e:
-                                c2.error(f"🪲 Falha na IA: {str(e)}")
-            st.write('')
-            st.write('')
     # -------------------------------------------------------------------- Catalogar scripts
     with st.container(border=True, key='Catalogar_scripts'):
-        from APP_Catalogo import catalogar_arquivo_ia
+        from APP_Editores_Auxiliares.APP_Catalogo import catalogar_arquivo_ia
         if Button_Nao_Fecha(f':material/inventory: Catalogar: {nome_arquivo}', f':material/inventory_2: Catalogar: {nome_arquivo}', 'BtnCatalogar'):
 
             col1, col2 = st.columns([1, 30])
@@ -882,28 +689,25 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
 
     # 🔥 AUTOSAVE MILITAR - LIMPEZA AUTOMÁTICA
     def limpar_autosave_velho():
+        """Limpa autosave sem quebrar session_state"""
+        session_state = st.session_state  # ✅ REFERÊNCIA SEGURA!
+
         agora = time.time()
         chaves_para_limpar = []
-        for key in list(_.keys()):
-            if key.startswith(('autosave_cache_', 'autosave_saved_')):
-                # Só limpa se tem mais de 1h (3600s)
-                if agora - _.get(key + '_timestamp', 0) > 3600:
-                    chaves_para_limpar.append(key)
 
-        for key in chaves_para_limpar:
-            if key in _:
-                del _[key]
-            timestamp_key = key + '_timestamp'
-            if timestamp_key in _:
-                del _[timestamp_key]
+        # ✅ sÓ executa se session_state é dict
+        if isinstance(session_state, dict):
+            for key in list(session_state.keys()):
+                if key.startswith(('autosave_cache_', 'autosave_saved_')):
+                    if agora - session_state.get(key + '_timestamp', 0) > 3600:
+                        chaves_para_limpar.append(key)
+
+            for key in chaves_para_limpar:
+                if key in session_state:
+                    del session_state[key]
+                timestamp_key = key + '_timestamp'
+                if timestamp_key in session_state:
+                    del session_state[timestamp_key]
 
     limpar_autosave_velho()  # Executa sempre
 
-    # 👇 AGORA sim o return original:
-    return (
-        arquivos_abertos_nomes,
-        arquivos_abertos_caminhos,
-        arquivo_selecionado_nome,
-        arquivo_selecionado_caminho,
-        arquivo_selecionado_conteudo
-    )
