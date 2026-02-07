@@ -7,14 +7,19 @@
     <list default="true" id="563116a2-fbe7-4a8b-bdf8-3df381587b9d" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/APP_.py" beforeDir="false" afterPath="$PROJECT_DIR$/APP_.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/APP_Catalogo.py" beforeDir="false" afterPath="$PROJECT_DIR$/APP_Editores_Auxiliares/APP_Catalogo.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/APP_CodeLLama.py" beforeDir="false" afterPath="$PROJECT_DIR$/APP_Editores_Auxiliares/APP_CodeLLama.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/APP_Editor_Codigo.py" beforeDir="false" afterPath="$PROJECT_DIR$/APP_Editores_Auxiliares/APP_Editor_Codigo.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/APP_Editor_Run_Preview.py" beforeDir="false" afterPath="$PROJECT_DIR$/APP_Editor_Run_Preview.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/APP_SUB_Backup.py" beforeDir="false" afterPath="$PROJECT_DIR$/APP_SUB_Backup.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/APP_SUB_Run_Execut.py" beforeDir="false" afterPath="$PROJECT_DIR$/APP_Editores_Auxiliares/SUB_Run_servidores.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SUB_Traduz_terminal.py" beforeDir="false" afterPath="$PROJECT_DIR$/APP_Editores_Auxiliares/SUB_Traduz_terminal.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Stream_IDE.spec" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/APP_SUB_Janela_Explorer.py" beforeDir="false" afterPath="$PROJECT_DIR$/APP_SUB_Janela_Explorer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/Stream_IDE/Analysis-00.toc" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/Stream_IDE/COLLECT-00.toc" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/Stream_IDE/EXE-00.toc" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/Stream_IDE/PKG-00.toc" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/Stream_IDE/PYZ-00.pyz" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/Stream_IDE/PYZ-00.toc" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/Stream_IDE/Stream_IDE.exe" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/Stream_IDE/Stream_IDE.pkg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/Stream_IDE/base_library.zip" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/Stream_IDE/warn-Stream_IDE.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/Stream_IDE/xref-Stream_IDE.html" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -232,6 +237,11 @@
           <url>file://$PROJECT_DIR$/APP_Menus.py</url>
           <line>695</line>
           <option name="timeStamp" value="12" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/APP_Sidebar.py</url>
+          <line>200</line>
+          <option name="timeStamp" value="13" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

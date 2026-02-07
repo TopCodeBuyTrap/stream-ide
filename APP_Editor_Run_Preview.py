@@ -47,8 +47,8 @@ def status_bar_pro(
     tamanho_bytes = len(cod.encode("utf-8"))
 
     modificado = False
-    if hasattr(state, "conteudos_abas") and hasattr(state, "id_aba_ativa"):
-        anterior = state.conteudos_abas.get(state.id_aba_ativa)
+    if hasattr(state, "Conteudo") and hasattr(state, "id_aba_ativa"):
+        anterior = state.Conteudo.get(state.id_aba_ativa)
         if anterior is not None:
             modificado = anterior != cod
 
@@ -178,10 +178,10 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
     _.setdefault("codigo_para_executar", None)
     _.setdefault("thread_running", False)
     _.setdefault("id_aba_ativa", 0)
-    _.setdefault("Conteudo", {})
     _.setdefault("Diretorio", {})
-    _.setdefault("conteudos_abas", {})
+    _.setdefault("Conteudo", {})
 
+    Nome_Aba = ''
 
     with st.container(border=True,key='MenuServidor'):
         MS1,MS2,MS3 = st.columns([8,1.5,1.2])
@@ -193,13 +193,13 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
 
         menuserv = MS1.expander('Menu Servidor')
 
-    def run_code_thread(codigo, input_q, output_q, arquivo_selecionado_caminho):
+    def run_code_thread(codigo, input_q, output_q, caminho_sectbox):
 
         # 🔥 LOGS DE DEBUG
 
         output_q.put("🔍 [DEBUG] Thread iniciada\n") if Most_Logs == True else ''
 
-        script_path = Path(arquivo_selecionado_caminho).resolve()
+        script_path = Path(caminho_sectbox).resolve()
         project_dir = script_path.parent
 
         output_q.put(f"🔍 [DEBUG] Script: {script_path}\n") if Most_Logs == True else ''
@@ -290,6 +290,7 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
 
             caminho = CAMINHHOS[I]
             nome_arquivo = os.path.basename(caminho)
+            Nome_Aba = nomes_arquivos
             linguagem = Identificar_linguagem(CAMINHHOS[I])
 
             # Conteúdo inicial
@@ -323,7 +324,7 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
                 while cod.endswith('\n\n'):
                     cod = cod[:-2]
 
-                _.conteudos_abas[I] = cod
+                _.Conteudo[I] = cod
 
                 # 🔥 DETECTOR MÓDULOS FALTANDO (PREVIEW)
                 modulos_faltando = checar_modulos_no_venv(cod, nome_arquivo, caminho, _Python_exe)
@@ -343,7 +344,7 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
 
                         if modulos_faltando['local']:
                             col1.write(f"📁 LOCAL: {', '.join(modulos_faltando['local'])}")
-                            if col3.button(f"➕ COLOCAR IMPORTS", type="secondary"):
+                            if col3.button(f"➕ COLOCAR IMPORTS", type="secondary",key=I):
                                 # 🔥 ESCREVE NO TOPO DO ARQUIVO
                                 imports_locais = "\n".join(
                                     [f"from {mod} import *" for mod in modulos_faltando['local']])
@@ -395,8 +396,6 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
                     # *** CORREÇÃO: Define 'cod' como string vazia para arquivos de mídia ***
                     cod = ""
 
-    # === SUBSTITUA TODO ESSE CÓDIGO (da linha do selectbox até o autosave) ===
-
     # ✅ VALIDAÇÃO SEGURA ANTES DO SELECTBOX
     if len(nomes_arquivos) == 0:
         st.warning("Nenhum arquivo aberto!")
@@ -408,24 +407,17 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
     if hasattr(_.get('id_aba_ativa'), '__index__'):
         index_seguro = min(max(_.id_aba_ativa, 0), total_abas - 1)
 
-    id_aba_ativa = Select.selectbox(
-        "Aba ativa ▶️",
-        range(total_abas),
-        format_func=lambda i: nomes_arquivos[i],
-        index=index_seguro,  # ✅ SEMPRE VÁLIDO: 0 até len-1
-        key="select_aba_ativa",
-        label_visibility='collapsed'
-    )
-
-    _.id_aba_ativa = id_aba_ativa
+    id_aba_ativa = Select.selectbox("Aselec",range(total_abas), format_func=lambda i: nomes_arquivos[i], index=index_seguro,  key="select_aba_ativa",
+        label_visibility='collapsed' )
 
     # *** CÓDIGO ATUAL DA ABA ATIVA (SEGURO) ***
-    codigo = _.conteudos_abas.get(id_aba_ativa, "")
     nome_arquivo_sectbox = nomes_arquivos[id_aba_ativa]
+    caminho_sectbox = _.Diretorio.get(id_aba_ativa, "")
+    codigo_sectbox = _.Conteudo.get(id_aba_ativa, "")
 
-
-    arquivo_selecionado_nome = nome_arquivo_sectbox
-    arquivo_selecionado_caminho = _.Diretorio.get(id_aba_ativa, "")
+    #st.write('nome_arquivo_sectbox>',nome_arquivo_sectbox)
+    #st.write('caminho_sectbox>',caminho_sectbox)
+    #st.write('codigo>',codigo_sectbox)
 
 
     # INICIALIZA output
@@ -439,12 +431,12 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
 
     # EXECUÇÃO - usa 'codigo' da aba ativa
     if ColunaRun.button("▶️", key="executar_aba_ativa", shortcut='Ctrl+Enter',width="stretch"):
-        _.output = f"{arquivo_selecionado_caminho}>\n"
+        _.output = f"{caminho_sectbox}>\n"
         # Limpa queues...
         # ✅ DETECTA SE É STREAMLIT E USA SUBPROCESS
-        if is_streamlit_code(codigo):
+        if is_streamlit_code(codigo_sectbox):
             _.process_running = True
-            _.current_process = run_streamlit_process(arquivo_selecionado_caminho)
+            _.current_process = run_streamlit_process(caminho_sectbox)
 
             # *** WHILE TRUE CONTÍNUO (atualiza sempre!) ***
             process = _.current_process
@@ -465,11 +457,11 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
             Exct = f'''
 {''.join(_['streamlit_output'])}\n{msg_fim_cod}'''
             _.output = Exct
-        elif is_flask_code(codigo):
+        elif is_flask_code(codigo_sectbox):
             _.process_running = True
 
             # 1. Primeiro tenta extrair config do código do usuário
-            config = extract_flask_config(codigo)
+            config = extract_flask_config(codigo_sectbox)
             porta_detectada = config['port']
             host = config['host']
             debug = config['debug']
@@ -477,7 +469,7 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
             print(
                 f"🔍 Config detectada: Porta={'Específica: ' + str(porta_detectada) if porta_detectada else 'Automática'} | Host={host} | Debug={debug}")
 
-            _.current_process = run_flex_process(arquivo_selecionado_caminho)
+            _.current_process = run_flex_process(caminho_sectbox)
             process = _.current_process
 
             # Armazena PID para busca posterior de porta
@@ -525,9 +517,9 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
             _['flask_port'].append(porta_detectada)
             _.output = Exct
             # Django
-        elif is_django_code(codigo):
+        elif is_django_code(codigo_sectbox):
             _.process_running = True
-            config = extract_django_config(codigo)
+            config = extract_django_config(codigo_sectbox)
             porta_detectada = config['port']
             host = config['host']
 
@@ -562,7 +554,7 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
             _.output = f"{''.join(_['django_output'])}\n{msg_porta}\n{msg_fim_cod}"
         else:
             # Limpa tudo
-            _.output = f"{arquivo_selecionado_caminho}>\n"
+            _.output = f"{caminho_sectbox}>\n"
             while not _.input_queue.empty():
                 _.input_queue.get()
             while not _.output_queue.empty():
@@ -573,7 +565,7 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
             # Thread
             thread = threading.Thread(
                 target=run_code_thread,
-                args=(codigo, _.input_queue, _.output_queue, arquivo_selecionado_caminho),
+                args=(codigo_sectbox, _.input_queue, _.output_queue, caminho_sectbox),
                 daemon=True
             )
             thread.start()
@@ -639,8 +631,8 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
                     st.error(f"Erro ao tentar parar a porta {porta}: {e}")
     # -------------------------------------------------------------------- TERMINAL Preview
     with st.container(border=True, key='Preview'):
-        if Button_Nao_Fecha(f':material/directions_bike: **{arquivo_selecionado_nome}**', f':material/directions_bike: '
-                                                                                          f'**{arquivo_selecionado_nome}**','BtnPreview'):
+        if Button_Nao_Fecha(f':material/directions_bike: **{nome_arquivo_sectbox}**', f':material/directions_bike: '
+                                                                                          f'**{nome_arquivo_sectbox}**','BtnPreview'):
             from APP_Editores_Auxiliares.APP_Preview import Previews
 
             Previews(st, _, linguagem, msg_fim_cod)
@@ -650,8 +642,7 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
             st.rerun()
 
     # -------------------------------------------------------------------- Explorer Jason
-    codigo_completo_do_editor = codigo
-    saida_preview = _.output.strip().replace(f'{arquivo_selecionado_caminho}>', '').replace(msg_fim_cod, '')
+    saida_preview = _.output.strip().replace(f'{caminho_sectbox}>', '').replace(msg_fim_cod, '')
 
     with st.container(border=True, key='Preview_Jason'):
         if Button_Nao_Fecha(f':material/data_object: Explorer Jason', f':material/data_object: Explorer Jason',
@@ -663,27 +654,18 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
     with st.container(border=True, key='Api_IA'):
         if Button_Nao_Fecha(f':material/psychology: Chat IA', f':material/psychology: Chat IA','BtnChat'):
             from APP_Editores_Auxiliares.APP_Api_IAs import IA_openrouter
-            IA_openrouter(st, codigo_completo_do_editor, saida_preview, linguagem)
+            IA_openrouter(st, codigo_sectbox, saida_preview, linguagem)
 
     # -------------------------------------------------------------------- Catalogar scripts
     with st.container(border=True, key='Catalogar_scripts'):
         from APP_Editores_Auxiliares.APP_Catalogo import catalogar_arquivo_ia
-        if Button_Nao_Fecha(f':material/inventory: Catalogar: {nome_arquivo}', f':material/inventory_2: Catalogar: {nome_arquivo}', 'BtnCatalogar'):
 
-            col1, col2 = st.columns([1, 30])
-            with col1:
-                altura_prev = controlar_altura(st, "Catalogar", altura_inicial=400, passo=300, maximo=800, minimo=200)
-            with col2.container(border=True, height=altura_prev):
-                col1, col2 = st.columns([3, 1])
-                observacao_usuario = col1.text_input("💭 Sua observação:", key=f"obs_{nome_arquivo}")
-                concluir = col2.button("📚 Gerar catálogo com IA", width='stretch')
-                if concluir:
-                    # aqui começa a porro das chamada desse codogo
-                    try:
-                        catalogar_arquivo_ia(nome_arquivo, _.Diretorio, codigo_completo_do_editor, linguagem,
-                                         observacao_usuario)
-                    except TypeError as e:
-                        st.write(traduzir_saida(e))
+        if Button_Nao_Fecha(f':material/inventory: Catalogar: {nome_arquivo_sectbox}', f':material/inventory_2: Catalogar: {nome_arquivo_sectbox}', 'BtnCatalogar'):
+           # aqui começa a porro das chamada desse codogo
+            try:
+                catalogar_arquivo_ia(nome_arquivo_sectbox, caminho_sectbox, codigo_sectbox, linguagem)
+            except TypeError as e:
+                st.write(traduzir_saida(e))
             st.write('')
             st.write('')
 

@@ -62,6 +62,7 @@ def baixar_imagem_e_criar_pasta(raiz,url_imagem, titulo_pasta, texto_conteudo1,n
 # ===============================
 # LISTAGENS
 # ===============================
+
 def listar_arquivos_e_pastas(caminho):
     """
     Lista apenas os arquivos e pastas do diretório fornecido

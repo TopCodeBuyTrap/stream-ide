@@ -160,7 +160,6 @@ def app():
         Tab1, Tab2 = st.columns([2, 9])
 
 
-        Meus_Arquivos = listar_arquivos_e_pastas(Pasta_Projeto_Atual)
 
         Janela = Tab1.container(border=True,key='menu_lado_sidebar',height=1000)
         with Janela:
@@ -168,6 +167,8 @@ def app():
             # :material/settings:  :material/emoji_symbols:
             Tt1, Tt2 = st.columns([1,9])  # Botão de run e stop
             Ttp1, Ttp2 = st.columns(2)  # Botão de run e stop
+            Meus_Arquivos = listar_arquivos_e_pastas(Pasta_Projeto_Atual)
+
             Arq_Selec_Nomes, Arq_Selec_Diretorios = Sidebar_Diretorios(st, Meus_Arquivos, caminho_completo,nome_pasta)
 
 
