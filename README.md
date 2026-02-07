@@ -6,6 +6,8 @@
 ![Python](https://www.python.org/static/community_logos/python-logo.png)
 ![Windows](https://upload.wikimedia.org/wikipedia/commons/5/5f/Windows_logo_-_2012.svg)
 [![YouTube](https://img.shields.io/badge/YouTube-Canal-red?logo=youtube&logoColor=white)](https://www.youtube.com/channel/UCioh95X0Kx-ttmBSW7rD3xQ)
+[![Assista o vídeo](https://raw.githubusercontent.com/TopCodeBuyTrap/stream-ide/refs/heads/main/.arquivos/logo_.png)]([https://www.youtube.com/watch?v=SEU_VIDEO_ID](https://www.youtube.com/watch?v=w04XjMlDvGA&t=7s))
+
 
 ---
 
