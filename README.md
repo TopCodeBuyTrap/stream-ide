@@ -1,4 +1,4 @@
-[![Assista o vídeo](https://raw.githubusercontent.com/TopCodeBuyTrap/stream-ide/refs/heads/main/.arquivos/logo_.png)([PRIMEIRO VIDEO](https://www.youtube.com/watch?v=w04XjMlDvGA&t=7s))]
+![Assista o vídeo](https://raw.githubusercontent.com/TopCodeBuyTrap/stream-ide/refs/heads/main/.arquivos/logo_.png)([PRIMEIRO VIDEO](https://www.youtube.com/watch?v=w04XjMlDvGA&t=7s))
 
 # 🛡️ Stream-IDE v0.2.6 `{TcbT}`
 
