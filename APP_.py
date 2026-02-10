@@ -102,12 +102,13 @@ def select_arquivo_recente(col2):
         data = contar_estrutura(item["caminho"])
         versao_set = data["versoes"][0]
         esc_A_CONTROLE_PROJETOS(str(item["caminho"]), list(versao_set)[0], data_sistema(), data["pastas"], data["arquivos"] , '')
+        from APP_SUB_Funcitons import limpar_CASH
         limpar_CASH()
         st.rerun()
 
 
 def app():
-    from Banco_Predefinitions import ultima_versao
+    from Banco_dados import ultima_versao
 
     # =====================================================
     # COLOQUE ISSO NO **INÍCIO** do seu app(), ANTES de tudo:
@@ -155,10 +156,15 @@ def app():
             with cab3:pass
 
             with cab4:
-                st.button("♻️",  help='limpar os caches do app'.title(),on_click=limpar_CASH)
+                if st.button("♻️",  help='limpar os caches do app'.title()):
+                    from APP_SUB_Funcitons import limpar_CASH
+                    limpar_CASH()
 
-        Tab1, Tab2 = st.columns([2, 9])
+        Tab1, Tab2 , Tab3 = st.columns([2, 8, 2])
 
+        INFO_COL =  Tab3.container(border=True)
+
+        INFO_COL.subheader("Imports & Funções")
 
 
         Janela = Tab1.container(border=True,key='menu_lado_sidebar',height=1000)
@@ -200,13 +206,12 @@ def app():
 
 
 
-
         if len(Arq_Selec_Diretorios) > 0:
             from APP_Editor_Run_Preview import Editor_Simples
 
             try:
                 with Tab2:
-                    Editor_Simples(Janela,Tt2,Arq_Selec_Diretorios,THEMA_EDITOR, EDITOR_TAM_MENU,FONTE_CAMPO,Ttp2,Ttp1,FUNDO_EDTOR)
+                    Editor_Simples(INFO_COL,Janela,Tt2,Arq_Selec_Diretorios,THEMA_EDITOR, EDITOR_TAM_MENU,FONTE_CAMPO,Ttp2,Ttp1,FUNDO_EDTOR)
 
             except UnicodeDecodeError:
                 st.warning('Arquivo não Reconhecido GmeOver!')
@@ -215,7 +220,8 @@ def app():
 
         val = ''
         with Tab2.container(border=True, key='Terminal_cmd', width=900):
-            if Button_Nao_Fecha(':material/terminal: Terminal:', ':material/terminal: Terminal:', 'BtnTerminal'):
+            with st.expander('Terminal'):
+            #if Button_Nao_Fecha(':material/terminal: Terminal:', ':material/terminal: Terminal:', 'BtnTerminal'):
                 from APP_Terminal import Terminal
                 Terminal()
 
@@ -228,7 +234,7 @@ if __name__ == "__main__":
     from APP_Editores_Auxiliares.APP_Catalogo import conf_baix_catalogo
     from APP_SUB_Customizar import Customization
     from APP_SUB_Funcitons import contar_estrutura, \
-    Button_Nao_Fecha, data_sistema, limpar_CASH, carregar_imagem_segura
+    Button_Nao_Fecha, data_sistema, carregar_imagem_segura
     from APP_SUB_Janela_Explorer import listar_arquivos_e_pastas
     from APP_Sidebar import Sidebar_Diretorios
     from Banco_dados import ler_A_CONTROLE_PROJETOS, ler_B_ARQUIVOS_RECENTES, se_B_ARQUIVOS_RECENTES, esc_B_ARQUIVOS_RECENTES, Del_B_ARQUIVOS_RECENTES, ler_A_CONTROLE_ABSOLUTO, \

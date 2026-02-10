@@ -8,18 +8,16 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/APP_.py" beforeDir="false" afterPath="$PROJECT_DIR$/APP_.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/APP_Editor_Run_Preview.py" beforeDir="false" afterPath="$PROJECT_DIR$/APP_Editor_Run_Preview.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/APP_SUB_Janela_Explorer.py" beforeDir="false" afterPath="$PROJECT_DIR$/APP_SUB_Janela_Explorer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/Stream_IDE/Analysis-00.toc" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/Stream_IDE/COLLECT-00.toc" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/Stream_IDE/EXE-00.toc" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/Stream_IDE/PKG-00.toc" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/Stream_IDE/PYZ-00.pyz" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/Stream_IDE/PYZ-00.toc" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/Stream_IDE/Stream_IDE.exe" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/Stream_IDE/Stream_IDE.pkg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/Stream_IDE/base_library.zip" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/Stream_IDE/warn-Stream_IDE.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/Stream_IDE/xref-Stream_IDE.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/APP_Htmls.py" beforeDir="false" afterPath="$PROJECT_DIR$/APP_Htmls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/APP_Menus.py" beforeDir="false" afterPath="$PROJECT_DIR$/APP_Menus.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/APP_SUB_Controle_Driretorios.py" beforeDir="false" afterPath="$PROJECT_DIR$/APP_SUB_Controle_Driretorios.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/APP_SUB_Customizar.py" beforeDir="false" afterPath="$PROJECT_DIR$/APP_SUB_Customizar.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/APP_SUB_Funcitons.py" beforeDir="false" afterPath="$PROJECT_DIR$/APP_SUB_Funcitons.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/APP_Sidebar.py" beforeDir="false" afterPath="$PROJECT_DIR$/APP_Sidebar.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/APP_Terminal.py" beforeDir="false" afterPath="$PROJECT_DIR$/APP_Terminal.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Banco_Dados_sudo_pip.py" beforeDir="false" afterPath="$PROJECT_DIR$/Banco_Dados_sudo_pip.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/INSTALL" beforeDir="false" afterPath="$PROJECT_DIR$/INSTALL" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Main.py" beforeDir="false" afterPath="$PROJECT_DIR$/Main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -59,29 +57,29 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Python.APP_CodeLLama.executor&quot;: &quot;Run&quot;,
-    &quot;Python.APP_Editor_Run_Preview.executor&quot;: &quot;Run&quot;,
-    &quot;Python.Banco_dados.executor&quot;: &quot;Run&quot;,
-    &quot;Python.IA.executor&quot;: &quot;Run&quot;,
-    &quot;Python.Main.executor&quot;: &quot;Run&quot;,
-    &quot;Python._Criar_Exec.executor&quot;: &quot;Run&quot;,
-    &quot;Python.run_app.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/henri/PycharmProjects/Baixa video&quot;,
-    &quot;run.code.analysis.last.selected.profile&quot;: &quot;aDefault&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Python.APP_CodeLLama.executor": "Run",
+    "Python.APP_Editor_Run_Preview.executor": "Run",
+    "Python.Banco_dados.executor": "Run",
+    "Python.IA.executor": "Run",
+    "Python.Main.executor": "Run",
+    "Python._Criar_Exec.executor": "Run",
+    "Python.run_app.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "main",
+    "last_opened_file_path": "C:/Users/henri/PycharmProjects/GERENCIADOR_CODIGOS_ac",
+    "run.code.analysis.last.selected.profile": "aDefault",
+    "settings.editor.selected.configurable": "preferences.pluginManager"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\henri\PycharmProjects\Stream-IDE\APP_Editores_Auxiliares" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.APP_Editor_Run_Preview">
+  <component name="RunManager" selected="Python.Main">
     <configuration name="APP_CodeLLama" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Stream-IDE" />
       <option name="ENV_FILES" value="" />
@@ -194,8 +192,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.APP_Editor_Run_Preview" />
         <item itemvalue="Python.Main" />
+        <item itemvalue="Python.APP_Editor_Run_Preview" />
         <item itemvalue="Python.APP_CodeLLama" />
         <item itemvalue="Python.IA" />
         <item itemvalue="Python._Criar_Exec" />
@@ -225,12 +223,12 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/APP_Menus.py</url>
-          <line>721</line>
+          <line>720</line>
           <option name="timeStamp" value="7" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/APP_Menus.py</url>
-          <line>628</line>
+          <line>629</line>
           <option name="timeStamp" value="9" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">

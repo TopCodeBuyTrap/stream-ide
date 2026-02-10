@@ -24,7 +24,7 @@ import sqlite3
 
 
 def get_conn():
-	return sqlite3.connect("Banco_Dados_sudo_pip.db", check_same_thread=False)
+	return sqlite3.connect("Banco_dados/Banco_Dados_sudo_pip.db", check_same_thread=False)
 
 @st.cache_data
 def init_db_modulos():
@@ -65,6 +65,7 @@ def salvar_modulo(nome, install, uninstall, upgrade, tipo='principal'):
 	c.close()
 	conn.close()
 
+@st.cache_data(ttl=30)
 
 def listar_modulos():
 	conn = get_conn()
@@ -103,18 +104,11 @@ def salvar_comando_usuario(comando):
 # ===========================================
 # PRE-CARREGA MÓDULOS PRINCIPAIS
 # ===========================================
-# ===========================================
-# PRE-CARREGA MÓDULOS PRINCIPAIS
-# ===========================================
+
 def carregar_modulos_padrao():
 	modulos = {
 
 		# --- CORE PYTHON ---
-		"pip": {
-			"install": "python -m pip install --upgrade pip",
-			"uninstall": "",
-			"upgrade": "python -m pip install --upgrade pip"
-		},
 		"setuptools": {
 			"install": "pip install setuptools",
 			"uninstall": "pip uninstall setuptools -y",

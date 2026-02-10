@@ -1,7 +1,6 @@
 import json
-from time import sleep
 
-from APP_SUB_Controle_Driretorios import _DIRETORIO_EXECUTAVEL_, _DIRETORIO_PROJETOS_, _DIRETORIO_PROJETO_ATUAL_
+from APP_SUB_Controle_Driretorios import _DIRETORIO_PROJETO_ATUAL_
 from APP_SUB_Funcitons import saudacao_por_hora_sistema, cor_semelhante
 from Banco_dados import  ler_B_ARQUIVOS_RECENTES
 import base64
@@ -143,8 +142,7 @@ def Carregamento_BancoDados_Temas(st):
 	    @import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&display=swap');
 	    @import url('https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap');
 	    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
-	
-                                                                                          
+	                                                                                          
 
     [data-testid="stPopoverButton"]{{                                               /* POPOVER */
         background-color: {COR_WIDGET} !important;
@@ -183,36 +181,31 @@ def Carregamento_BancoDados_Temas(st):
         font-size: {TAM_MENU}px !important;
 	    margin: 0 !important;
 	}}
-	
-    
+	    
 	div[data-testid="stButton"] button:hover {{                             /* AO PASSAR O MAUSE */
 	    background-color: {PASSR_COR} !important;  
 	    transform: scale(1.01) !important;
 	}}
 	
-	.stButton[data-testid="stButton"] button[kind="primary"] {{             /* AO PASSAR O MAUSE kind */
-	    background-color: {cor_semelhante(COR_WIDGET)} !important;  
-		border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important;   
-
-	}}
-	.stButton[data-testid="stButton"] button[kind="secondary"] {{             /* AO PASSAR O MAUSE kind */
-	    	    background-color: {cor_semelhante(COR_WIDGET)} !important;  
+	.stButton[data-testid="stButton"] button[kind="secondary"] {{             /* AO PASSAR O MAUSE kind secondary */
+        background-color: {cor_semelhante(COR_WIDGET)} !important;  
 		border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important;  
 	}}
-	.stButton[data-testid="stButton"] button[kind="tertiary"] {{             /* AO PASSAR O MAUSE kind */
-        color: {COR_CAMPO} !important;	
-        	
-
-	}}
 	
+	.stButton[data-testid="stButton"] button[kind="tertiary"] {{             /* AO PASSAR O MAUSE kind tertiary */
+        color: {COR_CAMPO} !important;	
+    }}
+		
+	div[data-testid="stButton"] button[kind="primary"] {{                    /* GARANTE COR DO type="primary" */ 
+	    background-color: {PASSR_COR} !important;
+	    border: {BORDA}px solid red !important;
+	}}    
 	
 	div[data-testid="stForm"] {{                                            /* FORM  FORMULARIO */
-       	    background-color: {cor_semelhante(COR_WIDGET)} !important;  
-
-	
-       padding: none !important;
-       padding-top: 0% !important;
-       padding-bottom: 0% !important;
+		background-color: {cor_semelhante(COR_WIDGET)} !important;  	
+		padding: none !important;
+		padding-top: 0% !important;
+		padding-bottom: 0% !important;
 
 	}}
 	[data-testid="stFormSubmitButton"] [data-testid="stBaseButton-primaryFormSubmit"] {{    /* FORM  BOTAO */
@@ -232,11 +225,7 @@ def Carregamento_BancoDados_Temas(st):
 		padding-bottom: 0% !important;
 
 	}}
-	
-	div[data-testid="stButton"] button[kind="primary"] {{                    /* GARANTE COR DO type="primary" */ 
-	    background-color: {PASSR_COR} !important;
-	    border: {BORDA}px solid red !important;
-	}}         
+     
 	                                            
     [data-testid="stSlider"] p {{                                           /* SLIDER */ 
         color: {COR_MENU} !important;
@@ -350,9 +339,9 @@ def Carregamento_BancoDados_Temas(st):
         border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important;
     }}
     
-        header.stAppHeader {{                                               /* HEADER */
+    header.stAppHeader {{                                               /* HEADER */
         padding-left: 0% !important;
-        margin-top: 3% !important;
+        margin-top: 2% !important;
         left:  83% !important;
         width: 15% !important;
         height: 3% !important;
@@ -471,18 +460,14 @@ def Carregamento_BancoDados_Temas(st):
 		
     }}
 
-    div[data-testid="stVerticalBlock"][class*="st-key-menu_lado_sidebar"] {{             /* stVerticalBlock st-key-menu_lado_sidebar st-emotion-cache-1gz5zxc e12zf7d53 */
-		background-color: {THEMA_APP1} !important;
-	    border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important;	        
-    }}
     
-    div[data-testid="stButton"][class*="st-key-nome_da_sua_key"] {{             /* CONTAINERS */
+    div[data-testid="stButton"][class*="st-key-nome_da_sua_key"] {{                     /* CONTAINERS */
         background-color: {COR_WIDGET} !important;
         padding: 0 !important;
         height: 5% !important;
     }}
 
-	[data-testid="stTextarea"][class*="st-dfs___________dd"] {{  /* nao  ta usando */
+	[data-testid="stTextarea"][class*="st-dfs___________dd"] {{                         /* nao  ta usando */
         background-color: {COR_WIDGET} !important;
 		border-radius: {RADIO+8}px !important;
 		border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important;	
@@ -502,7 +487,7 @@ def Carregamento_BancoDados_Temas(st):
         font-size: {TAM_MENU}px !important;
 	}}
     
-	div[data-testid="stVerticalBlock"] [class*="st-key-MenuTopo"] {{         /* CABEÇALHO MENU TOPO */
+	div[data-testid="stVerticalBlock"] [class*="st-key-MenuTopo"] {{                        /* CABEÇALHO MENU TOPO */
         background-color: {THEMA_APP1} !important;
 
 		height: 5% !important; 
@@ -519,29 +504,29 @@ def Carregamento_BancoDados_Temas(st):
 
     }} 
     
-    [data-baseweb="tab"] p{{
-    font-family: {FONTE_MENU} !important;
-    font-size: {TAM_MENU}px !important;
-}}
+	[data-baseweb="tab"] p{{
+	    font-family: {FONTE_MENU} !important;
+	    font-size: {TAM_MENU}px !important;
+	}}
 
-div[data-testid="stTabs"][class*="st-emotion-cache-8atqhb eh1nhsq0"] {{
-    {WD_STYLE}
-    border-radius: {RADIO}px !important;
-    padding-left: 0% !important;
-}}
+	div[data-testid="stTabs"][class*="st-emotion-cache-8atqhb eh1nhsq0"] {{
+	    {WD_STYLE}
+	    border-radius: {RADIO}px !important;
+	    padding-left: 0% !important;
+	}}
 
-/* ABAS NÃO-SELECIONADAS - CINZA */
-div[data-testid="stTabs"][class*="st-emotion-cache-8atqhb eh1nhsq0"] [data-baseweb="tab"]:not([aria-selected="true"]) {{
-  color: {COR_CAMPO} !important;
-  opacity: 0.8 !important;
-}}
-
-/* ABA ATIVA - SUA COR */
-div[data-testid="stTabs"][class*="st-emotion-cache-8atqhb eh1nhsq0"] [data-baseweb="tab"][aria-selected="true"] {{
-  color: {COR_MENU} !important;
-}}
+	/* ABAS NÃO-SELECIONADAS - CINZA */
+	div[data-testid="stTabs"][class*="st-emotion-cache-8atqhb eh1nhsq0"] [data-baseweb="tab"]:not([aria-selected="true"]) {{
+	  color: {COR_CAMPO} !important;
+	  opacity: 0.8 !important;
+	}}
 	
-    div[data-testid="stVerticalBlock"][class*="st-key-Terminal_cmd st-emotion-cache-1gz5zxc e12zf7d53"] {{         /*  TERMINAL  */
+	/* ABA ATIVA - SUA COR */
+	div[data-testid="stTabs"][class*="st-emotion-cache-8atqhb eh1nhsq0"] [data-baseweb="tab"][aria-selected="true"] {{
+	  color: {COR_MENU} !important;
+	}}
+	
+    div[data-testid="stVerticalBlock"][class*="st-key-Terminal_cmd"] {{         /*  TERMINAL  */
        {BG_STYLE}
         position: fixed !important;
         bottom: 0% !important;
@@ -563,7 +548,7 @@ div[data-testid="stTabs"][class*="st-emotion-cache-8atqhb eh1nhsq0"] [data-basew
 	}}
 	
     
-    div[data-testid="stVerticalBlock"][class*="st-key-Preview st-emotion-cache-1gz5zxc e12zf7d53"] {{       /* PREVIEWS  */
+    div[data-testid="stVerticalBlock"][class*="st-key-Preview"] {{       /* PREVIEWS  */
        {BG_STYLE}
         position: fixed !important;
         bottom: 0% !important;
@@ -582,7 +567,7 @@ div[data-testid="stTabs"][class*="st-emotion-cache-8atqhb eh1nhsq0"] [data-basew
 	    height: 30px !important;
 
 	}}
-     div[data-testid="stVerticalBlock"][class*="st-key-Preview_Jason st-emotion-cache-1gz5zxc e12zf7d53"] {{       /* JASON  */
+     div[data-testid="stVerticalBlock"][class*="st-key-Preview_Jason"] {{       /* JASON  */
        {BG_STYLE}
         position: fixed !important;
         bottom: 0% !important;
@@ -601,7 +586,7 @@ div[data-testid="stTabs"][class*="st-emotion-cache-8atqhb eh1nhsq0"] [data-basew
 	    height: 30px !important;
 
 	}}
-     div[data-testid="stVerticalBlock"][class*="st-key-Api_IA st-emotion-cache-1gz5zxc e12zf7d53"] {{       /* CHAT IA  */
+     div[data-testid="stVerticalBlock"][class*="st-key-Api_IA"] {{       /* CHAT IA  */
        {BG_STYLE}
         position: fixed !important;
         bottom: 0% !important;
@@ -620,7 +605,7 @@ div[data-testid="stTabs"][class*="st-emotion-cache-8atqhb eh1nhsq0"] [data-basew
 	    height: 30px !important;
 
 	}}
-     div[data-testid="stVerticalBlock"][class*="st-key-Catalogar_scripts st-emotion-cache-1gz5zxc e12zf7d53"] {{       /* CATALOGAR */
+     div[data-testid="stVerticalBlock"][class*="st-key-Catalogar_scripts"] {{       /* CATALOGAR */
        {BG_STYLE}
         position: fixed !important;
         bottom: 0% !important;
@@ -658,12 +643,15 @@ div[data-testid="stTabs"][class*="st-emotion-cache-8atqhb eh1nhsq0"] [data-basew
 	    height: 30px !important;
 
 	}}
+    div[data-testid="stVerticalBlock"][class*="st-key-menu_lado_sidebar"] {{
 
-    
-    </style>
+    background-color: {THEMA_APP1} !important;
+    border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important;
+
+	}}
 
 
-    """
+    </style>"""
 
 	st.markdown(page_bg, unsafe_allow_html=True)
 
@@ -802,10 +790,6 @@ div[data-testid="stTabs"][class*="st-emotion-cache-8atqhb eh1nhsq0"] [data-basew
 		{resumo_dict_para_html()}
 		</div>
 		"""
-
-
-
-
 		return (IMAGEM_LOGO, NOME_CUSTOM, NOME_USUARIO, COR_CAMPO, COR_MENU, THEMA_EDITOR,EDITOR_TAM_MENU,THEMA_PREVIEW,
 		        PREVIEW_TAM_MENU,THEMA_TERMINAL,TERMINAL_TAM_MENU,TOP_CAB,FONTE_MENU,FONTE_CAMPO,FUNDO_EDTOR)
 	except IndexError:

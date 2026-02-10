@@ -63,8 +63,6 @@ ARQUITETURA:
 - cwd=_ROOT_PATH sempre
 - Fragment performance otimizada
 """
-import sys
-from pathlib import Path
 import streamlit as st
 import subprocess
 import threading
@@ -73,10 +71,9 @@ import re
 import psutil
 
 from APP_SUB_Funcitons import controlar_altura
-from Banco_Dados_sudo_pip import *
+from Banco_dados import *
 from APP_SUB_Controle_Driretorios import (
-    _DIRETORIO_PROJETO_ATUAL_,
-    _DIRETORIO_EXECUTAVEL_, VENVE_DO_PROJETO
+    VENVE_DO_PROJETO
 )
 
 STARTUPINFO = subprocess.STARTUPINFO()
@@ -140,34 +137,35 @@ def normalize_command(cmd: str) -> list:
     return cmd_parts
 
 
-def start_command(aba, cmd):
-    state = get_aba_state(aba)
-    if state["running"]:
-        return
+def start_command(col1,aba, cmd):
 
-    # TRANSFORMA EM LISTA PYTHON PURA (SEU MÉTODO)
-    cmd_list = normalize_command(cmd)
+        state = get_aba_state(aba)
+        if state["running"]:
+                return
 
-    proc = subprocess.Popen(
-        cmd_list,  # <- LISTA DIRETA, SEM POWERSHELL
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
-        encoding="utf-8",
-        bufsize=1,
-        cwd=_ROOT_PATH,  # <- DIRETÓRIO DO PROJETO
-        startupinfo=STARTUPINFO,
-        creationflags=CREATE_FLAGS
-    )
+        # TRANSFORMA EM LISTA PYTHON PURA (SEU MÉTODO)
+        cmd_list = normalize_command(cmd)
 
-    state["proc"] = proc
-    state["pid"] = proc.pid
-    state["cmd"] = cmd
-    state["running"] = True
-    state["silencioso_count"] = 0
-    state["queue"] = queue.Queue()
+        proc = subprocess.Popen(
+            cmd_list,  # <- LISTA DIRETA, SEM POWERSHELL
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            encoding="utf-8",
+            bufsize=1,
+            cwd=_ROOT_PATH,  # <- DIRETÓRIO DO PROJETO
+            startupinfo=STARTUPINFO,
+            creationflags=CREATE_FLAGS
+        )
 
-    threading.Thread(target=reader_thread, args=(proc, state["queue"]), daemon=True).start()
+        state["proc"] = proc
+        state["pid"] = proc.pid
+        state["cmd"] = cmd
+        state["running"] = True
+        state["silencioso_count"] = 0
+        state["queue"] = queue.Queue()
+
+        threading.Thread(target=reader_thread, args=(proc, state["queue"]), daemon=True).start()
 
 
 def kill_process_tree(pid):
@@ -183,7 +181,6 @@ def kill_process_tree(pid):
 @st.fragment(run_every=0.1)
 def terminal_fragment(aba,altura):
     state = get_aba_state(aba)
-
     if not state["running"]:
         st.code(state["buffer"], language="powershell",height=altura)
         return
@@ -208,7 +205,7 @@ def terminal_fragment(aba,altura):
     st.code(state["buffer"], language="powershell")
 
 
-def RenderTerminalAba(input_mode, altura, aba, aba_index=0):
+def RenderTerminalAba(col1,input_mode, altura, aba, aba_index=0):
     state = get_aba_state(aba)
     with st.container(height=altura):
         terminal_fragment(aba,altura)
@@ -243,7 +240,7 @@ def RenderTerminalAba(input_mode, altura, aba, aba_index=0):
                             info.error("❌ Só 'pip install' em Módulos!")
         if cmd:
             state["buffer"] += f"\n{_PROMPT}{cmd}\n"
-            start_command(aba, cmd)
+            start_command(col1,aba, cmd)
             st.stop()
 
     else:
@@ -312,7 +309,7 @@ def RenderTerminalAba(input_mode, altura, aba, aba_index=0):
             mod_delete = st.selectbox(" ", nomes_delete, label_visibility="collapsed",
                                       key=f"delete_sel_{aba_index}_{safe_key(aba)}")  # ← KEY ÚNICA
 
-            if st.button("❌", key=f"delete_btn_{aba_index}_{safe_key(aba)}"):
+            if st.button("❌", key=f"delete_btn_{aba_index}_{safe_key(aba)}",type='secondary'):
                 if mod_delete != "🗑️ Deletar...":
                     conn = sqlite3.connect("Banco_Dados_sudo_pip.db")
                     c = conn.cursor()
@@ -329,12 +326,12 @@ def RenderTerminalAba(input_mode, altura, aba, aba_index=0):
                               key=f"exec_btn_{aba_index}_{safe_key(aba)}"):  # ← KEY ÚNICA
                 texto = st.session_state.cmd_temp
                 state["buffer"] += f"\n{_PROMPT}{texto}\n"
-                start_command(aba, texto)
+                start_command(col1,aba, texto)
                 st.rerun()
 
-    col1, col2, col3 = st.columns(3)
+    col1_btn, col2_btn, col3_btn = st.columns(3)
 
-    if col1.button("PARAR", key=f"kill_{aba_index}_{safe_key(aba)}"):
+    if col1_btn.button("PARAR", key=f"kill_{aba_index}_{safe_key(aba)}"):
         if state["pid"]:
             kill_process_tree(state["pid"])
         state["running"] = False
@@ -342,13 +339,13 @@ def RenderTerminalAba(input_mode, altura, aba, aba_index=0):
         state["pid"] = None
         state["buffer"] += f"\nINTERROMPIDO\n{"-"*150}_TcbT_\n\n{_PROMPT}"
 
-    if col2.button("LIMPAR", key=f"clear_{aba_index}_{safe_key(aba)}"):
+    if col2_btn.button("LIMPAR", key=f"clear_{aba_index}_{safe_key(aba)}"):
         state["buffer"] = _PROMPT
         state["running"] = False
         state["proc"] = None
         state["pid"] = None
 
-    if col3.button("PARAR TUDO", key=f"kill_all_{aba_index}_{safe_key(aba)}"):
+    if col3_btn.button("PARAR TUDO", key=f"kill_all_{aba_index}_{safe_key(aba)}"):
         for s in st.session_state.terminal_abas.values():
             if s.get("pid"):
                 kill_process_tree(s["pid"])
@@ -384,4 +381,5 @@ def Terminal():
         tabs = st.tabs(st.session_state.abas_terminal)
         for i, aba in enumerate(st.session_state.abas_terminal):
             with tabs[i]:
-                RenderTerminalAba(input_mode, altura, aba, aba_index=i)
+                with col1.spinner('processos...'):
+                    RenderTerminalAba(col1,input_mode, altura, aba, aba_index=i)

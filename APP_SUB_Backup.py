@@ -3,7 +3,7 @@ import shutil
 import time
 from pathlib import Path
 from datetime import datetime
-from Banco_Predefinitions import (
+from Banco_dados import (
 	ler_BACKUP_HORAS_ATUALIZOU, verifica_minutos, ATUAL_BACKUP,
 	ler_BACKUP_QTDS_HORAS_ATUALIZOU, backups_feito
 )

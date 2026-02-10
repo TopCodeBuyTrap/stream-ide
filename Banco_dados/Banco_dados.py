@@ -7,7 +7,7 @@ import  streamlit as st
 
 
 def get_conn():
-    return sqlite3.connect("Base_Dados.db", check_same_thread=False)  # ← ADICIONE , check_same_thread=False
+    return sqlite3.connect("Banco_dados/Base_Dados.db", check_same_thread=False)  # ← ADICIONE , check_same_thread=False
 
 @st.cache_data
 def init_db():

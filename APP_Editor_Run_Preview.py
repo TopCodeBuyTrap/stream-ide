@@ -10,13 +10,14 @@ from APP_Editores_Auxiliares.APP_Editor_Codigo import editor_codigo_autosave
 
 from APP_Menus import Apagar_Arq
 from APP_SUB_Controle_Driretorios import VENVE_DO_PROJETO
-from APP_SUB_Funcitons import Identificar_linguagem, Button_Nao_Fecha, Sinbolos, \
-    controlar_altura, controlar_altura_horiz
+from APP_SUB_Funcitons import Identificar_linguagem, Sinbolos, \
+    controlar_altura_horiz
 from APP_SUB_Janela_Explorer import Abrir_Arquivo_Select_Tabs
 from APP_Editores_Auxiliares.SUB_Run_servidores import netstat_streamlit, run_streamlit_process, is_streamlit_code, is_flask_code, \
     run_flex_process, extract_flask_config, find_port_by_pid, stop_flex, stop_process_by_port, is_django_code, \
     extract_django_config
 from APP_Editores_Auxiliares.SUB_Traduz_terminal import traduzir_saida
+from Banco_dados import scan_project, reset_db, checar_modulos_locais, checar_modulos_pip
 
 # 🔥 USA A FUNÇÃO MESTRE - ZERO Path()
 _Python_exe, _Root_path, _Venv_path, _Prompt_venv = VENVE_DO_PROJETO()
@@ -59,105 +60,55 @@ def status_bar_pro(
     if arquivo_path:
         nome_arquivo = os.path.basename(arquivo_path)
 
-    col1, col2, col3, col4, col5, col6 = st.columns(
-        [1.2, 1.6, 2.2, 1.6, 2.4, 2.8]
-    )
+    status_mod = "MOD" if modificado else "OK"
 
-    with col1:
-        st.caption(f"{total_linhas} linhas")
-
-    with col2:
-        st.caption(f"{total_chars} chars")
-
-    with col3:
-        st.caption(f"{tamanho_bytes} bytes")
-
-    with col4:
-        if hasattr(state, "autosave_status"):
-            st.caption(state.autosave_status)
-        else:
-            st.caption("")
-
-    with col5:
-        status_mod = "MOD" if modificado else "OK"
-        st.caption(f"{modo} | {status_mod} | {encoding}")
-
-    with col6:
-        st.caption(
-            f"{nome_arquivo}  Ln {linha_atual}, Col {coluna_atual} | {linguagem}"
-        )
-
-
-# 🔥 DETECTOR MÓDULOS SIMPLES (sem dicionário inútil)
-def checar_modulos_no_venv_(codigo, _Python_exe):
-    """Checa se módulo tá NO VENV ANTES de instalar"""
-    faltando = []
-    try:
-        tree = ast.parse(codigo)
-        for node in ast.walk(tree):
-            if isinstance(node, ast.Import):
-                for alias in node.names:
-                    mod = alias.name.split('.')[0]
-                    # CHECA NO VENV COM PIP LIST!
-                    resultado = os.popen(f'"{_Python_exe}" -m pip list').read()
-                    if mod.lower() not in resultado.lower():
-                        faltando.append(mod)
-            elif isinstance(node, ast.ImportFrom) and node.module:
-                mod = node.module.split('.')[0]
-                resultado = os.popen(f'"{_Python_exe}" -m pip list').read()
-                if mod.lower() not in resultado.lower():
-                    faltando.append(mod)
-        return list(set(faltando))
-    except:
-        return []
-
-
-# 🔥 DETECTOR MÓDULOS FALTANDO (PIP + SCRIPTS)
-def checar_modulos_no_venv(codigo, nome_arquivo, caminho, _Python_exe):
-    """Retorna: {'pip': [...], 'local': [...]}"""
-    modulos_pip = []
-    modulos_local = []
-
-    try:
-        tree = ast.parse(codigo)
-
-        todos_modulos = set()
-        for node in ast.walk(tree):
-            if isinstance(node, ast.Import):
-                for alias in node.names:
-                    mod = alias.name.split('.')[0]
-                    todos_modulos.add(mod)
-            elif isinstance(node, ast.ImportFrom) and node.module:
-                mod = node.module.split('.')[0]
-                todos_modulos.add(mod)
-
-        # PIP
-        pip_resultado = os.popen(f'"{_Python_exe}" -m pip list').read().lower()
-        arquivos_locais = [f[:-3].lower() for f in os.listdir('.') if f.endswith('.py')]
-
-        for mod in todos_modulos:
-            mod_lower = mod.lower()
-            if mod_lower not in arquivos_locais and mod_lower not in pip_resultado:
-                # É pip ou local? (tenta importar)
-                try:
-                    __import__(mod)
-                except ImportError:
-                    modulos_pip.append(mod)
-                else:
-                    modulos_local.append(mod)
-
-    except:
-        pass
-
-    return {'pip': modulos_pip, 'local': modulos_local}
-
-
-# USO:
+    st.text(f"{total_linhas} linhas\t\t{total_chars} chars\t\t{tamanho_bytes} bytes\t\t{modo} | {status_mod} | {encoding}\t\t"
+            f"{nome_arquivo}  Ln {linha_atual}, Col {coluna_atual} | {linguagem}")
 
 
 
+def mostrar_todos_imports(aba_id, codigo):
+    from Banco_dados import gerar_predefinidos_com_links
 
-def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE, colStop, ColunaRun,CorBACK):
+    # ===== Exemplo de uso no editor =====
+    def_from, def_predefinidos, from_predefinidos = gerar_predefinidos_com_links()
+
+    tokens = set(codigo.strip().split())
+
+    # DEF
+    for token in tokens:
+        if token in def_predefinidos:
+            caminho = def_predefinidos[token]
+            with st.popover(f"def {token}"):
+                st.write(caminho)
+
+    # coleta
+    itens_import = []
+
+    for token in tokens:
+        if token in from_predefinidos:
+            dados = from_predefinidos[token]
+
+            itens_import.append({
+                "label": f"{token} / {os.path.basename(dados['caminho'])} "
+                         f"(linha {dados['linha']})",
+                "caminho": dados["caminho"]
+            })
+
+    # renderização
+    if itens_import:
+        with st.popover("import"):
+            for i, item in enumerate(itens_import):
+                if st.button(
+                        item["label"],
+                        width="stretch",
+                        type="tertiary",
+                        key=f"{aba_id}_{i}"
+                ):
+                    st.write(item["caminho"])
+
+
+def Editor_Simples(INFO_COL,Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE, colStop, ColunaRun,CorBACK):
     msg_fim_cod = "🏁 Fim do Codigo!"
     Most_Logs = False
 
@@ -267,7 +218,7 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
         ja_catalogado, info = arquivo_ja_catalogado(caminho)
         cat = ':material/star_rate:' if ja_catalogado else ''
         em = Sinbolos(nom_arqu)
-        nome_formatado = f"{em}{nome_curto(nom_arqu, 8)}{cat}"
+        nome_formatado = f"{em}{nome_curto(nom_arqu, 12)}{cat}"
         nomes_completos.append(nome_formatado)
 
     abas = st.tabs(nomes_completos)
@@ -305,18 +256,15 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
                     conteudo_inicial=conteudo_inicial,
                     linguagem=linguagem,
                     thema_editor=THEMA_EDITOR,font_size=EDITOR_TAM_MENU,
-                    fonte=FONTE, altura=altura, backgroud = CorBACK,
+                    fonte=FONTE, altura=altura, lateral=INFO_COL, backgroud = CorBACK,
                 )
 
-                with Janela:
+                with menuserv:
                     if is_streamlit_code(cod):
                         st.code(f'streamlit run {nome_arquivo}')
                     if is_flask_code(cod):
                         st.code(f'python {nome_arquivo} # flask')
-                bot1,bot2,bot3 = st.columns([2,3,5])
 
-                if bot1.button(f'🗑️Apagar: {nome_arquivo}', key=f"botao_apagar_arquivos{I}"):
-                    Apagar_Arq(st, nome_arquivo, caminho)
 
                 # Salva no session_state por aba
                 # 🔥 FIX LINHAS VAZIAS
@@ -325,44 +273,24 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
                     cod = cod[:-2]
 
                 _.Conteudo[I] = cod
+                with INFO_COL:
+                    APG,RST =st.columns([9,1])
+                    if APG.button(f':material/delete_forever:  Apagar: {nome_arquivo}', key=f"botao_apagar_arquivos{I}",type='primary'):
+                        Apagar_Arq(st, nome_arquivo, caminho)
+                    if RST.button(f':material/lock_reset:', key=f"botao_restart_alt{I}"):
+                            reset_db()
+                            scan_project()
+                    # 🔥 DETECTOR MÓDULOS FALTANDO (PREVIEW)
+                    checar_modulos_locais(I,cod, nome_arquivo, caminho)
+                    checar_modulos_pip(I,cod, nome_arquivo, caminho)
+                    mostrar_todos_imports(I, cod)
 
-                # 🔥 DETECTOR MÓDULOS FALTANDO (PREVIEW)
-                modulos_faltando = checar_modulos_no_venv(cod, nome_arquivo, caminho, _Python_exe)
 
-                with bot2:
-                    if modulos_faltando['pip'] or modulos_faltando['local']:
-                        col1, col2, col3 = st.columns([1, 1, 1])
 
-                        if modulos_faltando['pip']:
-                            col1.write(f"📦 PIP: {', '.join(modulos_faltando['pip'])}")
-                            if col2.button(f"🔧 INSTALAR PIP", type="primary"):
-                                for mod in modulos_faltando['pip']:
-                                    with st.spinner(f"📦 {mod}..."):
-                                        os.system(f'"{_Python_exe}" -m pip install {mod}')
-                                st.success("✅ PIP Instalado!")
-                                st.rerun()
-
-                        if modulos_faltando['local']:
-                            col1.write(f"📁 LOCAL: {', '.join(modulos_faltando['local'])}")
-                            if col3.button(f"➕ COLOCAR IMPORTS", type="secondary",key=I):
-                                # 🔥 ESCREVE NO TOPO DO ARQUIVO
-                                imports_locais = "\n".join(
-                                    [f"from {mod} import *" for mod in modulos_faltando['local']])
-                                novo_codigo = f"{imports_locais}\n\n{cod}"
-
-                                # SALVA ARQUIVO
-                                with open(caminho, 'w', encoding='utf-8') as f:
-                                    f.write(novo_codigo)
-
-                                st.success(f"✅ Imports adicionados em {nome_arquivo}!")
-                                st.rerun()
-                    else:
-                        st.write("✅ Tudo instalado - pode rodar!")
-
-                # CHAMA STATUS BAR (só na aba ativa)
-                if len(nomes_arquivos) > 0:
-                    with bot3:
+                    # CHAMA STATUS BAR (só na aba ativa)
+                    if len(nomes_arquivos) > 0:
                         status_bar_pro(_, linguagem, cod)
+
             except AttributeError:
                 with st.container(border=True,height=altura):
                     if extensao in midia_exts or not conteudo_inicial or '�' in conteudo_inicial[:100]:
@@ -631,8 +559,8 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
                     st.error(f"Erro ao tentar parar a porta {porta}: {e}")
     # -------------------------------------------------------------------- TERMINAL Preview
     with st.container(border=True, key='Preview'):
-        if Button_Nao_Fecha(f':material/directions_bike: **{nome_arquivo_sectbox}**', f':material/directions_bike: '
-                                                                                          f'**{nome_arquivo_sectbox}**','BtnPreview'):
+        with st.expander(f':material/directions_bike: **{nome_arquivo_sectbox}**'):
+        #if Button_Nao_Fecha(f':material/directions_bike: **{nome_arquivo_sectbox}**', f':material/directions_bike: ' f'**{nome_arquivo_sectbox}**','BtnPreview'):
             from APP_Editores_Auxiliares.APP_Preview import Previews
 
             Previews(st, _, linguagem, msg_fim_cod)
@@ -645,22 +573,24 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
     saida_preview = _.output.strip().replace(f'{caminho_sectbox}>', '').replace(msg_fim_cod, '')
 
     with st.container(border=True, key='Preview_Jason'):
-        if Button_Nao_Fecha(f':material/data_object: Explorer Jason', f':material/data_object: Explorer Jason',
-                            'BtnJson'):
+        with st.expander(f':material/data_object: Explorer Jason'):
+            #if Button_Nao_Fecha(f':material/data_object: Explorer Jason', f':material/data_object: Explorer Jason','BtnJson'):
             from APP_Editores_Auxiliares.APP_Json import Jsnon
             Jsnon(st, saida_preview)
 
     # -------------------------------------------------------------------- Api IA
     with st.container(border=True, key='Api_IA'):
-        if Button_Nao_Fecha(f':material/psychology: Chat IA', f':material/psychology: Chat IA','BtnChat'):
+        with st.expander(f':material/psychology: Chat IA'):
+            #if Button_Nao_Fecha(f':material/psychology: Chat IA', f':material/psychology: Chat IA','BtnChat'):
             from APP_Editores_Auxiliares.APP_Api_IAs import IA_openrouter
             IA_openrouter(st, codigo_sectbox, saida_preview, linguagem)
 
     # -------------------------------------------------------------------- Catalogar scripts
     with st.container(border=True, key='Catalogar_scripts'):
         from APP_Editores_Auxiliares.APP_Catalogo import catalogar_arquivo_ia
+        with st.expander(f':material/inventory: Catalogar: {nome_arquivo_sectbox}'):
 
-        if Button_Nao_Fecha(f':material/inventory: Catalogar: {nome_arquivo_sectbox}', f':material/inventory_2: Catalogar: {nome_arquivo_sectbox}', 'BtnCatalogar'):
+            #if Button_Nao_Fecha(f':material/inventory: Catalogar: {nome_arquivo_sectbox}', f':material/inventory_2: Catalogar: {nome_arquivo_sectbox}', 'BtnCatalogar'):
            # aqui começa a porro das chamada desse codogo
             try:
                 catalogar_arquivo_ia(nome_arquivo_sectbox, caminho_sectbox, codigo_sectbox, linguagem)
@@ -690,6 +620,8 @@ def Editor_Simples(Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE
                 timestamp_key = key + '_timestamp'
                 if timestamp_key in session_state:
                     del session_state[timestamp_key]
+
+
 
     limpar_autosave_velho()  # Executa sempre
 

@@ -1,0 +1,1129 @@
+Stream-IDE: A IDE em Streamlit
+https://github.com/TopCodeBuyTrap/stream-ide
+
+INSTALL:
+                INSTALAÇÕES PENDÊNCIAS E MÓDULOS DO PROJETO
+
+# Atualiza o gerenciador de pacotes, setuptools e wheel essenciais para instalação de pacotes:
+python.exe -m pip install --upgrade pip
+python -m pip install --upgrade setuptools wheel
+
+# ---------------------------- Criar app para executavel em pc
+pip install streamlit-desktop-app
+
+name: streamlit-desktop-app
+version: 0.3.3
+summary: easily convert streamlit apps into standalone desktop applications.
+home-page: https://github.com/ohtaman/streamlit-desktop-app
+author: ohtaman
+author-email: ohtamans@gmail.com
+
+# ---------------------------- Editor de Codigos
+pip install streamlit-code-editor    # instalei pq tem como controlar os reruns de teclas digitadas
+Home-page: https://github.com/bouzidanas/streamlit-code-editor
+Author: Anas Bouzid
+Author-email: anasbouzid@gmail.com
+
+
+# ---------------------------- Rodar
+streamlit run APP_.py
+streamlit run Main.py
+
+
+
+
+# FALTA IMPLEMENTAR:
+
+2. botão para baixar arquivos
+implementar uma função que permita ao usuário baixar qualquer arquivo criado ou usado na ide.
+o usuário poderá escolher o local de destino no computador.
+
+3. pré-instalação de módulos ao criar um projeto
+ao criar um novo projeto, a ide deve instalar automaticamente módulos ou bibliotecas que o projeto precisa.
+isso garante que o projeto já esteja configurado e pronto para rodar sem ajustes manuais.
+
+uma parte que eu apanhei muito, precisei até de trocar o editor de código, porque não estava acompanhando o tema que eu passava. quando eu fui olhar na função,
+estava errada, estava retornando quando eu entrava com o arquivo, eu coloquei uma função para retornar o que que era o arquivo para para modificar para a
+linguagem. só que a função estava retornando essa linguagem em que a primeira letra maiúscula, em em título, título. e isso estava fodendo com o tema. aí
+o tema não reconhecia a linguagem e não dava conta de de acompanhar. esse foi um problema, eu fiquei o dia inteiro para resolver e só fui descobrir depois
+que eu instalei uns dois ou três editores. outra coisa também que foi canseira foi de usar o terminal. ainda estou trabalhando nisso, mas é muito difícil de
+usar o terminal, fazer eh usar o o dos ou sei lá o que que é que tá usando aqui do do windows. e outra coisa também que foi difícil foi fazer o conectar o
+preview do editor de código com o python, que está instalado na venv
+
+4. criar botao traduzir terminal
+
+6. Implementar github e atualização automatica
+
+
+# para criar o executavel:
+streamlit-desktop-app build APP_.py `
+    --name Stream_IDE `
+    --streamlit-options --theme.base=dark `
+    --pyinstaller-options `
+    --onedir --noconfirm `
+    --icon icon.ico
+
+
+
+
+
+# Importante colocar --collect-data certifi
+Porque o requests depende do certifi para validar conexões HTTPS.
+
+
+
+
+Abertura_TCBT.py ___________________________________________________________Configuração Inicial da Stream-IDE
+Script principal da página inicial que configura diretórios absolutos, caminhos de projetos e backups para a Stream-IDE v0.0.1.
+
+IMPORTES E MÓDULOS
+- import streamlit as st  # Framework web para criar interface interativa da aplicação
+- import os  # Manipulação de caminhos e arquivos do sistema operacional
+- from pathlib import Path  # Manipulação moderna e segura de caminhos de arquivos
+- from APP_SUB_Janela_Explorer import Janela_PESQUIZA_PASTAS_ARQUIVOS  # Componente para seleção visual de pastas/arquivos
+- from Banco_dados import esc_A_CONTROLE_ABSOLUTO, ler_A_CONTROLE_ABSOLUTO, esc_CUSTOMIZATION  # Funções de persistência no banco de dados local
+
+def Janela_Lista_Arquivos(st, listar_tipo, caminho_inicial):
+# Abre dialog interativo para seleção de arquivos/pastas usando Janela_PESQUIZA_PASTAS_ARQUIVOS.
+# Parâmetros: st (Streamlit), listar_tipo ('pastas' ou 'arquivos'), caminho_inicial (Path inicial).
+# Inicializa session_state para caminho_selecionado e dialog_aberto.
+# Retorna caminho selecionado ou None. Fecha dialog com st.rerun() ao confirmar.
+
+def verificar_config_absoluta():
+# Verifica se configuração absoluta A_CONTROLE_ABSOLUTO existe e tem dados.
+# Usa ler_A_CONTROLE_ABSOLUTO() do banco, retorna True se configurado, False caso contrário.
+# Trata exceções implicitamente retornando False.
+
+def texto_sobre():
+# Retorna string com texto pessoal do desenvolvedor Henrique sobre a Stream-IDE.
+# Inclui créditos e descrição do projeto.
+
+def texto_reconhencimento():
+# Retorna string com reconhecimentos a desenvolvedores e repositórios externos usados.
+# Inclui links para streamlit-desktop-app e streamlit_ace.
+
+def Abertura():
+# Função principal que monta interface de configuração inicial em layout de colunas.
+# Verifica configuração existente com verificar_config_absoluta().
+# Se não configurado: mostra auto-detecção de diretórios, inputs para projetos/backup/ollama, credenciais GPT.
+# Cria pastas necessárias (.mim_mids, BackupSTR). Salva com esc_A_CONTROLE_ABSOLUTO e esc_CUSTOMIZATION.
+# Aplica CSS customizado estilo "gamer retrô" com fontes 8-bit e gradientes neon.
+# Retorna True se configuração salva com sucesso.
+
+
+# Não há chamadas principais soltas fora das funções - o script é executado como página Streamlit principal.
+
+APP_.py ____________________________________________________________________Aplicação Principal da Stream-IDE
+Script principal da Stream-IDE que gerencia projetos recentes, interface com editor, terminal e sidebar funcional. Corrige ModuleNotFoundError em executáveis e controla fluxo de configuração inicial.
+
+IMPORTES E MÓDULOS
+- import sys  # Acesso a variáveis do sistema Python e detecção de modo executável
+- from pathlib import Path  # Manipulação segura de caminhos de arquivos
+- import streamlit as st  # Framework web para interface principal da IDE
+- from datetime import datetime  # Manipulação de datas para ordenação de projetos
+- from APP_Editores_Auxiliares.APP_Catalogo import conf_baix_catalogo  # Catálogo de arquivos baixados
+- from APP_SUB_Customizar import Customization  # Interface de customização visual
+- from APP_SUB_Funcitons import contar_estrutura, Button_Nao_Fecha, data_sistema, limpar_CASH, carregar_imagem_segura  # Funções utilitárias gerais
+- from APP_SUB_Janela_Explorer import listar_arquivos_e_pastas  # Listagem recursiva de arquivos/pastas
+- from APP_Sidebar import Sidebar_Diretorios  # Componente sidebar para navegação de arquivos
+- from Banco_dados import ler_A_CONTROLE_PROJETOS, ler_B_ARQUIVOS_RECENTES, se_B_ARQUIVOS_RECENTES, esc_B_ARQUIVOS_RECENTES, Del_B_ARQUIVOS_RECENTES, ler_A_CONTROLE_ABSOLUTO, Del_CUSTOMIZATION, esc_A_CONTROLE_PROJETOS  # CRUD banco de dados local
+- from APP_SUB_Controle_Driretorios import _DIRETORIO_EXECUTAVEL_, _DIRETORIO_PROJETOS_  # Leitura de caminhos absolutos configurados
+- from APP_Htmls import Carregamento_BancoDados_Temas  # Carregamento de temas e customizações visuais
+- from Abertura_TCBT import Abertura  # Página de configuração inicial absoluta
+- from APP_Menus import Abrir_Menu, Cria_Projeto_pouppap  # Menus e criação de projetos
+- from APP_Editor_Run_Preview import Editor_Simples  # Editor de código com preview e run
+- from APP_Terminal import Terminal  # Terminal integrado
+- from APP_SUB_Backup import BAKCUP  # Sistema de backup automático
+- from APP_Atualizador import checar_atualizacao  # Verificador de atualizações
+- from Banco_Predefinitions import ultima_versao  # Versão atual da aplicação
+
+DEPOIS EM ORDEM (na sequência que aparecem no código):
+# Bloco de correção ModuleNotFoundError para executáveis
+if getattr(sys, 'frozen', False):  # Detecta execução como PyInstaller executável
+    app_root = Path(sys.executable).parent.absolute()  # Pasta do .exe
+    sys.path.append(str(app_root / "_internal"))  # Adiciona pasta interna ao Python path
+    sys.path.append(str(app_root))  # Adiciona pasta raiz
+else:  # Execução normal como script Python
+    app_root = Path(__file__).parent.absolute()
+    sys.path.append(str(app_root))  # Adiciona pasta do script
+
+def select_arquivo_recente(col2):
+# Lista e seleciona projetos recentes com ordenação múltipla (data, versão, alfabética).
+# Carrega de ler_A_CONTROLE_PROJETOS(), ordena dados, permite seleção via selectbox.
+# Atualiza controle com esc_A_CONTROLE_PROJETOS() e limpa cache ao trocar projeto.
+# Parâmetros: col2 (coluna Streamlit). Retorna None.
+
+def app():
+# Função principal da aplicação IDE após configuração absoluta.
+# Monta layout com menu superior, sidebar lateral, editor principal e terminal.
+# Gerencia projetos recentes, backups automáticos, customização e navegação de arquivos.
+# Inicializa variáveis globais de arquivos selecionados e controla fluxo com containers nomeados.
+
+if __name__ == "__main__":
+# Ponto de entrada principal do script.
+# Configura Streamlit (wide layout, ícone, sidebar colapsada).
+# Verifica configuração absoluta: se ok → carrega temas e executa app(); senão → mostra Abertura().
+# Usa st.rerun() após configuração para recarregar com novos dados.
+
+
+global arquivo_selecionado_caminho, arquivo_selecionado_nome, arquivo_selecionado_conteudo  # Variáveis globais para estado do arquivo editado
+st.set_page_config(page_title="Stream-IDE", layout="wide",page_icon='icon.ico',initial_sidebar_state='collapsed')  # Configuração global da página
+if 'config_absoluta_ok' not in st.session_state:  # Inicializa flag de configuração na session
+    st.session_state.config_absoluta_ok = False
+
+APP_Atualizador.py _____________________________________________________________Sistema de Auto-Atualização da Stream-IDE
+Script responsável por verificar versão atual no GitHub e atualizar automaticamente a aplicação, preservando certificados e arquivos críticos.
+
+IMPORTES E MÓDULOS
+- import sys  # Detecção de execução em modo executável (PyInstaller)
+- import os  # Operações básicas do sistema de arquivos
+- import shutil  # Cópia recursiva e remoção de diretórios
+- import time  # Timestamp para cache busting em requests
+- import zipfile  # Extração de arquivos ZIP do GitHub
+- import requests  # Download de versão e ZIP releases
+- from pathlib import Path  # Manipulação segura de caminhos
+- import streamlit as st  # Interface de dialog para processo de update
+- from Banco_Predefinitions import ultima_versao, salvar_versao, atualizar_info_versao  # Controle de versão no banco local
+
+def get_app_root():
+# Detecta pasta raiz da aplicação (executável ou script).
+# Retorna Path da pasta pai do .exe (frozen) ou pasta pai do script.
+
+def checar_atualizacao():
+# Abre dialog Streamlit para verificar atualizações.
+# Compara versao_local com LATEST_VERSION.txt do GitHub.
+# Mostra botão de update se versão nova disponível, senão confirma atualizado.
+
+def atualizar_tudo(nova_versao):
+# Processo completo de atualização automática da aplicação.
+# 1. Download ZIP do GitHub com 4 métodos fallback
+# 2. Extrai em temp_update/stream-ide-main
+# 3. Backup certifi/ antes da atualização
+# 4. Atualiza seletivamente _internal/ (preserva certifi)
+# 5. Restaura certifi/ do backup
+# 6. Remove .py antigos da raiz
+# 7. Copia arquivos raiz (style.css)
+# 8. Atualiza pasta .arquivos/
+# 9. Limpa temporários e atualiza banco com salvar_versao()
+# Finaliza com sys.exit(0) após 5s.
+
+def chek_atual_simples():
+# Verificação silenciosa de versão (sem dialog).
+# Atualiza info no banco com atualizar_info_versao(), sem interface.
+
+APP_Editor_Run_Preview.py ______________________________________________________Editor Multi-Aba com Execução
+Editor de código multi-abas com execução em tempo real (Streamlit/Flask/Django/Python), detecção automática de módulos faltantes, preview e suporte a mídia/binários.
+
+IMPORTES E MÓDULOS
+- import subprocess  # Execução de processos externos (Streamlit/Flask/Django)
+- from pathlib import Path  # Manipulação segura de caminhos
+- import streamlit as st  # Interface principal
+- import threading  # Execução assíncrona de código Python
+- import queue  # Comunicação thread ↔ main (input/output)
+- import os, time, re, sys, ast  # Sistema, tempo, regex, sys path, análise AST imports
+- from APP_Editores_Auxiliares.APP_Catalogo import arquivo_ja_catalogado  # Verifica catalogação
+- from APP_Editores_Auxiliares.APP_Editor_Codigo import editor_codigo_autosave  # Editor Ace com autosave
+- from APP_Menus import Apagar_Arq  # Deleção de arquivos
+- from APP_SUB_Controle_Driretorios import VENVE_DO_PROJETO  # Retorna Python_exe, paths VENV
+- from APP_SUB_Funcitons import Identificar_linguagem, Button_Nao_Fecha, Sinbolos, controlar_altura  # Utils gerais
+- from APP_SUB_Janela_Explorer import Abrir_Arquivo_Select_Tabs  # Leitor de arquivos por aba
+- from APP_Editores_Auxiliares.SUB_Run_servidores import *  # Detecção/execução Streamlit/Flask/Django
+- from APP_Editores_Auxiliares.SUB_Traduz_terminal import traduzir_saida  # Tradução erros
+
+_Python_exe, _Root_path, _Venv_path, _Prompt_venv = VENVE_DO_PROJETO()  # Config VENV global
+
+def scrl(val):
+# Remove scroll da página principal quando toggle desabilitado.
+
+def status_bar_pro(state, linguagem, cod, linha_atual=1, coluna_atual=1, arquivo_path=None, readonly=False):
+# Barra de status com linhas, chars, bytes, modo (EDIT/READONLY), encoding e posição cursor.
+
+def checar_modulos_no_venv_(codigo, _Python_exe):
+# Detector AST simples - lista imports faltantes no VENV via pip list.
+
+def checar_modulos_no_venv(codigo, nome_arquivo, caminho, _Python_exe):
+# Detector mestre: separa módulos PIP vs locais (testa import real).
+# Retorna {'pip': [...], 'local': [...]} para auto-instalação/imports.
+
+def Editor_Simples(Janela, Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU, FONTE, colStop, ColunaRun, CorBACK):
+# Editor multi-abas COMPLETO com execução, preview e gerenciamento.
+# Suporte: Python (thread), Streamlit/Flask/Django (subprocess), mídia/binários.
+# Recursos: autosave, detecção módulos faltantes (auto-instala), status bar, stop/kill portas.
+# Parâmetros: Janela (container), Select (selectbox abas), CAMINHHOS (lista paths).
+# Estado session_state: Conteudo[], Diretorio[], output, thread_running, id_aba_ativa.
+# Retorna: ([], [], "", "", "") se sem arquivos.
+
+def run_code_thread(codigo, input_q, output_q, caminho_sectbox):  # Inner function
+# Thread executora Python puro: custom input/stdout, sys.path+VENV, exec() seguro.
+# Captura output via queue, trata exceções, restaura sys.stdout.
+
+def limpar_autosave_velho():  # Inner function
+# Limpeza automática de autosave session_state >1h (evita memory leak).
+
+
+midia_exts = {'.mp3','.wav','.ogg','.flac','.mp4','.avi','.mkv','.webm','.png','.jpg','.jpeg','.gif','.bmp','.webp','.tiff','.pdf','.zip','.rar','.7z','.exe','.dll'}  # Extensões mídia/binários (visualização especial)
+msg_fim_cod = "🏁 Fim do Codigo!"  # Mensagem final execução
+Most_Logs = False  # Flag debug logs
+
+
+PASTA > APP_Editores_Auxiliares:
+    APP_Api_IAs.py _____________________________________________________________Assistente IA OpenRouter integrado
+Interface de IA para análise, geração, refatoração e documentação de código usando OpenRouter API com 10 ações pré-configuradas.
+
+IMPORTES E MÓDULOS
+- import re  # Limpeza de markdown (```) da resposta da IA
+- import requests  # Chamada HTTP para OpenRouter API
+- from APP_SUB_Controle_Driretorios import _DIRETORIO_EXECUTAVEL_  # Recupera chave API do diretório executável
+- from APP_SUB_Funcitons import wrap_text, controlar_altura  # Utils de formatação e redimensionamento
+
+def IA_openrouter(st, codigo_completo_do_editor, saida_preview, linguagem):
+# Interface completa de assistência IA com OpenRouter (modelo arcee-ai/trinity-large-preview:free).
+# Parâmetros: st (Streamlit), código atual do editor, saída preview, linguagem detectada.
+# Layout: coluna estreita (selectbox+input) | coluna larga (resposta IA).
+# Ações: 10 opções (gerar código, completar, refatorar, explicar, bugs, otimizar, testes, docs, segurança, converter).
+# Gera prompts contextuais específicos por ação + pedido customizado do usuário.
+# Chama API com autenticação via _DIRETORIO_EXECUTAVEL_('chave_api'), exibe código limpo via st.code().
+
+
+    APP_Catalogo.py ____________________________________________________________Sistema de Catalogação IA de Código
+Módulo que gera documentação automática de código com IA (OpenRouter), armazena em JSON e permite download/visualização de catálogos de projetos.
+
+IMPORTES E MÓDULOS
+- from APP_SUB_Funcitons import wrap_text, controlar_altura  # Formatação texto e redimensionamento UI
+- import os  # Criação de pastas e verificação arquivos
+- import json  # Persistência catálogo em .virto_stream/.catalogos.json
+- import requests  # Chamada API OpenRouter para geração documentação
+- import streamlit as st  # Interface Streamlit
+- from datetime import datetime  # Timestamp nos catálogos
+- import pandas as pd  # Tabela visualização catálogos
+- import shutil  # Cópia backup catálogos
+
+def catalogar_arquivo_ia(nome_arquivo, caminho, codigo_completo_do_editor, linguagem):
+# Gera documentação IA formatada para arquivo específico e salva em .virto_stream/.catalogos.json.
+# Interface: input observação + botão → chama OpenRouter com prompt especializado → exibe/salva.
+# Prompt segue formato exato: BREVE DESCRIÇÃO, IMPORTES, FUNÇÕES, CHAMADAS SOLTAS.
+# Retorna documentação formatada com download Markdown.
+
+def arquivo_ja_catalogado(caminho):
+# Verifica se arquivo já possui catálogo em .catalogos.json.
+# Retorna (True/False, dados_catalogo_ou_None).
+
+def conf_baix_catalogo(st, caminho_completo, nome_pasta):
+# Interface lista catálogos (DataFrame pandas) + download consolidado TXT de todo projeto.
+# Gera documento completo com todos arquivos catalogados + metadados (data/linguagem).
+
+def conf_baix_catalogo_bacup(st, caminho_completo, nome_pasta):
+# Backup automático de catálogo completo em backup/[nome_pasta]/StreamProjet.txt.
+# Copia .virto_stream/StreamProjet.txt para pasta backup do projeto.
+
+
+PASTA_CATALOGO = ".virto_stream"  # Pasta de persistência JSON catálogos
+CAMINHO_JSON = os.path.join(PASTA_CATALOGO, ".catalogos.json")  # Arquivo master JSON
+PASTA_BACKUP = os.path.join("backup", nome_pasta)  # Destino backup TXT
+nome_txt = f"StreamProjet.txt"  # Nome padrão arquivo consolidado
+
+    APP_Editor_Codigo.py _______________________________________________________Editor Ace Avançado com Análise
+Editor de código Ace com análise AST em tempo real, detecção de módulos faltantes, métricas de qualidade, autosave militar e suporte multi-aba.
+
+IMPORTES E MÓDULOS
+- from code_editor import code_editor  # Componente Ace Editor React para Streamlit
+- import os, time, ast, re  # Sistema, tempo, análise AST, regex para linting
+- from pathlib import Path  # Manipulação segura de caminhos
+- import importlib.util  # Verificação módulos instalados sem import
+- from typing import List, Dict, Any, Optional  # Tipagem annotations/markers
+- from APP_SUB_Controle_Driretorios import _DIRETORIO_PROJETO_ATUAL_  # Pasta projeto atual
+
+def _modulo_instalado(nome_modulo: str) -> bool:
+# Verifica se módulo está instalado via importlib.util.find_spec() (sem executar código).
+
+def _parse_ast(codigo: str) -> Optional[ast.AST]:
+# Parse AST seguro com tratamento SyntaxError.
+
+def Anotations_Editor(codigo: str) -> List[Dict[str, Any]]:
+# Análise estática completa: TODOs, linhas longas, print/debug, eval/exec, globals, pass, except genérico.
+# AST: funções/classes sem docstring, imports faltantes com sugestão pip install.
+
+def Marcadores_Editor(codigo: str) -> List[Dict[str, Any]]:
+# Markers visuais Ace: linhas longas, pass vazio, escopo funções/classes, imports faltantes.
+
+def calcular_qualidade(codigo: str) -> Dict[str, Any]:
+# Métricas qualidade: score 0-100, erros/warnings/info, status (Excelente/Boa/Crítica).
+
+def Botoes():
+# Config botões Ace: Copy, Update/Submit (RefreshCw).
+
+def Atalhos():
+# Keybindings VSCode: Save(F5), Execute(Ctrl-S), comentar, mover linhas, rerun.
+
+def Info_ide():
+# Info bar: stats, erros, warnings, mode, filename, linenr, encoding, modified(*).
+
+def Component_props():
+# Props React Ace: autocomplete live, snippets, gutter, focus, highlight linha.
+
+def Completar():
+# Snippets custom: st_page, minha_df.head(), os.getenv('API_KEY'), debug print.
+
+def Menus():
+# Menus contextuais: File(Save/Delete/Reload), Edit(Cut/Copy/Format), Run(Run/Debug).
+
+def Opcoes_editor(font_size, thema, fonte):
+# Config Ace: wrap, fontSize/family, lineNumbers, theme ace/theme/, tabSize=4.
+
+def Estilo(cor):
+# Estilo CSS background customizado.
+
+def editor_codigo_autosave(st, aba_id, caminho_arquivo, conteudo_inicial, linguagem, thema_editor, font_size, fonte, altura, backgroud=None):
+# Editor Ace principal com autosave 3-camadas (cache/session, disco+backup.bak, emergência JSON).
+# Anotações/marcadores em tempo real, debounce 1.5s, keys únicas militares por aba/arquivo.
+# Retorna código ATUALIZADO sempre.
+
+def editor_codigo_autosave_(st, aba_id, caminho_arquivo, conteudo_inicial, linguagem, thema_editor, font_size, fonte, altura, backgroud=None):
+# Versão alternativa com debounce 2s e ghost_text.
+
+
+    APP_Json.py ________________________________________________________________Explorer JSON Interativo
+Ferramenta visual para análise de JSON/API responses com tabela estrutura, código Python gerado automaticamente e navegação recursiva.
+
+IMPORTES E MÓDULOS
+- import ast  # ast.literal_eval() para parse seguro de strings JSON-like
+- from APP_SUB_Funcitons import controlar_altura  # Controle altura container responsivo
+
+def Jsnon(st, saida_preview):
+# Analisa saída preview (JSON string) e gera interface explorer completa.
+# Layout: coluna estreita (altura) | coluna larga (tabela + código + métricas).
+# Parse: ast.literal_eval() → percorre recursivamente dict/list → gera tabela chaves/tipo/valor.
+# Gera código Python pronto: variáveis, loops enumerate, extrações data['chave'].
+# Exibe: DataFrame estrutura, JSON raw, código extração, métrica total chaves.
+# Trata SyntaxError/ValueError silenciosamente (não-JSON).
+
+CHAMADAS E OUTRAS COISAS SOLTAS
+linhas_tabela = []  # Tabela DataFrame: Chave, Tipo, Valor de toda estrutura
+codigo_gerado = []  # Código Python pronto para extração (for i, data['chave'])
+
+def montar_caminho(partes):  # Gera paths Python seguros: data['chave'][i]['subchave']
+def percorrer(obj, partes=None, indent=0):  # Recursão master: dict/list/primitivos → tabela + código
+
+
+    APP_Preview.py _____________________________________________________________Preview Execução em Tempo Real
+Visualizador de output de código em tempo real com queue system, chat input interativo e suporte a múltiplas linguagens.
+
+IMPORTES E MÓDULOS
+- import queue  # Fila para comunicação thread → preview (output não-bloqueante)
+- from APP_SUB_Funcitons import controlar_altura  # Controle altura container responsivo
+
+def Previews(st, _, linguagem, msg_fim_cod):
+# Preview execução com output live streaming via session_state.output_queue.
+# Layout: coluna estreita (altura ajustável) | coluna larga (st.code com wrap).
+# Processa fila: concatena em _.output, detecta "PROGRAM_FINISHED" → adiciona msg_fim_cod.
+# Input interativo: st.chat_input() → _.input_queue quando thread_running=True.
+# Usa st.empty() para update suave + fallback st.code quando parado.
+
+CHAMADAS E OUTRAS COISAS SOLTAS
+output_placeholder = st.empty()  # Container dinâmico para refresh output sem scroll jump
+
+
+    SUB_Run_servidores.py ______________________________________________________Gerenciador de Servidores Web
+Sistema de execução subprocess para Streamlit, Flask e Django com detecção automática, parsing netstat Windows (cp850 BR) e controle PID/portas.
+
+IMPORTES E MÓDULOS
+- from pathlib import Path  # Manipulação paths arquivos
+- import subprocess  # Execução não-bloqueante streamlit/flask/django
+- import re, os, sys  # Regex parsing netstat, sistema, stderr
+- from APP_SUB_Controle_Driretorios import VENVE_DO_PROJETO  # Python_exe + paths VENV/projeto
+- STARTUPINFO = subprocess.STARTF_USESHOWWINDOW  # Oculta janelas subprocess Windows
+- CREATE_NO_WINDOW  # Flags Windows para execução oculta
+
+def netstat_streamlit():
+# Lista processos Streamlit (portas 850x) via netstat -ano com encoding cp850 BR.
+# Retorna [(porta, pid, linha_completa)] filtrando LISTENING + 850*.
+
+def is_streamlit_code(code):
+# Detecta código Streamlit: 'import streamlit', 'import st', 'st.'.
+
+def run_streamlit_process(file_path):
+# Executa "python -m streamlit run arquivo.py" com VENV, cwd=projeto, stdout pipe.
+# Retorna subprocess.Popen oculto (sem janela).
+
+def is_flask_code(code):
+# Detecta Flask: from flask import, app=Flask(), @app.route, app.run().
+
+def extract_flask_config(code):
+# Regex app.run() → extrai port/host/debug com defaults.
+# Retorna {'port': int/None, 'host': str, 'debug': bool}.
+
+def stop_flex(porta):
+# netstat | findstr :PORTA → extrai PIDs únicos da porta.
+# Retorna lista PIDs ou [] se não encontrado.
+
+def netstat_flex():
+# Lista processos flex/node/python em LISTENING (netstat parsing).
+
+def find_port_by_pid(pid):
+# Busca porta pelo PID em netstat_flex().
+
+def run_flex_process(file_path):
+# Executa "python -m modulo" (stem do arquivo) com VENV/cwd oculto.
+
+def is_django_code(code):
+# Detecta Django: execute_from_command_line + runserver ou manage.py runserver.
+
+def extract_django_config(code):
+# Regex manage.py runserver HOST:PORT → defaults 127.0.0.1:8000.
+
+def stop_process_by_port(porta):
+# Mesmo stop_flex() mas genérico (qualquer porta/processo).
+
+CHAMADAS E OUTRAS COISAS SOLTAS
+STARTUPINFO = subprocess.STARTUPINFO()  # Config Windows oculta janelas
+STARTUPINFO.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+STARTUPINFO.wShowWindow = subprocess.SW_HIDE  # Janela invisível
+CREATE_FLAGS = subprocess.CREATE_NO_WINDOW  # Sem console popup
+
+APP_Htmls.py ___________________________________________________________________Sistema de Temas CSS Dinâmico
+Módulo master de customização visual que carrega configurações do banco e gera CSS completo para toda a Streamlit IDE com fontes Google, gradientes e posicionamento fixo.
+
+IMPORTES E MÓDULOS
+- import json  # Parsing dados projeto estruturados
+- from time import sleep  # Não usado diretamente
+- from APP_SUB_Controle_Driretorios import _DIRETORIO_EXECUTAVEL_, _DIRETORIO_PROJETOS_, _DIRETORIO_PROJETO_ATUAL_  # Paths absolutos
+- from APP_SUB_Funcitons import saudacao_por_hora_sistema, cor_semelhante  # Utils UI e cores
+- from Banco_dados import ler_B_ARQUIVOS_RECENTES  # Metadados projeto atual
+- import base64  # Imagens base64 para CSS background
+
+def Carregamento_BancoDados_Temas(st):
+# Função master que retorna 15 variáveis de customização do banco + CSS injetado + header dinâmico.
+# Carrega: NOME_CUSTOM, cores, fontes, tamanhos, bordas, imagens, temas editores/terminal/preview.
+# Gera CSS massivo (~400 linhas) cobrindo: inputs, botões, sidebar, tabs, preview, terminal, chat IA, catalogador.
+# Features: gradientes com opacidade inversa, fontes Google (Fira Code, JetBrains Mono, etc), posicionamento fixo containers.
+# Header TOP_CAB: saudação + stats projeto (pastas/arquivos/extensões/versões/criado/modificado) via HTML estilizado.
+# Retorna tupla: (IMAGEM_LOGO, NOME_CUSTOM, NOME_USUARIO, COR_CAMPO, COR_MENU, THEMA_EDITOR, EDITOR_TAM_MENU, THEMA_PREVIEW, PREVIEW_TAM_MENU, THEMA_TERMINAL, TERMINAL_TAM_MENU, TOP_CAB, FONTE_MENU, FONTE_CAMPO, FUNDO_EDTOR).
+
+CHAMADAS E OUTRAS COISAS SOLTAS
+@st.cache_data  # Cache leituras banco para performance
+def ler_CUSTOMIZATION_cached():  # Wrapper otimizado ler_CUSTOMIZATION_TODOS()
+
+def img_to_base64(img_path):  # Converte imagens locais → data:image/png;base64 para CSS
+def hex_to_rgba_inverso(hex_color: str, intensidade):  # RGBA com alpha inverso (1-intensidade/100)
+
+LOGO_BASE64 = img_to_base64(IMAGEM_LOGO)  # Logo sidebar base64
+BG_STYLE = f'background: linear-gradient(...) url(...)'  # Background principal com overlay imagem
+WD_STYLE = f'background: {COR_OVERLAY2}'  # Widgets com opacidade
+SD_STYLE = f'background-color: {THEMA_APP1} + imagem Logo_simbolo.png'  # Sidebar custom
+
+page_bg = f"""<style> /* CSS MONSTRUOSO 400+ linhas */ """  # CSS master injetado
+
+def resumo_dict_para_html():  # Parser robusto metadados projeto (ast.literal_eval/json.loads fallback)
+TOP_CAB = f'<div class="footer">{resumo_dict_para_html()}</div>'  # Header info projeto
+
+PASSR_COR = 'red'  # Cor hover botões
+
+APP_Menus.py ___________________________________________________________________Módulos de menu e criação
+Stream-IDE responsáveis por customização visual,
+criação de arquivos e pastas, abertura e criação de projetos Python completos
+com templates, ambientes virtuais e persistência em banco local.
+
+IMPORTES E MÓDULOS
+import os # Manipulação de arquivos e diretórios do sistema
+import sys # Integração com subprocess e ambiente Python
+import subprocess # Execução de comandos externos (venv, pip) sem console no Windows
+from pathlib import Path # Manipulação segura de caminhos e criação de pastas
+import streamlit as st # Interface gráfica com dialogs, popovers e controles
+
+from Banco_dados import ler_CUSTOMIZATION, ler_cut, esc_CUSTOMIZATION, ATUAL_CUSTOMIZATION_nome
+# CRUD de customizações visuais persistidas
+from Banco_dados import esc_CONTROLE_ARQUIVOS, esc_A_CONTROLE_PROJETOS
+# Persistência de arquivos abertos e projetos no banco local
+from Banco_Predefinitions import listar_templates, salvar_template, carregar_template
+# Gerenciamento de templates reutilizáveis de projetos
+from APP_SUB_Controle_Driretorios import *DIRETORIO_EXECUTAVEL*, *DIRETORIO_PROJETOS*,
+*DIRETORIO_PROJETO_ATUAL*
+
+# Caminhos absolutos configurados do sistema e projetos
+from APP_SUB_Janela_Explorer import Janela_PESQUIZA
+# Interface visual para seleção de arquivos e pastas
+
+from APP_SUB_Funcitons import Criar_Arquivo_TEXTO, data_sistema, limpar_CASH, resumo_pasta,
+Button_Nao_Fecha, Alerta
+# Funções utilitárias de criação, cache, resumo e UI
+DEPOIS EM ORDEM (na sequência que aparecem no código):
+STARTUPINFO = subprocess.STARTUPINFO()
+# Configuração do subprocess para ocultar janela de console no Windows
+
+CREATE_NO_WINDOW = subprocess.CREATE_NO_WINDOW
+# Flag Windows para execução silenciosa de comandos externos
+FONTES_TEXTO = [...]
+
+# Lista de fontes monospace disponíveis para menus e campos de texto
+
+TEMAS_CLAROS = [...]
+
+# Temas claros do Ace Editor (chrome, eclipse, dreamweaver, etc.)
+
+TEMAS_ESCUROS = [...]
+
+# Temas escuros do Ace Editor (dracula, monokai, solarized_dark, etc.)
+
+TEMAS_MONACO = [...]
+
+# Temas do Monaco Editor (vs-dark, vs-light, hc-black)
+
+LANGUAGES = [...]
+
+# Linguagens suportadas pelo Ace Editor
+
+LANGUAGE_EXTENSIONS = {...}
+
+# Mapeamento linguagem → extensão de arquivo padrão
+
+def Custom(st):
+
+# Função principal de customização visual da Stream-IDE
+
+# Abre dialog não-dismissível com preview em tempo real
+
+# Carrega customizações existentes via ler_CUSTOMIZATION()
+
+# Permite criar, editar e salvar múltiplos perfis visuais
+
+# Configura temas, fontes, cores, tamanhos e logos personalizados
+
+# Salva resultados em esc_CUSTOMIZATION()
+
+def Cria_Arquivos(st):
+
+# Dialog global para criação de arquivos e pastas no projeto atual
+
+# Permite criar arquivo por linguagem, pasta simples ou pacote Python
+
+# Usa chat_input para nome, normaliza com replace de espaços
+
+# Cria estrutura imediatamente e executa rerun após sucesso
+
+def Cria_Arq_loc(st, caminho):
+
+# Dialog localizado para criação múltipla em uma pasta específica
+
+# Permite acumular ações em session_state["acoes"]
+
+# Criação em lote de arquivos, pastas e pacotes
+
+# Retorna True se alguma ação foi executada
+
+def Abrir_Projeto(st):
+
+# Dialog para abrir projetos ou arquivos existentes
+
+# Para arquivos: lê conteúdo e salva em esc_CONTROLE_ARQUIVOS
+
+# Para diretórios: gera resumo_pasta e salva em esc_A_CONTROLE_PROJETOS
+
+# Atualiza estados, limpa cache e executa rerun
+
+def Abrir_Menu(st):
+
+# Menu principal da IDE exibido em popover
+
+# Ações: Criar Projeto, Abrir Projeto, Criar Arquivos, Customização
+
+# Usa Button_Nao_Fecha para evitar fechamento automático
+
+# Trata conflitos de cliques simultâneos
+
+def Cria_Projeto(st):
+
+# Dialog completo para criação de projeto Python
+
+# Gerencia arquivos iniciais dinâmicos via session_state
+
+# Suporte a templates salvos e carregados
+
+# Cria estrutura do projeto, ambiente virtual e arquivos
+
+# Exibe progresso e logs em tempo real
+
+# Salva projeto criado em esc_A_CONTROLE_PROJETOS
+
+def Cria_Projeto_pouppap(st):
+
+# Versão simplificada de Cria_Projeto para primeira execução da IDE
+
+# Usada quando não existem projetos cadastrados
+
+# Caminho base definido automaticamente
+
+def Apagar_Arq(st, nome, diretorio):
+
+# Dialog de confirmação para exclusão de arquivo
+
+# Mostra caminho completo e exige confirmação explícita
+
+# Executa exclusão definitiva e limpa estados após pequeno delay
+
+CHAMADAS E OUTRAS COISAS SOLTAS
+st.session_state.setdefault("criar_projeto", True)
+
+# Controle de abertura do dialog de criação de projeto
+
+st.session_state.arquivos_projeto = [{"nome": "main.py", "conteudo": "..."}]
+
+# Arquivo inicial padrão para novos projetos
+
+CREATE_NO_WINDOW = 0x08000000
+
+# Constante Windows para subprocess sem console
+
+STARTUPINFO = subprocess.STARTUPINFO()
+
+# Inicialização global de configuração de subprocess
+progresso = st.progress(0)
+# Barra visual de progresso durante criação de projeto
+log_area = st.empty()
+# Área dinâmica para logs em tempo real da criação
+
+
+APP_Sidebar.py _________________________________________________________________Navegação de Arquivos da Stream-IDE
+Componente sidebar que exibe estrutura recursiva de projetos + banco de arquivos em checkboxes navegáveis para seleção de arquivos.
+
+IMPORTES E MÓDULOS
+- import os # Verificação de diretórios e manipulação de caminhos
+- from APP_Menus import Cria_Arq_loc # Criação de arquivos locais no projeto
+- from APP_SUB_Funcitons import Identificar_linguagem, sincronizar_estrutura, Sinbolos # Identificação de linguagem, sincronização e símbolos visuais
+- from APP_SUB_Janela_Explorer import listar_arquivos_e_pastas, Open_Explorer # Listagem recursiva e abertura de explorer
+- from Banco_dados import ler_CONTROLE_ARQUIVOS, Del_CONTROLE_ARQUIVOS, se_CONTROLE_ARQUIVOS # CRUD do banco de arquivos temporários
+- import streamlit as st # Interface principal da sidebar
+
+DEPOIS EM ORDEM (na sequência que aparecem no código):
+def Sidebar_Diretorios(st, lista_projeto, caminho_completo, nome_pasta): # Função principal da sidebar de navegação
+Inicializa session_state para expanders_abertos_sidebar (pastas expandidas) e file_status_sidebar.
+Processa recursivamente estrutura de projeto com checkboxes para pastas (expansíveis) e arquivos.
+Integra arquivos do banco (não sincronizados com filesystem) com botão de remoção.
+Retorna duas listas: Arquivo_Selecionado_Nomes (nomes visíveis) e Arquivo_Selecionado_Completo (caminhos absolutos).
+
+def processar_projeto(nome_item, caminho_item, nivel=0): # Função recursiva interna para processar itens da árvore
+Para diretórios: checkbox expansível com emoji (🛠️ para venv/.virtual), botão criar arquivo e listagem recursiva de subitens.
+Para arquivos: checkbox com símbolo visual (Sinbolos) para seleção.
+Retorna lista de itens abertos localmente [(nome, caminho, origem)].
+
+CHAMADAS E OUTRAS COISAS SOLTAS
+qt_col = 7 # Quantidade de colunas para exibição de checkboxes de arquivos selecionados
+st.session_state.expanders_abertos_sidebar = set() # Estado global das pastas expandidas na sidebar
+st.session_state.file_status_sidebar = {} # Estado dos status dos arquivos na sidebar
+todos_abertos = [] # Lista acumulada de todos itens selecionados (projeto + banco)
+
+
+APP_SUB_Backup.py ______________________________________________________________Sistema de Backup Automático da Stream-IDE
+Módulo de backup automático silencioso a cada X minutos com progresso visual, exclusão de pastas ignoradas (.venv, .idea) e persistência de histórico.
+
+IMPORTES E MÓDULOS
+- import os # Listagem de diretórios e verificação de arquivos/pastas
+- import shutil # Cópia recursiva de árvores de diretórios (shutil.copytree/copy2)
+- import time # Cálculo de intervalos de tempo para timer interno
+- from pathlib import Path # Criação segura de pastas de backup diárias
+- from datetime import datetime # Formatação de timestamps para pastas (YYYY-MM-DD)
+- from Banco_Predefinitions import ler_BACKUP_HORAS_ATUALIZOU, verifica_minutos, ATUAL_BACKUP, ler_BACKUP_QTDS_HORAS_ATUALIZOU, backups_feito # Controle de histórico e timers de backup
+- from APP_Editores_Auxiliares.APP_Catalogo import conf_baix_catalogo_bacup # Backup do catálogo de arquivos baixados
+- import streamlit as st # Barra de progresso e status visual do backup
+
+DEPOIS EM ORDEM (na sequência que aparecem no código):
+def Criar_pasta(nome_pasta): # Cria pasta com parents=True (recursivo)
+Usa Path.mkdir(parents=True, exist_ok=True) para criar estrutura completa.
+Silenciosa, não gera exceções.
+
+def Apagar_Pasta(pasta): # Remove arquivo ou pasta recursivamente
+Para arquivos: os.remove(). Para diretórios: shutil.rmtree().
+Try/except pass garante execução silenciosa mesmo com erros de permissão.
+
+def BAKCUP(st, minutos_atualizar, pasta_local, destino, ignores=None): # Backup automático principal com throttling
+Sistema completo sem piscar tela: timer interno (st.session_state.backup_ultimo_check) evita checagens desnecessárias.
+Ignora pastas sensíveis (.idea, .venv, .virto_stream, etc.) configuráveis.
+Fluxo: verifica_minutos() → marca ATUAL_BACKUP() → apaga/recria pasta dia → copia com progresso → atualiza contador total.
+Previne duplicatas com st.session_state.backup_executando. Sempre libera estado no finally.
+
+CHAMADAS E OUTRAS COISAS SOLTAS
+ignores = ['.idea', '.venv', 'build', 'dist', '.virto_stream', '.gitignore'] # Lista padrão de pastas excluídas do backup
+st.session_state.backup_ultimo_check = 0 # Timestamp da última checagem (evita loops)
+st.session_state.backup_executando = False # Lock para prevenir backup simultâneo
+pasta_dia = os.path.join(destino, agora.strftime("%Y-%m-%d")) # Pasta backup com data atual (2026-02-07)
+progress_bar = st.progress(0) # Barra visual de progresso proporcional a itens_totais
+status_text = st.empty() # Status dinâmico "Copiando: nome (X/Y)" atualizado em tempo real
+
+
+APP_SUB_Controle_Driretorios.py ________________________________________________Gerenciador de Caminhos Absolutos da Stream-IDE
+Sistema centralizado de caminhos absolutos com cache_data que lê configuração do banco e resolve diretórios de instalação, projetos e ambiente virtual.
+
+IMPORTES E MÓDULOS
+- import sys # Acesso a informações do sistema Python
+- import streamlit as st # Decorator @st.cache_data para performance dos caminhos
+- from pathlib import Path # Manipulação cross-platform de caminhos absolutos
+- from Banco_dados import ler_A_CONTROLE_ABSOLUTO, ler_B_ARQUIVOS_RECENTES # Leitura de configurações salvas
+
+DEPOIS EM ORDEM (na sequência que aparecem no código):
+@st.cache_data
+def _DIRETORIO_EXECUTAVEL_(arquivo=''): # Caminho base da instalação com subpastas específicas
+Lê Pasta_Isntal_exec do banco via ler_A_CONTROLE_ABSOLUTO() (primeiro campo).
+Cria .mim_mids se não existir na pasta pai.
+Retorna Path específico baseado em arquivo: '.arquivos', 'mim_mids', 'backup', 'chave_api' ou pasta raiz.
+
+@st.cache_data
+def _DIRETORIO_PROJETOS_(): # Pasta central de todos os projetos configurada
+Retorna Pasta_Projetos = ler_A_CONTROLE_ABSOLUTO() resolvido (segundo campo do banco). [linhadecodigo.com](http://www.linhadecodigo.com.br/artigo/1494/aprendendo-a-documentar-o-seu-codigo.aspx)
+Único ponto de acesso para diretório de projetos.
+
+def _DIRETORIO_PROJETO_ATUAL_(): # Projeto atualmente em uso (último aberto)
+Tenta ler_B_ARQUIVOS_RECENTES() (último projeto recente).
+Fallback para _DIRETORIO_EXECUTAVEL_() se IndexError (nenhum projeto aberto).
+
+@st.cache_data
+def VENVE_DO_PROJETO(): # Informações completas do ambiente virtual atual
+Construa caminho .virto_stream/Scripts/python.exe (Windows) do projeto atual.
+Retorna tupla: (python_venv_exe, projeto_path, venv_path, prompt_PS_completo).
+
+CHAMADAS E OUTRAS COISAS SOLTAS
+Path(Pasta_Isntal_exec.parent, ".mim_mids").mkdir() # Cria pasta oculta de mídias na inicialização
+venv_win = projeto_path / ".virto_stream" / "Scripts" / "python.exe" # Convenção nome venv (.virto_stream)
+prompt = f"({venv.name}) PS {projeto_path}> " # Prompt PowerShell customizado com nome venv
+
+APP_SUB_Funcitons.py ___________________________________________________________Utilitários Gerais da Stream-IDE
+Módulo central de funções utilitárias para manipulação de arquivos, sincronização de projetos, UI components personalizados e subprocess silencioso.
+
+IMPORTES E MÓDULOS
+- import json # Persistência da estrutura do projeto em Arvore_projeto.json
+- import subprocess # Execução silenciosa de comandos Python (--version) sem console Windows
+- import textwrap # Quebra inteligente de texto para exibição
+- from pathlib import Path # Manipulação cross-platform de caminhos
+- from APP_SUB_Controle_Driretorios import _DIRETORIO_PROJETO_ATUAL_ # Caminho projeto ativo
+- from datetime import datetime # Timestamps para estrutura e saudação
+- from collections import defaultdict # Contagem de extensões de arquivos
+- import streamlit as st # Componentes UI e cache clearing
+- import streamlit.components.v1 as components # Linhas separadoras HTML customizadas
+- import colorsys, re # Geração de cores semelhantes para temas
+- from PIL import Image # Carregamento seguro de imagens
+- import os # Verificações de filesystem e permissões
+
+DEPOIS EM ORDEM (na sequência que aparecem no código):
+STARTUPINFO = subprocess.STARTUPINFO() # Configuração global para ocultar console Windows
+CREATE_FLAGS = subprocess.CREATE_NO_WINDOW
+
+def data_sistema(): # Timestamp formatado do sistema atual
+Retorna "%Y-%m-%d %H:%M:%S" para logs e controle de projetos.
+
+def Alerta(st, msg): # Dialog de alerta modal simples
+@st.dialog("Alerta") exibe st.warning(msg) em modal.
+
+def Criar_Arquivo_TEXTO(caminho, titulo, conteudo, ext): # Cria arquivo texto vazio
+Escreve conteúdo em caminho\\titulo+ext com UTF-8. Retorna caminho completo.
+
+def contar_estrutura(caminho_base): # Análise completa recursiva do projeto
+Exclui envs (.venv, .virto_stream) e pastas sensíveis (.git, .idea).
+Conta pastas/arquivos por extensão, detecta Pythons com --version, timestamps criação/modificação.
+Retorna dict: pastas, arquivos, extensao, datas, versoes.
+
+def limpar_CASH(): # Limpa todos caches Streamlit
+st.cache_data.clear() + st.cache_resource.clear().
+
+def sincronizar_estrutura(caminho_arquivo=None): # Sincroniza JSON da árvore do projeto
+Varre filesystem → salva Arvore_projeto.json em .virto_stream.
+Se caminho_arquivo: verifica se existe no JSON. Retorna True/False ou estrutura completa.
+
+def Button_Nao_Fecha(nome_aberto, nome_fechado, key): # Botão toggle sem fechar container
+Estado persistente em session_state[key_state]. Muda primary/secondary dinamicamente.
+Retorna True se aberto. Suporta fechar_outras lista opcional.
+
+def Identificar_linguagem(arquivo): # Mapeia extensão → linguagem Ace Editor
+EXT_MAP completo (.py→python, .js→javaScript, .png→imagem, etc.). Default "Desconhecido".
+
+def Sinbolos(arquivo): # Emoji por extensão para UI
+ICONES_EXT rico (.py🐍, .js⚡, .png🖼️, .pdf📕, etc.). Default 📦.
+
+CHAMADAS E OUTRAS COISAS SOLTAS
+def gerar_nome_unico(pasta_base, nome_desejado): # Evita colisões de nome incremental
+Projeto → Projeto_2 → Projeto_3 até disponível.
+
+def resumo_pasta(caminho_pasta): # Resumo rápido nível raiz (1 iteração)
+Conta subpastas/arquivos/extensions apenas na raiz, exclui envs/sensíveis.
+
+def chec_se_arq_do_projeto(Arq_Selec_Diretorios): # Filtra arquivos do projeto atual
+Usa sincronizar_estrutura() para validar. Retorna nomes com ícones e caminhos relativos.
+
+def controlar_altura(st, chave, altura_inicial=100): # Botões resize vertical
+↑/↓ para ajustar altura dinâmica em session_state. Limites configuráveis.
+
+carregar_imagem_segura(caminho_relativo): # Carrega PIL com validações
+Verifica existência/permissões, fallback graceful com erros detalhados.
+
+
+APP_SUB_Janela_Explorer.py _____________________________________________________Navegador Visual de Arquivos da Stream-IDE
+Módulo completo de interface explorer com árvore expansível, busca, criação de pastas e detecção de tipos de mídia para seleção de arquivos/pastas.
+
+IMPORTES E MÓDULOS
+- import hashlib # Geração de IDs seguros para keys de widgets (safe_id)
+- import os # Listagem de diretórios e verificações de filesystem
+- from pathlib import Path # Manipulação cross-platform de caminhos
+- import requests # Download de imagens para criação de pastas de catálogo
+- from PIL import Image # Processamento de imagens baixadas
+- from io import BytesIO # Buffer para imagens baixadas via requests
+- import streamlit as st # Interface explorer com session_state e containers
+
+DEPOIS EM ORDEM (na sequência que aparecem no código):
+def safe_id(texto): # Gera MD5 hash para keys únicas de widgets
+Converte qualquer string em ID hex seguro para Streamlit.
+
+def listar_apenas_pastas(caminho): # Lista apenas diretórios (não recursivo)
+Retorna lista [(nome_pasta, caminho_completo)] apenas do nível atual.
+
+def listar_arquivos_e_pastas(caminho): # Lista arquivos E pastas do nível atual
+Retorna lista completa [(nome_item, caminho_completo)] sem recursão.
+
+def baixar_imagem_e_criar_pasta(raiz, url_imagem, titulo_pasta, texto1, nome1): # Cria catálogo com imagem baixada
+Baixa imagem via requests → PIL → salva como imagem_capa_principal.png.
+Cria arquivos texto (nome1.txt + Para Site.txt opcional) na pasta criada.
+
+def Abrir_Arquivo_Select_Tabs_(st, caminho): # Detecta tipo de arquivo com preview
+Tipo IMAGEM: retorna bytes PIL (.png/.jpg/.gif).
+Tipo VIDEO/AUDIO: retorna caminho string (.mp4/.mp3).
+Tipo TEXTO: lê UTF-8 com chmod 0o666 para permissões. Graceful errors.
+
+def Janela_PESQUIZA(st, DIRETORIO): # Explorer completo com busca e navegação
+Navegação: ↑ voltar_pasta(), 🔍 ir_para_caminho(), árvore checkboxes expansíveis.
+Session_state: diretorio_atual, ultimo_caminho, expanders_abertos, arquivos_por_pasta.
+Retorna (caminho_selecionado, "📁 DIRETÓRIO" ou "📄 ARQUIVO").
+
+def Janela_PESQUIZA_PASTAS_ARQUIVOS(st, LISTAR_OQUE, DIRETO): # Explorer configurável
+Versão avançada com ➕ criar_nova_pasta, modo 'pastas' ou 'arquivos+pastas'.
+safe_id() para keys, processar_item() recursivo com controle de expansão.
+
+def listar_pythons_windows(): # Detecta Pythons instalados no Windows
+Varre AppData/Local/Programs/Python → ordena por versão decrescente.
+Retorna dict {f"Python X.Y": "caminho/python.exe"}.
+
+CHAMADAS E OUTRAS COISAS SOLTAS
+st.session_state.setdefault('diretorio_atual', DIRETORIO) # Estado persistente da navegação
+st.container(height=450) # Container rolável fixo para lista de arquivos
+safe_id(caminho_item) # Garante keys únicas para checkboxes recursivos
+on_pasta_change(pasta_id, caminho) # Expansão/colapso com session_state
+LISTAR_OQUE.lower() in ('pasta', 'pastas') # Modo filtro apenas pastas
+
+
+APP_Terminal.py ________________________________________________________________Terminal Multi-Aba Integrado da Stream-IDE
+Terminal completo com abas, integração bidirecional banco de dados pip/modulos, execução subprocess silenciosa no venv .virto_stream e controles por aba.
+
+IMPORTES E MÓDULOS
+- import sys # Acesso ao sistema Python
+- import streamlit as st # Interface multi-aba com @st.fragment(run_every=0.1) performance
+- import subprocess # Execução de comandos no venv com STARTUPINFO ocultação console Windows
+- import threading, queue # Leitura assíncrona stdout em thread daemon
+- import re # Sanitização de nomes para keys (safe_key)
+- import psutil # kill_process_tree recursivo para parar processos filhos
+- from pathlib import Path # Manipulação de caminhos do projeto
+- from Banco_Dados_sudo_pip import * # init_db_modulos(), listar_modulos(), carregar_comando_modulo()
+- from APP_SUB_Controle_Driretorios import _DIRETORIO_PROJETO_ATUAL_, VENVE_DO_PROJETO # Caminhos venv/projeto
+- from APP_SUB_Funcitons import controlar_altura # Resize dinâmico da altura do terminal
+
+DEPOIS EM ORDEM (na sequência que aparecem no código):
+STARTUPINFO = subprocess.STARTUPINFO() # Configuração global ocultação console Windows
+CREATE_FLAGS = subprocess.CREATE_NO_WINDOW
+
+_PYTHON_EXE, _ROOT_PATH, _VENV_PATH, _PROMPT = VENVE_DO_PROJETO() # Python venv, pasta projeto, prompt PS
+
+def normalize_command(cmd): # Converte comandos shell → lista Python pura para venv
+pip/python/streamlit → [_PYTHON_EXE, -m, pip/python/streamlit, args...].
+Outros (flask/uvicorn/npm/git) → executa direto do PATH venv.
+
+def start_command(aba, cmd): # Inicia comando com reader_thread assíncrono
+Popen com cwd=_ROOT_PATH, stdout PIPE unbuffered, encoding UTF-8.
+Thread daemon lê stdout → queue. Estado: running=True, pid, cmd, queue nova.
+
+@st.fragment(run_every=0.1)
+def terminal_fragment(aba, altura): # Renderização 10Hz com queue polling
+Lê queue assincronamente, acumula em state.buffer. Detecta fim (None) → "CONCLUIDO".
+st.code(buffer, language="powershell") com altura dinâmica.
+
+def RenderTerminalAba(input_mode, altura, aba, aba_index): # UI completa por aba
+Modo "Digitar": chat_input + toggle "💾 Salva" → aprende pip install em banco.
+Modo "Escolher": 5 selectbox (Instalar/Desinstalar/Upgrade/Diversos/Deletar) + EXECUTAR.
+Botões PARAR/LIMPAR/PARAR TUDO com kill_process_tree(psutil).
+
+def Terminal(): # Função principal multi-aba
+controlar_altura(200-600px) + botão "Nova aba". Radio "Digitar/Escolher".
+st.tabs() renderiza RenderTerminalAba por aba com keys únicas por índice.
+
+CHAMADAS E OUTRAS COISAS SOLTAS
+st.session_state.terminal_abas[aba] = {"buffer": _PROMPT, "queue": Queue(), ...} # Estado isolado por aba
+kill_process_tree(pid) # Mata processo + filhos recursivos (psutil)
+st.fragment(run_every=0.1) # Atualização 10Hz para responsividade sem lag
+safe_key(name) = re.sub(r"\W", "_", name) # Keys Streamlit seguras
+colunas  # 5 selectbox + botão EXECUTAR layout uniforme [linhadecodigo.com](http://www.linhadecodigo.com.br/artigo/1494/aprendendo-a-documentar-o-seu-codigo.aspx)
+
+
+Banco_Dados_sudo_pip.py ________________________________________________________Banco de Comandos Pip/Modulos da Stream-IDE
+Banco SQLite dedicado ao terminal IDE com módulos pré-carregados (Streamlit, NumPy, Pandas) e aprendizado automático de comandos pip install digitados.
+
+IMPORTES E MÓDULOS
+- import streamlit as st # @st.cache_data para init_db_modulos()
+- import sqlite3 # Banco SQLite independente "Banco_Dados_sudo_pip.db"
+
+DEPOIS EM ORDEM (na sequência que aparecem no código):
+def get_conn(): # Conexão SQLite reutilizável com check_same_thread=False
+Retorna sqlite3.connect() thread-safe para múltiplas abas terminal.
+
+@st.cache_data
+def init_db_modulos(): # Inicialização com cache_data (executa 1x)
+Cria tabelas tabelas_modulos (nome, install/uninstall/upgrade_cmd, tipo) e comandos_diversos (nome, comando).
+Chave primária nome. Timestamp data_cadastro automático.
+
+def salvar_modulo(nome, install, uninstall, upgrade, tipo='principal'): # Salva/atualiza módulo 3x1
+INSERT OR REPLACE com 3 comandos (install/uninstall/upgrade) + tipo ('principal'/'usuario').
+
+def listar_modulos(): # Lista todos módulos para selectbox terminal
+SELECT nome,tipo ORDER BY nome → [{"nome": "...", "tipo": "..."}].
+
+def carregar_comando_modulo(nome_modulo, acao): # Retorna comando específico por ação
+SELECT {acao}_cmd WHERE nome=? → install/uninstall/upgrade.
+
+def carregar_modulos_padrao(): # 20+ módulos pré-carregados (NÃO executa no import)
+CORE: pip/setuptools/wheel. CIENTÍFICO: numpy/pandas/scipy/matplotlib/plotly.
+STREAMLIT: streamlit-web/desktop/option-menu/aggrid/extras. UTIL: requests/rich.
+
+def salvar_comando_diverso(nome, comando): # Tabela paralela para comandos npm/git/etc
+INSERT OR REPLACE comandos_diversos (nome, comando).
+
+def listar_diversos(): # Lista comandos diversos para selectbox
+SELECT nome ORDER BY nome da tabela comandos_diversos.
+
+def carregar_diverso(nome): # Comando específico diversos
+SELECT comando WHERE nome=?.
+
+CHAMADAS E OUTRAS COISAS SOLTAS
+init_db_modulos() # Executado no import → garante tabelas
+carregar_modulos_padrao() # Executado no import → popula 20+ módulos essenciais
+tabelas_modulos # Principal: pip install/uninstall/upgrade por módulo
+comandos_diversos # Secundária: comandos npm/git/pytest salvos manualmente
+INSERT OR REPLACE # Upsert garante atualização sem duplicatas
+check_same_thread=False # Suporte multi-thread/aba terminal simultânea
+
+
+Banco_dados.py _________________________________________________________________Banco Central Operacional da Stream-IDE
+Banco SQLite "Base_Dados.db" com 5 tabelas CRUD para controle global, projetos, arquivos recentes, arquivos abertos e personalização completa da interface.
+
+## IMPORTES E MÓDULOS
+- import os # Verificações filesystem
+- import sqlite3 # Banco thread-safe check_same_thread=False
+- import time # Retry OperationalError em deletes
+- import streamlit as st # @st.cache_data em leituras críticas
+- streamlit (import duplicado)
+
+## TABELAS (init_db() @st.cache_data)
+**A_CONTROLE_ABSOLUTO** (PRIMARY KEY DIRETORIO_PROGRAMA)
+```
+DIRETORIO_PROGRAMA, DIRETORIO_PROJETOS, DIRETORIOS_BACKUP
+DIRETORIO_OLLAMA, VERSAO_OLLAMA, CHAVE_GPT, LOGUIN_GPT
+```
+Configurações globais: instalação, projetos, backup, Ollama, credenciais GPT.
+
+**A_CONTROLE_PROJETOS**
+```
+DIRETORIO_TRABALHANDO, VERSION, DATA, DIRETORIOS, ARQUIVOS, OBS
+```
+Histórico projetos: caminho, versão, data criação, contagens estrutura, observações.
+
+**B_ARQUIVOS_RECENTES** (estado atual - 1 registro ativo)
+```
+DIRETORIO_TRABALHANDO, OBS (JSON estrutura projeto)
+```
+**Projeto atualmente em uso** - sempre substitui registro anterior.
+
+**CONTROLE_ARQUIVOS**
+```
+NOME_ARQUIVO, CAMINHO_DIRETO, CONTEUDO_DO_ARQUIVO, EXTENTION
+```
+Cache arquivos abertos: nome, caminho absoluto, conteúdo completo, extensão.
+
+**CUSTOMIZATION** (PRIMARY KEY NOME_CUSTOM, OBS='ATIVO')
+```
+NOME_CUSTOM, NOME_USUARIO, CAMINHO_DOWNLOAD, IMAGEM_LOGO
+THEMA_EDITOR/PREVIEW/TERMINAL/APP1/APP2, tamanhos menus
+FONTE_MENU/CAMPO + tamanhos/cores, BORDA, RADIAL, DECORA, OPC1-3, OBS
+```
+**Personalização completa UI** - 1 perfil ativo marcado OBS='ATIVO'
+
+## CHAMADAS EXTERNAS (APP_SUB_Controle_Diretorios.py)
+```
+from Banco_dados import ler_A_CONTROLE_ABSOLUTO, ler_B_ARQUIVOS_RECENTES
+```
+- **ler_A_CONTROLE_ABSOLUTO()** → DIRETORIO_PROGRAMA (instalação)
+- **ler_A_CONTROLE_ABSOLUTO()** → DIRETORIO_PROJETOS [linhadecodigo.com](http://www.linhadecodigo.com.br/artigo/1494/aprendendo-a-documentar-o-seu-codigo.aspx)
+- **ler_B_ARQUIVOS_RECENTES()** → PROJETO_ATUAL
+
+## PADRÕES ARQUITETURA
+**INSERT OR REPLACE** → Upsert sem chaves artificiais (simples e robusto)
+**@st.cache_data** → ler_A_CONTROLE_ABSOLUTO(), init_db() performance Streamlit
+**Retry 3x time.sleep(0.1)** → OperationalError deletes (concorrência segura)
+**get_conn() check_same_thread=False** → Multi-aba terminal segura
+
+## FLUXO CRÍTICO PROJETO ATUAL
+```
+1. ler_B_ARQUIVOS_RECENTES()[0][0] → projeto atual OU vazio
+2. esc_B_ARQUIVOS_RECENTES(novo_projeto, json_estrutura) → substitui
+3. _DIRETORIO_PROJETO_ATUAL_() → lê B_ARQUIVOS_RECENTES() com fallback
+```
+
+**CUSTOM_ATIVO**: ler_CUSTOMIZATION_TODOS() → dict completo OBS='ATIVO'
+
+**init_db()** executado no import → banco sempre pronto na primeira execução.
+
+
+Banco_Predefinitions.py ________________________________________________________Banco Central de Configurações da Stream-IDE
+Banco SQLite "Base_Dados_PreDefinidos.db" com templates, layouts, versões, histórico backup e controle temporal com cache_data para performance Streamlit.
+
+## IMPORTES E MÓDULOS
+- import json # Serialização/deserialização templates e configs JSON
+- import sqlite3 # Banco SQLite thread-safe com check_same_thread=False
+- import streamlit as st # @st.cache_data para init_db() e ultima_versao()
+- from datetime import datetime, timedelta # Controle temporal backup (verifica_minutos)
+
+## FUNÇÕES BANCO PRINCIPAL
+**@st.cache_data def init_db():** Inicializa 4 tabelas com cache (1x por sessão)
+- **templates**: id, nome UNIQUE, arquivos JSON (estrutura projetos)
+- **config_layout**: containers_order JSON, layout INT, height_mode, col_weights JSON
+- **versoes**: id, nome UNIQUE, data_instalacao, info_extra
+- **BACKUP**: DATA PRIMARY KEY, HORAS_INICIO/ATUALIZOU TIME, contadores
+
+**def get_conn():** Conexão reutilizável thread-safe para multi-aba
+
+## TEMPLATES (CRUD Completo)
+- **salvar_template(nome, arquivos)**: INSERT OR REPLACE json.dumps(arquivos)
+- **listar_templates()**: SELECT nome → lista strings
+- **carregar_template(nome)**: SELECT arquivos → json.loads()
+
+## CONFIG LAYOUT (Estado UI)
+- **salvar_config_atual(...)**: ÚLTIMA config sempre (INSERT OR REPLACE)
+- **carregar_config_atual()**: SELECT * DESC LIMIT 1 com json.loads() + validação
+  Retorna dict: containers_order, layout, height_mode, col_weights
+
+## VERSÕES (Histórico Atualizações)
+- **salvar_versao(nome, info_extra)**: INSERT OR REPLACE
+- **listar_versoes()**: SELECT nome ORDER BY id ASC
+- **@st.cache_data def ultima_versao()**: SELECT nome DESC LIMIT 1
+- **versao_nova_atualizada()**: Retorna tupla raw da última
+
+## SISTEMA BACKUP (Temporal Inteligente)
+**DATA = %Y-%m-%d | HORAS = %H:%M** (hoje 2026-02-07 20:15)
+
+- **verifica_minutos(hora, minutos)**: True se passaram X minutos desde hora
+- **ler_BACKUP_HORAS_ATUALIZOU()**: Última hora hoje OU esc() + 2h atrás
+- **ler_BACKUP_QTDS_HORAS_ATUALIZOU()**: Contador atualizações hoje
+- **ATUAL_BACKUP(COLUNA, CONTEUDO, CONTEUDO2)**: UPDATE dinâmico DATA=hoje
+- **backups_feito()**: String formatada "Horas: X, Atualizou: Y, Qtde: Z"
+- **esc_BACKUP(HORAS_ATUALIZOU)**: INSERT hoje OU pass (IntegrityError)
+
+## CHAMADAS EXTERNAS (do APP_Backup)
+```
+from Banco_Predefinitions import (
+    ler_BACKUP_HORAS_ATUALIZOU, verifica_minutos, ATUAL_BACKUP,
+    ler_BACKUP_QTDS_HORAS_ATUALIZOU, backups_feito
+)
+```
+**init_db()** executado no import → banco sempre pronto [blog.deeplink](https://blog.deeplink.kr/a-complete-guide-to-integrating-streamlit-with-databases-building-a-crud-app-with-sqlite/)
+
+**FLUXO BACKUP**: verifica_minutos() → ATUAL_BACKUP("HORAS_ATUALIZOU", hora_atual, +1) → copia arquivos

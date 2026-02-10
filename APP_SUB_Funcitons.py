@@ -152,8 +152,10 @@ def contar_estrutura(caminho_base):
 
 def limpar_CASH():
     import streamlit as st
+    st.toast('Limpando CACHE! ')
     st.cache_data.clear()
     st.cache_resource.clear()
+
 
 def saudacao_por_hora_sistema() -> str:
     hora = datetime.now().hour

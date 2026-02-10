@@ -1,7 +1,667 @@
 import re
+import re
+from typing import Dict, Any
 
+
+class TradutorOfflineUltraRapido:
+	def __init__(self):
+		self.padroes = {
+		# ERROS PRINCIPAIS
+		r'\bfile not found\b': 'arquivo não encontrado',
+		r'\bimported but unused\b': 'importado mas não utilizado',
+
+			# ESTADOS
+		r'\berror\b': 'erro',
+		r'\bfailed\b': 'falhou',
+		r'\bsuccess(fully)?\b': 'sucesso',
+		r'\bwarning\b': 'aviso',
+
+		# STATUS
+		r'\bstarted\b': 'iniciado',
+		r'\bstopped\b': 'parado',
+
+		# PREPOSIÇÕES E CONJUNÇÕES
+		r'\bto\b': 'para',
+		r'\bis\b': 'está',
+		r'\bon\b': 'na',
+		r'\bfor\b': 'para',
+		r'\bof\b': 'de',
+		r'\bfrom\b': 'do',
+		r'\bwith\b': 'com',
+
+		# TÉCNICO
+		r'\bfile\b': 'arquivo',
+		r'\bsystem\b': 'sistema',
+		r'\bservice\b': 'serviço',
+		r'\bport\b': 'porta',
+		r'\bdatabase\b': 'banco de dados',
+		r'\bconnection\b': 'conexão',
+		r'\bnetwork\b': 'rede',
+		r'\bprocess\b': 'processo',
+		r'\bmodule\b': 'módulo',
+		r'\buser\b': 'usuário',
+
+		# ESPECÍFICOS DOS TESTES
+		r'\btimed out\b': 'tempo esgotado',
+		r'\bread-only\b': 'somente leitura',
+		r'\brefused\b': 'recusado',
+		r'\blow disk space\b': 'espaço em disco baixo',
+		r'\ballocate memory\b': 'alocar memória',
+		r'\bterminated\b': 'terminado',
+		r'\bexpired\b': 'expirado',
+		r'\bshared library\b': 'biblioteca compartilhada',
+		r'\bunreachable\b': 'inalcançável',
+		r'\bnot permitted\b': 'não permitido',
+		r'\bcleared\b': 'limpo',
+		r'\bloaded\b': 'carregado',
+		r'\bresolve host\b': 'resolver hostname',
+		# ESTADOS E RESULTADOS
+		r'\bis not defined\b': 'não está definido',
+		r'\berrors?\b': 'erros',
+		r'\bwarnings?\b': 'avisos',
+		r'\bfailed?\b': 'falhou',
+		r'\bfailure\b': 'falha',
+		r'\bsuccess(ful)?\b': 'sucesso',
+		r'\bunknown\b': 'desconhecido',
+		r'\binvalid\b': 'inválido',
+		r'\bvalid\b': 'válido',
+		r'\bmissing\b': 'ausente',
+		r'\bfound\b': 'encontrado',
+		r'\bnot found\b': 'não encontrado',
+		r'\bempty\b': 'vazio',
+
+		# STATUS
+		r'\bloaded?\b': 'carregado',
+		r'\bloading\b': 'carregando',
+		r'\bunloaded\b': 'descarregado',
+		r'\bstarted?\b': 'iniciado',
+		r'\bstarting\b': 'iniciando',
+		r'\bstopped?\b': 'parado',
+		r'\bstopping\b': 'parando',
+		r'\brunning\b': 'em execução',
+		r'\bfinished\b': 'finalizado',
+		r'\bcompleted\b': 'concluído',
+		r'\baborted\b': 'abortado',
+		r'\bcancelled\b': 'cancelado',
+
+		# ACESSO E SEGURANÇA
+		r'\bdenied?\b': 'negado',
+		r'\brefused?\b': 'recusado',
+		r'\bforbidden\b': 'proibido',
+		r'\ballowed?\b': 'permitido',
+		r'\bavailable\b': 'disponível',
+		r'\bunavailable\b': 'indisponível',
+		r'\bsupported?\b': 'suportado',
+		r'\bunsupported\b': 'não suportado',
+		r'\benabled?\b': 'ativado',
+		r'\bdisabled?\b': 'desativado',
+
+		# TEMPO E LIMITES
+		r'\btimeout(s)?\b': 'tempo limite',
+		r'\bexpired?\b': 'expirado',
+		r'\bretry(ies)?\b': 'tentar novamente',
+		r'\blimit\b': 'limite',
+		r'\bexceeded?\b': 'excedido',
+
+		# ARQUIVOS E DIRETÓRIOS
+		r'\bfile(s)?\b': 'arquivo(s)',
+		r'\bfolder(s)?\b': 'pasta(s)',
+		r'\bdirectory(ies)?\b': 'diretório(ies)',
+		r'\bpath(s)?\b': 'caminho(s)',
+		r'\bname(s)?\b': 'nome(s)',
+		r'\bextension\b': 'extensão',
+		r'\bsize(s)?\b': 'tamanho(s)',
+		r'\bmodified\b': 'modificado',
+		r'\bcreated\b': 'criado',
+		r'\bdeleted?\b': 'excluído',
+		r'\bremove(d)?\b': 'remover/removido',
+		r'\brename(d)?\b': 'renomear/renomeado',
+		r'\bcopy(ied)?\b': 'copiar/copiado',
+		r'\bmove(d)?\b': 'mover/movido',
+		r'\bread\b': 'ler',
+		r'\bwrite(n)?\b': 'escrever/escrito',
+		r'\bexecute(able)?\b': 'executar/executável',
+		r'\bappend\b': 'acrescentar',
+		r'\bopen(ed)?\b': 'abrir/aberto',
+		r'\bclose(d)?\b': 'fechar/fechado',
+		r'\bsave(d)?\b': 'salvar/salvo',
+
+		# PERMISSÕES
+		r'\bpermission(s)?\b': 'permissão(ões)',
+		r'\baccess\b': 'acesso',
+		r'\bowner\b': 'dono',
+		r'\bgroup\b': 'grupo',
+		r'\bothers?\b': 'outros',
+		r'\bread-only\b': 'somente leitura',
+		r'\bread-write\b': 'leitura e escrita',
+		r'\blocked?\b': 'bloqueado',
+		r'\bunlocked\b': 'desbloqueado',
+
+		# USUÁRIOS E AUTENTICAÇÃO
+		r'\buser(s)?\b': 'usuário(s)',
+		r'\broot\b': 'root',
+		r'\badmin(istrator)?\b': 'admin/administrador',
+		r'\bguest\b': 'convidado',
+		r'\bsession(s)?\b': 'sessão(ões)',
+		r'\blogin\b': 'login',
+		r'\blogout\b': 'logout',
+		r'\bauthenticated?\b': 'autenticado',
+		r'\bpassword\b': 'senha',
+		r'\busername\b': 'nome de usuário',
+
+		# REDE E CONEXÃO
+		r'\bconnection(s)?\b': 'conexão(ões)',
+		r'\bconnected?\b': 'conectado',
+		r'\bdisconnected?\b': 'desconectado',
+		r'\boffline\b': 'offline',
+		r'\bonline\b': 'online',
+		r'\bhost(s)?\b': 'host(s)',
+		r'\bserver(s)?\b': 'servidor(es)',
+		r'\bclient(s)?\b': 'cliente(s)',
+		r'\baddress(es)?\b': 'endereço(s)',
+		r'\bip\b': 'ip',
+		r'\bport(s)?\b': 'porta(s)',
+		r'\bprotocol(s)?\b': 'protocolo(s)',
+		r'\brequest(s)?\b': 'requisição(ões)',
+		r'\bresponse(s)?\b': 'resposta(s)',
+
+		# SISTEMA
+		r'\bsystem\b': 'sistema',
+		r'\bprocess(es)?\b': 'processo(s)',
+		r'\bservice(s)?\b': 'serviço(s)',
+		r'\bmemory\b': 'memória',
+		r'\bdisk(s)?\b': 'disco(s)',
+		# === SEU DICIONÁRIO ANTIGO (já convertido) ===
+		r'\bis not defined\b': 'não está definido',
+		r'\berrors?\b': 'erros',
+		r'\bwarnings?\b': 'avisos',
+		r'\bfailed?\b': 'falhou',
+		r'\bsuccess(ful)?\b': 'sucesso',
+
+		# === NOVAS PALAVRAS QUE VOCÊ ACABOU DE MANDAR ===
+		r'\bdevice(s)?\b': 'dispositivo(s)',
+		r'\bdriver(s)?\b': 'driver(s)',
+		r'\bhardware\b': 'hardware',
+		r'\bsoftware\b': 'software',
+		r'\bresource(s)?\b': 'recurso(s)',
+		r'\blimits?\b': 'limites',
+		r'\barchitecture\b': 'arquitetura',
+		r'\bplatform\b': 'plataforma',
+		r'\benvironment\b': 'ambiente',
+		r'\bvariable(s)?\b': 'variável(s)',
+		r'\blocale\b': 'localidade',
+		r'\bencoding\b': 'codificação',
+		r'\bdecoding\b': 'decodificação',
+		r'\bmodule(s)?\b': 'módulo(s)',
+		r'\bpackage(s)?\b': 'pacote(s)',
+		r'\blibrary(ies)?\b': 'biblioteca(s)',
+		r'\bfunction(s)?\b': 'função(ões)',
+		r'\bclass(es)?\b': 'classe(s)',
+		r'\bargument(s)?\b': 'argumento(s)',
+		r'\bparameter(s)?\b': 'parâmetro(s)',
+		r'\breturns?\b': 'retornos',
+		r'\bvalue(s)?\b': 'valor(es)',
+		r'\btype(s)?\b': 'tipo(s)',
+		r'\binstance(s)?\b': 'instância(s)',
+		r'\bobject(s)?\b': 'objeto(s)',
+		r'\battribute(s)?\b': 'atributo(s)',
+		r'\bproperty(ies)?\b': 'propriedade(s)',
+		r'\biterator\b': 'iterador',
+		r'\biterable\b': 'iterável',
+		r'\blist(s)?\b': 'lista(s)',
+		r'\btuple(s)?\b': 'tupla(s)',
+		r'\bdict(ionary)?\b': 'dicionário',
+		r'\bset(s)?\b': 'conjunto(s)',
+		r'\bbool(ean)?\b': 'booleano',
+		r'\bint\b': 'inteiro',
+		r'\bfloat\b': 'ponto flutuante',
+		r'\bshould\b': 'deve',
+		r'\bbe\b': 'ser',
+		r'\bor\b': 'ou',
+		r'\band\b': 'e',
+
+		# GIT
+		r'\bgit\b': 'git',
+		r'\brepository(ies)?\b': 'repositório(s)',
+		r'\bmerge\b': 'merge',
+		r'\bpull\b': 'puxar',
+		r'\bpush\b': 'enviar',
+		r'\borigin\b': 'original',
+		r'\bremote\b': 'remoto',
+		r'\bstaged\b': 'preparado',
+		r'\bconflict(s)?\b': 'conflito(s)',
+		r'\bhistory\b': 'histórico',
+
+		# DOCKER
+		r'\bcontainer(s)?\b': 'contêiner(es)',
+		r'\bimage(s)?\b': 'imagem(ens)',
+		r'\bvolume(s)?\b': 'volume(s)',
+		r'\bnetwork(s)?\b': 'rede(s)',
+		r'\bcompose\b': 'compose',
+		r'\btagged\b': 'tagueado',
+		r'\bbuilt\b': 'construído',
+		r'\brun\b': 'executar',
+		r'\battach\b': 'anexar',
+		r'\bdetach\b': 'desanexar',
+		r'\binspect\b': 'inspecionar',
+
+		# DATABASE
+		r'\bdatabase(s)?\b': 'banco de dados',
+		r'\btable(s)?\b': 'tabela(s)',
+		r'\brow(s)?\b': 'linha(s)',
+		r'\bcolumn(s)?\b': 'coluna(s)',
+		r'\brecord(s)?\b': 'registro(s)',
+		r'\bindex(es)?\b': 'índice(s)',
+		r'\bquery(ies)?\b': 'consulta(s)',
+		r'\btransaction(s)?\b': 'transação(ões)',
+		r'\bschema(s)?\b': 'esquema(s)',
+
+		# ERROS/CRASH
+		r'\bcrash(ed)?\b': 'travamento/travou',
+		r'\bhang(ed)?\b': 'congelar/congelado',
+		r'\bfreeze(n)?\b': 'congelar/congelado',
+		r'\bissue(s)?\b': 'problema(s)',
+		r'\bfix(ed)?\b': 'corrigir/corrigido',
+		r'\bpatched\b': 'corrigido',
+		r'\bworkaround\b': 'solução alternativa',
+		r'\bdebugging\b': 'depuração',
+		r'\btrace(back)?\b': 'rastreamento',
+		r'\bsource code\b': 'código-fonte',
+		r'\bcompile(d)?\b': 'compilar/compilado',
+		r'\bsyntax\b': 'sintaxe',
+		r'\bparse(d)?\b': 'analisar/analisado',
+
+		# === ANTERIORES (resumido) ===
+		r'\berror(s)?\b': 'erro(s)',
+		r'\bfailed?\b': 'falhou',
+		r'\bsuccess\b': 'sucesso',
+		r'\bfile(s)?\b': 'arquivo(s)',
+		r'\bpermission denied\b': 'permissão negada',
+
+		# === NOVAS TRADUÇÕES QUE VOCÊ MANDOU AGORA ===
+		r'\bgrammar\b': 'gramática',
+		r'\brule(s)?\b': 'regra(s)',
+		r'\bloop(s)?\b': 'laço(s)',
+		r'\bwhile\b': 'while',
+		r'\bcase\b': 'caso',
+		r'\bcontinue\b': 'continue',
+		r'\basync\b': 'assíncrono',
+		r'\bsync\b': 'síncrono',
+		r'\btrue\b': 'verdadeiro',
+		r'\bfalse\b': 'falso',
+		r'\bnone\b': 'nenhum',
+		r'\bnull\b': 'nulo',
+		r'\bundefined\b': 'indefinido',
+		r'\bdefault value\b': 'valor padrão',
+		r'\boverflow\b': 'estouro',
+		r'\bunderflow\b': 'subfluxo',
+		r'\bdivide|division\b': 'dividir/divisão',
+		r'\bzero\b': 'zero',
+		r'\bnan\b': 'nan',
+		r'\binfinity\b': 'infinito',
+		r'\bpath separator\b': 'separador de caminho',
+		r'\bnewline\b': 'quebra de linha',
+		r'\bwhitespace\b': 'espaço em branco',
+		r'\btab\b': 'tabulação',
+		r'\bspace(s)?\b': 'espaço(s)',
+		r'\bindent(ation)?\b': 'indentar/indentação',
+		r'\bconfig(s)?|configuration(s)?\b': 'configuração(ões)',
+		r'\bsubting(s)?\b': 'configurações',
+		r'\boption file\b': 'arquivo de opções',
+		r'\bconfig file\b': 'arquivo de configuração',
+		r'\b\.env file\b': 'arquivo .env',
+		r'\blogging\b': 'registro de logs',
+		r'\blevel(s)?\b': 'nível(éis)',
+		r'\bverbose(ity)?\b': 'verboso/verbosidade',
+		r'\bqueue(s)?\b': 'fila(s)',
+		r'\bstack\b': 'pilha',
+		r'\bbuffer(s)?\b': 'buffer(s)',
+		r'\bcache(d)?\b': 'cache/em cache',
+		r'\bhit\b': 'acerto',
+		r'\bmiss\b': 'falha',
+		r'\bthread-safe\b': 'seguro para threads',
+		r'\bunsafe\b': 'inseguro',
+		r'\brace\b': 'condição de corrida',
+		r'\bdeadlock\b': 'deadlock',
+		r'\block(s)?\b': 'bloqueio(s)',
+		r'\bmutex\b': 'mutex',
+		r'\bsemaphore\b': 'semáforo',
+		r'\bretry count\b': 'número de tentativas',
+		r'\binterval\b': 'intervalo',
+		r'\bdelay\b': 'atraso',
+		r'\bschedule(d)?\b': 'agendar/agendado',
+		r'\bjob(s)?|task(s)?\b': 'tarefa(s)',
+
+		# CRIPTO/SEGURANÇA
+		r'\bhost key\b': 'chave do host',
+		r'\bpublic key\b': 'chave pública',
+		r'\bprivate key\b': 'chave privada',
+		r'\bfingerprint\b': 'impressão digital',
+		r'\bcipher\b': 'cifra',
+		r'\balgorithm(s)?\b': 'algoritmo(s)',
+		r'\bsalt\b': 'sal',
+		r'\biv\b': 'vetor de inicialização',
+
+		# HTTP
+		r'\bsession id\b': 'id de sessão',
+		r'\brequest id\b': 'id de requisição',
+		r'\btransaction id\b': 'id de transação',
+		r'\btrace id\b': 'id de rastreamento',
+		r'\bmethod(s)?\b': 'método(s)',
+		r'\bdelete\b': 'delete',
+		r'\bstatus code\b': 'código de status',
+		r'\bheader(s)?\b': 'cabeçalho(s)',
+		r'\bbody\b': 'corpo',
+		r'\bcookie(s)?\b': 'cookie(s)',
+
+		# SISTEMA/CLI
+		r'\bcli\b': 'linha de comando',
+		r'\bconsole\b': 'console',
+		r'\bcommand(s)?\b': 'comando(s)',
+		r'\bexit code|exit status\b': 'código/status de saída',
+		r'\bdistribution\b': 'distribuição',
+		r'\bkernel version\b': 'versão do kernel',
+		r'\bshell script\b': 'script de shell',
+
+		# GERENCIAMENTO
+		r'\bservice manager\b': 'gerenciador de serviços',
+		r'\bhostname|host name\b': 'hostname/nome do host',
+		r'\buptime\b': 'tempo de atividade',
+		r'\bdowntime\b': 'tempo de inatividade',
+		r'\bhealth(y)?\b': 'saudável/não saudável',
+
+		# COMANDOS
+		r'\bstart\b': 'iniciar',
+		r'\bstop\b': 'parar',
+		r'\brestart(ed)?\b': 'reiniciar/reiniciado',
+		r'\breload(ed)?\b': 'recarregar/recarregado',
+
+		# PACOTES
+		r'\bpackage manager\b': 'gerenciador de pacotes',
+		r'\binstall(ed)?\b': 'instalar/instalado',
+		r'\bupdate|upgrade\b': 'atualizar',
+
+		# MEMORY
+		r'\bmemory leak\b': 'vazamento de memória',
+		r'\bgarbage collector\b': 'coletor de lixo',
+
+		# DATABASE
+		r'\bquery plan\b': 'plano de consulta',
+		r'\breplica(tion)?\b': 'réplica/replicação',
+
+		# SEGURANÇA
+		r'\bsecurity\b': 'segurança',
+		r'\bauthentication\b': 'autenticação',
+		r'\bauthorization\b': 'autorização',
+
+		# === ERROS COMUNS PYTHON/TERMINAL ===
+		r'\berror(s)?\b': 'erro(s)',
+		r'\bpermission denied\b': 'permissão negada',
+		r'\baccess denied\b': 'acesso negado',
+		r'\bcommand not found\b': 'comando não encontrado',
+		r'\bno such file or directory\b': 'arquivo ou diretório inexistente',
+		r'\bmodule not found\b': 'módulo não encontrado',
+		r'\bfailed?\b': 'falhou',
+		r'\bsuccess(ful)?\b': 'sucesso',
+		r'\bwarning(s)?\b': 'aviso(s)',
+
+		# === SUAS ÚLTIMAS TRADUÇÕES ===
+		r'\bprimary\b': 'primário',
+		r'\bsecondary\b': 'secundário',
+		r'\bleader election\b': 'eleição de líder',
+		r'\bconsensus\b': 'consenso',
+		r'\bobject storage\b': 'armazenamento de objetos',
+		r'\bfilesystem\b': 'sistema de arquivos',
+		r'\bpagination\b': 'paginação',
+		r'\boffset pagination\b': 'paginação por deslocamento',
+		r'\bcursor pagination\b': 'paginação por cursor',
+		r'\bthrottling\b': 'restrição de taxa',
+		r'\brate limit\b': 'limite de taxa',
+		r'\bcache (?:key|entry)\b': 'chave/entrada de cache',
+		r'\bcache size\b': 'tamanho do cache',
+		r'\bversioning\b': 'versionamento',
+		r'\bschema validation\b': 'validação de esquema',
+		r'\bvalidator\b': 'validador',
+		r'\bvalidation\b': 'validação',
+		r'\bserializer\b': 'serializador',
+		r'\bdeserializer\b': 'desserializador',
+		r'\bmiddleware stack\b': 'pilha de middleware',
+		r'\b(?:job|task) id\b': 'id da tarefa',
+		r'\bcron job\b': 'tarefa cron',
+		r'\bschedule expression\b': 'expressão de agendamento',
+		r'\bkernel panic\b': 'pânico do kernel',
+		r'\bpanic\b': 'pânico',
+		r'\bnamespace isolation\b': 'isolamento de namespace',
+		r'\bhealthcheck\b': 'verificação de saúde',
+		r'\bbind mount\b': 'montagem vinculada',
+		r'\b(?:image|container) id\b': 'id da imagem/contêiner',
+		r'\blayer(s)?\b': 'camada(s)',
+		r'\b(?:bridge|overlay) network\b': 'rede bridge/overlay',
+
+		# === GIT AVANÇADO ===
+		r'\bgit hook\b': 'gancho do git',
+		r'\b(?:pre-commit|pre-push|post-merge)\b': 'pre-commit/pre-push/post-merge',
+		r'\b(?:remote|origin) url\b': 'url remota/origin',
+		r'\b(?:upstream|tag|branch) name\b': 'nome upstream/tag/branch',
+
+		# === PYTHON/DEVOPS ===
+		r'\b(?:venv path|site-packages)\b': 'caminho do venv/site-packages',
+		r'\b(?:requirements|lock) file\b': 'arquivo de requisitos/bloqueio',
+		r'\b(?:unit|integration) test\b': 'teste unitário/integração',
+		r'\btest (?:suite|runner)\b': 'suíte/executor de testes',
+
+		# === SEGURANÇA ===
+		r'\bsqli\b': 'injeção sql',
+		r'\bopen redirect\b': 'redirecionamento aberto',
+		r'\b(?:ip whitelist|ip blacklist)\b': 'lista branca/negra de ip',
+		r'\b(?:allowlist|denylist)\b': 'lista de permitidos/negados',
+
+		# === SISTEMA/CONTAINERS ===
+		r'\bload balancer\b': 'balanceador de carga',
+		r'\b(?:circuit breaker|bulkhead)\b': 'disjuntor/compartimento',
+		r'\bdeployment\b': 'implantação',
+		r'\b(?:canary|rolling update)\b': 'canário/atualização gradual',
+
+		# === MÉTRICAS/OBSERVABILIDADE ===
+		r'\b(?:metric|observability|telemetry)\b': 'métrica/observabilidade/telemetria',
+		r'\b(?:counter|gauge|histogram)\b': 'contador/medidor/histograma',
+
+		# === ERROS PIP/NPM/COMUNS ===
+		r'\bunknown command\b': 'comando desconhecido',
+		r'\bmaybe you meant\b': 'talvez você quis dizer',
+		r'\bsuccessfully installed\b': 'instalado com sucesso',
+		r'\brequirement already satisfied\b': 'dependência já satisfeita',
+		r'\binstalling?\b': 'instalando',
+		r'\b(?:un)?installing?\b': 'desinstalando/instalando',
+
+		# === ERROS PYTHON ESPECÍFICOS ===
+		r'\b(?:Syntax|Indentation|Name|Import)Error\b': 'erro de sintaxe/indentação/nome/importação',
+		r'\bModuleNotFoundError\b': 'módulo não encontrado',
+		r'\b(?:connection|operation) (?:timed out|refused)\b': 'conexão/operação expirada/recusada',
+
+		# === ERROS SISTEMA ===
+		r'\b(?:disk full|no space left)\b': 'disco cheio/sem espaço',
+		r'\bread-only file system\b': 'sistema de arquivos somente leitura',
+		r'\b(?:out of|insufficient) memory\b': 'memória insuficiente',
+
+		# === GIT/REPO ===
+		r'\bworking (?:tree|directory)\b': 'árvore/diretório de trabalho',
+		r'\bclean|detached\b': 'limpo/destacado',
+
+		# === PALAVRAS SOLTAS ===
+		r'\b(?:reset|error|not|temporarily|internal|bad|timed|already)\b': 'redefinida/erro/não/temporariamente/interno/inválida/expirou/já',
+		r'\b(?:exists|busy|only|cannot|broken|corrupted|too|large|long)\b': 'existe/ocupado/somente/não foi possível/quebrada/corrompido/muito/grande/longo',
+		r'\battribute error\b': 'erro de atributo',
+		r'\bkey error\b': 'erro de chave',
+		r'\btype error\b': 'erro de tipo',
+		r'\bvalue error\b': 'erro de valor',
+		r'\bindex error\b': 'erro de índice',
+		r'\bstop iteration\b': 'parar iteração',
+		r'\bassertion error\b': 'erro de afirmação',
+		r'\bunbound local\b': 'local não vinculado',
+		r'\bunhashable type\b': 'tipo não hashável',
+		r'\bobject has no attribute\b': 'objeto não tem atributo',
+		r'\blist index out of range\b': 'índice de lista fora do intervalo',
+		r'\bdict key error\b': 'erro de chave do dicionário',
+		r'\b(?:str|int|float|tuple|set|bytes|function|method|class|generator) (?:object is not (?:callable|subscriptable)|has no attribute)\b': 'objeto não é chamável/indexável/não tem atributo',
+		r'\b(?:context manager|with statement)\b': 'gerenciador de contexto/instrução with',
+		r'\bfinally block\b': 'bloco finally',
+		r'\b(?:try except|raise exception|catch exception|handle error)\b': 'tentar exceto/levantar exceção/capturar exceção/tratar erro',
+
+		# === ERROS SINTAXE ===
+		r'\b(?:syntax|tab|invalid syntax|invalid character|eol while scanning|unclosed|unterminated|unexpected (?:eof|indent))\b': 'erro de sintaxe/tabulação/sintaxe inválida/caractere inválido/fim de linha/string não fechada/indentação inesperada',
+
+		# === IMPORTAÇÃO ===
+		r'\b(?:import error|cannot import|module not found|circular import)\b': 'erro de importação/não foi possível importar/módulo não encontrado/importação circular',
+
+		# === ERROS SISTEMA/IO ===
+		r'\bunexpected\b': 'inesperado',
+
+		r'\b(?:operation|file|directory|path) (?:not found|not permitted|invalid)\b': 'operação/arquivo/diretório/caminho inválido/não encontrado/não permitido',
+		r'\b(?:no space left|disk quota exceeded|disk full)\b': 'sem espaço/cota excedida/disco cheio',
+		r'\bread only file system\b': 'sistema de arquivos somente leitura',
+
+		# === REDE ===
+		r'\b(?:connection|operation|host|network) (?:timed out|refused|reset|aborted|unreachable)\b': 'conexão/operação/host/rede expirada/recusada/resetada/abortada/inacessível',
+		r'\b(?:broken pipe|no route to host)\b': 'pipe quebrado/sem rota para host',
+
+		# === ARQUIVOS/PACOTES ===
+		r'\b(?:requirements|__init__|setup)\.py\b': 'requirements/init/setup py',
+		r'\b(?:pip|wheel|egg|lockfile)\b': 'pip/wheel/egg/arquivo de bloqueio',
+
+		# === GERAL ===
+		r'\b(?:traceback|exception)\b': 'rastreamento de erro/exceção',
+		r'\bsuccessfully?\b': 'com sucesso',
+		r'\bfailed?\b': 'falhou',
+
+			# === SOCKET/NETWORK ERROS ===
+			r'\bsocket is (?:already|not) connected\b': 'socket já/não conectado',
+			r'\bcannot send after socket shutdown\b': 'não foi possível enviar após shutdown do socket',
+			r'\b(?:operation on closed socket|fd is not socket)\b': 'operação em socket fechado/fd não é socket',
+			r'\bsocket too large\b': 'socket muito grande',
+			r'\b(?:wrong protocol|protocol option not supported)\b': 'tipo/ opção de protocolo não suportada',
+			r'\b(?:address|network interface) (?:not available|is not configured)\b': 'endereço/interface não disponível/configurada',
+
+			# === ERROS PYTHON (camelCase + snake_case) ===
+			r'\b(?:attribute|key|type|value|index)error\b': 'erro de atributo/chave/tipo/valor/índice',
+			r'\bstopiteration\b': 'parar iteração',
+			r'\bassertionerror\b': 'erro de afirmação',
+			r'\bunboundlocalerror\b': 'local não vinculado',
+			r'\bunhashabletype\b': 'não hashável',
+			r'\blistindexoutofrange\b': 'índice fora intervalo',
+			r'\b(?:str|int|float|tuple|set|bytes|module|function|method|class|generator)(?:notcallable|notsubscriptable|noattribute)\b': 'objeto não chamável/indexável/sem atributo',
+
+			# === CONTROLE DE EXCEÇÃO ===
+			r'\b(?:contextmanager|withstatement|finallyblock|tryexcept|raiseexception|catchexception|handleerror)\b': 'gerenciador contexto/instrução with/bloco finally/tentar exceto/levantar exceção/capturar exceção/tratar erro',
+
+			# === SINTAXE ===
+			r'\b(?:syntaxerror|taborerror|unexpected(?:eof|indent)|mixedtabspaces|invalid(?:character|escapes?))\b': 'erro de sintaxe/tabulação/indentação/caractere inválido/escape inválido',
+			r'\b(?:unclosed|unterminated|string|parenthesis)\b': 'string/parêntese não fechada/terminada',
+
+			# === IMPORTAÇÃO ===
+			r'\b(?:importerror|cannotimport|modulenotfound|circularimport)\b': 'erro de importação/não foi possível importar/módulo não encontrado/import circular',
+
+			# === ARQUIVOS/SISTEMA ===
+			r'\b(?:permissiondenied|operationnotpermitted|nosuch(?:device|file)|notadirectory|isadirectory|invalidargument)\b': 'permissão negada/operação não permitida/dispositivo/arquivo inexistente/não é diretório/é diretório/argumento inválido',
+			r'\b(?:nospaceleft|diskquotaexceeded|readonlyfilesystem)\b': 'sem espaço/cota excedida/somente leitura',
+
+			# === REDE COMPLETA ===
+			r'\b(?:connection|operation|host|network)(?:reset|aborted|refused|timedout|unreachable)\b': 'conexão/operação/host/rede resetada/abortada/recusada/expirada/inacessível',
+			r'\b(?:brokenpipe|networkdown|no route to host)\b': 'pipe quebrado/rede inativa/sem rota',
+
+			# === PACOTES PYTHON ===
+			r'\b(?:setuppy|pyprojecttoml|requirements\.txt|initpy|wheelfile|eggfile)\b': 'setup py/pyproject toml/requirements txt/init py/arquivo wheel/egg',
+
+			# === ARQUIVO/SISTEMA ===
+			r'\b(?:filetoolarge|pathtoolong|toomanyopenfiles|filetableoverflow)\b': 'arquivo/caminho muito longo/muitos arquivos abertos/overflow tabela',
+
+					# === SOCKET/NETWORK (suas últimas) ===
+					r'\bnodataavailable\b': 'sem dados',
+					r'\bdevicetimeout\b': 'timeout dispositivo',
+					r'\boutofmemory\b': 'sem memória',
+					r'\b(?:operationwouldblock|socket(?:alreadyconnected|notconnected|toolarge))\b': 'operação bloquearia/socket conectado/desconectado/gigante',
+					r'\b(?:fdnotsocket|fdnotopenfile)\b': 'fd não socket/aberto',
+					r'\bdestinationportunreachable\b': 'porta fora',
+					r'\bnobufferspace\b': 'buffer lotado',
+					r'\b(?:noroutetohost|transportendpoint)\b': 'sem rota host/transporte final',
+
+					# === ERROS PYTHON COMPACTOS ===
+					r'\b(?:attribute|key|type|value|index)error\b': 'erro de atributo/chave/tipo/valor/índice',
+					r'\b(?:stopiteration|assertionerror|unboundlocalerror)\b': 'parar iteração/erro afirmação/local não vinculado',
+
+					# === SISTEMA LINUX/DEBUG ===
+					r'\b(?:segfault|buserror|stackoverflow|bufferoverflow)\b': 'falha memória/erro barramento/pilha esgotada/transbordamento buffer',
+					r'\b(?:memoryleak|heapcorruption|doublefree|useafterfree)\b': 'vazamento memória/montículo corrompido/dupla liberação/uso pós liberação',
+
+					# === ARQUITETURAS ===
+					r'\b(?:powerpc|riscv|aarch64|s390x|ppc64le|loongarch|hexagon)\b': 'powerpc/riscv/aarch64/s390x/ppc64le/loongarch/hexagon arquitetura',
+
+					# === RUNTIMES/JS ===
+					r'\b(?:llvm|clang|quickjs|spidermonkey|d8|wasmer|wasmtime|wasm3)\b': 'llvm/clang/quickjs/spidermonkey/d8/wasmer/wasmtime/wasm3',
+
+					# === FILESYSTEMS ===
+					r'\b(?:btrfs|zfs|xfs|ext4?|jfs|reiserfs|ntfs|vfat|exfat|overlayfs|tmpfs)\b': 'btrfs/zfs/xfs/ext4/jfs/reiserfs/ntfs/vfat/exfat/overlayfs/tmpfs',
+
+					# === DEBUG TOOLS ===
+					r'\b(?:gdb|lldb|strace|ltrace|perf|valgrind|addresssanitizer|threadsanitizer)\b': 'gdb/lldb/strace/ltrace/perf/valgrind/asan/tsan debug',
+
+					# === CONTAINERS/SEGURANÇA ===
+					r'\b(?:systemd|dbus|cgroups?|seccomp|apparmor|selinux)\b': 'systemd/dbus/cgroups/seccomp/apparmor/selinux',
+
+					# === KERNEL/MONITORING ===
+					r'\b(?:epoll|kqueue|inotify|bpftrace|ebpf|sysdig)\b': 'epoll/kqueue/inotify/bpftrace/ebpf/sysdig',
+
+					# === ERROS COMUNS ===
+					r'\b(?:permissiondenied|connection(?:refused|timedout)|notsupported)\b': 'permissão negada/conexão recusada/expirou/não suportado',
+					# === KERNEL LINUX - TRABALHO/TIMER ===
+					r'\bwork_struct\b': 'estrutura trabalho',
+					r'\bdelayed_work\b': 'trabalho atrasado',
+					r'\btimer_list\b': 'lista timers',
+					r'\bhrtimer\b': 'timer alta resolução',
+
+					# === SYNCHRONIZATION ===
+					r'\bfutex\b': 'futex primitiva',
+					r'\b(?:spin|mutex|rw|semaphore|rwsem)(?:_lock|_unlock|_down|_up)?\b': 'spinlock/mutex/rw/semáforo bloqueio/liberar',
+					r'\b(?:wake_up|try_to_wake_up)\b': 'acordar/tentar acordar',
+					r'\bschedule_timeout\b': 'agendar timeout',
+
+					# === CONTEXT ===
+					r'\b(?:context_switch|irq|preempt)(?:_disable|_enable|_context)?\b': 'troca contexto/irq/preempt desabilitar/habilitar/contexto',
+
+					# === LOCKS ===
+					r'\b(?:lockdep|lock_(?:chain|class|validator))\b': 'lockdep/verificador/cadeia/classe bloqueios',
+
+					# === RCU ===
+					r'\brcu_(?:read_(?:lock|unlock)|synchronize|barrier)\b': 'rcu leitura/liberar/sincronizar/barreira',
+
+					# === MEMORY MANAGEMENT ===
+					r'\b(?:page|slab|kmalloc|vmalloc|kswapd|oom)\b': 'página/slab/kmalloc/vmalloc/kswapd/oom',
+					r'\b(?:gfp_(?:kernel|atomic|user|dma|highmem))\b': 'kernel/atômica/usuário/dma/alta memória alocação',
+
+					# === ERROS GERAIS ===
+					r'\b(?:permission denied|connection refused|not found)\b': 'permissão negada/conexão recusada/não encontrado',
+
+					# === PYTHON ===
+					r'\b(?:attribute|type|value)error\b': 'erro de atributo/tipo/valor',
+		}
+		self.padroes = {re.compile(k, re.IGNORECASE): v for k, v in self.padroes.items()}
+
+	def traduzir(self, texto: Any) -> str:
+		texto = str(texto).replace('_', ' ').replace('-', ' ')
+		resultado = texto
+		for padrao, traducao in self.padroes.items():
+			resultado = padrao.sub(traducao, resultado)
+		return resultado.capitalize()
+
+
+# TESTE:
+tradutor = TradutorOfflineUltraRapido()
 
 def traduzir_saida(saida) -> str:
+	return tradutor.traduzir(saida)
+
+
+def traduzir_saida_(saida) -> str:
 	saida = str(saida).replace('_',' ').replace('-',' ')
 	if not isinstance(saida, str):
 		if hasattr(saida, 'strerror'):
@@ -25,12 +685,9 @@ def traduzir_saida(saida) -> str:
 
 	return str(saida_lower).capitalize()
 
-def TRANSLATE_MAP():
-	# Exemplo de dicionário
-	return {
-	}
 
-def TRANSLATE_MAP2():
+
+def TRANSLATE_MAP():
 	# Exemplo de dicionário
 	return {
 	"is not defined":"não está definido!",

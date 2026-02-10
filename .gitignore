@@ -1,15 +1,15 @@
 Bacup_Cod
 Teste_APP.py
 meu_codigo.py
-INSTALL
+.informacoes/INSTALL
 APP_Chats_IA.py
-Base_Dados.db
+Banco_dados/Base_Dados.db
 Base_Dados.sqbpro
 
-Base_Dados_PreDefinidos.db
+Banco_dados/Base_Dados_PreDefinidos.db
 Base_Dados_PreDefinidos.sqbpro
 
-Banco_Dados_sudo_pip.db
+Banco_dados/Banco_Dados_sudo_pip.db
 Banco_Dados_sudo_pip.sqbpro
 
 _testes_chates_ias.py

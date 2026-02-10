@@ -2,7 +2,6 @@
 
 import os
 
-from APP_SUB_Funcitons import limpar_CASH
 
 # Pega a pasta Downloads do usuário
 default_download = os.path.join(os.path.expanduser("~"), "Downloads")
@@ -219,10 +218,9 @@ def Customization(st,NOME_CUSTOM):
 			ATUAL_CUSTOM_agora(st, usuario, 'OPC2', FUNDO_EDTOR)
 			ATUAL_CUSTOM_agora(st, usuario, 'OPC3', ESCURECER_IMAGEM)
 
-			st.success("✅ **TODAS** configs salvas!")
-			st.balloons()
+			from APP_SUB_Funcitons import limpar_CASH
 
-
-			st.rerun()
+			limpar_CASH()
+			st.stop()
 
 
