@@ -153,6 +153,22 @@ def Abrir_Arquivo_Select_Tabs(st,caminho_arquivo):
     except Exception as e:pass
        # st.warning(f"Erro: {e}")
 
+# apenas para quando 'botao_importar_faltantes' gerar novo codigo
+def Abrir_Arquivo_Select_Tabs_novo(st,caminho_arquivo):
+    if not os.path.exists(caminho_arquivo):
+        st.warning(f"Arquivo não encontrado: {caminho_arquivo}")
+    if not os.path.isfile(caminho_arquivo):
+        st.warning( f"'{caminho_arquivo}' é uma pasta, não arquivo")
+
+    try:
+        # Tenta ajustar permissão (Windows/Linux)
+        os.chmod(caminho_arquivo, 0o666)
+        with open(caminho_arquivo, "r", encoding="utf-8") as f:
+            return f.read()
+    except PermissionError:
+        st.warning("Sem permissão. Feche outros apps ou rode como admin.")
+    except Exception as e:pass
+       # st.warning(f"Erro: {e}")
 
 def Apagar_Arquivos(st, arquivo):
     arquivo = Path(arquivo)

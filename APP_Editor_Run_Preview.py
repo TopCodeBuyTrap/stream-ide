@@ -17,7 +17,7 @@ from APP_Editores_Auxiliares.SUB_Run_servidores import netstat_streamlit, run_st
     run_flex_process, extract_flask_config, find_port_by_pid, stop_flex, stop_process_by_port, is_django_code, \
     extract_django_config
 from APP_Editores_Auxiliares.SUB_Traduz_terminal import traduzir_saida
-from Banco_dados import scan_project, reset_db, checar_modulos_locais, checar_modulos_pip
+from Banco_dados import scan_project, reset_db, checar_modulos_locais, checar_modulos_pip, gerar_auto_complete_EDITOR
 
 # 🔥 USA A FUNÇÃO MESTRE - ZERO Path()
 _Python_exe, _Root_path, _Venv_path, _Prompt_venv = VENVE_DO_PROJETO()
@@ -67,48 +67,9 @@ def status_bar_pro(
 
 
 
-def mostrar_todos_imports(aba_id, codigo):
-    from Banco_dados import gerar_predefinidos_com_links
-
-    # ===== Exemplo de uso no editor =====
-    def_from, def_predefinidos, from_predefinidos = gerar_predefinidos_com_links()
-
-    tokens = set(codigo.strip().split())
-
-    # DEF
-    for token in tokens:
-        if token in def_predefinidos:
-            caminho = def_predefinidos[token]
-            with st.popover(f"def {token}"):
-                st.write(caminho)
-
-    # coleta
-    itens_import = []
-
-    for token in tokens:
-        if token in from_predefinidos:
-            dados = from_predefinidos[token]
-
-            itens_import.append({
-                "label": f"{token} / {os.path.basename(dados['caminho'])} "
-                         f"(linha {dados['linha']})",
-                "caminho": dados["caminho"]
-            })
-
-    # renderização
-    if itens_import:
-        with st.popover("import"):
-            for i, item in enumerate(itens_import):
-                if st.button(
-                        item["label"],
-                        width="stretch",
-                        type="tertiary",
-                        key=f"{aba_id}_{i}"
-                ):
-                    st.write(item["caminho"])
 
 
-def Editor_Simples(INFO_COL,Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE, colStop, ColunaRun,CorBACK):
+def Editor_Simples(Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE, colStop, ColunaRun,CorBACK):
     msg_fim_cod = "🏁 Fim do Codigo!"
     Most_Logs = False
 
@@ -236,6 +197,8 @@ def Editor_Simples(INFO_COL,Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_M
     # *** LOOP PRINCIPAL DAS TABS - CORRIGIDO ***
     for I, aba in enumerate(abas):
         with aba:
+            EDIT_COL, INFO_COL  = st.columns([8,2])
+
             # Salva estado da aba ATUAL
             _.Diretorio[I] = CAMINHHOS[I]
 
@@ -244,20 +207,14 @@ def Editor_Simples(INFO_COL,Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_M
             Nome_Aba = nomes_arquivos
             linguagem = Identificar_linguagem(CAMINHHOS[I])
 
-            # Conteúdo inicial
             conteudo_inicial = Abrir_Arquivo_Select_Tabs(st, CAMINHHOS[I])
 
             # ===== NOVA VERIFICAÇÃO DE TIPO DE ARQUIVO =====
             extensao = os.path.splitext(nome_arquivo)[1].lower()
             try:
-                # *** st_ace RETORNA o código ATUALIZADO da aba ***
-                cod = editor_codigo_autosave(st=st,aba_id=I,
-                    caminho_arquivo=_.Diretorio[I],
-                    conteudo_inicial=conteudo_inicial,
-                    linguagem=linguagem,
-                    thema_editor=THEMA_EDITOR,font_size=EDITOR_TAM_MENU,
-                    fonte=FONTE, altura=altura, lateral=INFO_COL, backgroud = CorBACK,
-                )
+                with EDIT_COL:
+                    # *** st_ace RETORNA o código ATUALIZADO da aba ***
+                    cod = editor_codigo_autosave(st,I,Nome_Aba,_.Diretorio[I],linguagem,THEMA_EDITOR,EDITOR_TAM_MENU,FONTE, altura, INFO_COL, CorBACK)
 
                 with menuserv:
                     if is_streamlit_code(cod):
@@ -280,10 +237,7 @@ def Editor_Simples(INFO_COL,Janela,Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_M
                     if RST.button(f':material/lock_reset:', key=f"botao_restart_alt{I}"):
                             reset_db()
                             scan_project()
-                    # 🔥 DETECTOR MÓDULOS FALTANDO (PREVIEW)
-                    checar_modulos_locais(I,cod, nome_arquivo, caminho)
-                    checar_modulos_pip(I,cod, nome_arquivo, caminho)
-                    mostrar_todos_imports(I, cod)
+
 
 
 

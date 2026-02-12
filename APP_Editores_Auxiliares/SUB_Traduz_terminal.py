@@ -637,10 +637,11 @@ class TradutorOfflineUltraRapido:
 					# === MEMORY MANAGEMENT ===
 					r'\b(?:page|slab|kmalloc|vmalloc|kswapd|oom)\b': 'página/slab/kmalloc/vmalloc/kswapd/oom',
 					r'\b(?:gfp_(?:kernel|atomic|user|dma|highmem))\b': 'kernel/atômica/usuário/dma/alta memória alocação',
+			r"'import'\s*\(<unknown>,\s*line\s*\d+\)": "erro de sintaxe na palavra-chave import",
 
-					# === ERROS GERAIS ===
+			# === ERROS GERAIS ===
 					r'\b(?:permission denied|connection refused|not found)\b': 'permissão negada/conexão recusada/não encontrado',
-
+					r'\bexpected one or more names after\b': 'esperado um ou mais nomes após',
 					# === PYTHON ===
 					r'\b(?:attribute|type|value)error\b': 'erro de atributo/tipo/valor',
 		}

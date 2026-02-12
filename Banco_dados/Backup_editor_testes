@@ -1,0 +1,304 @@
+import json
+import os
+import time
+from pathlib import Path
+from Banco_dados import checar_modulos_locais, reset_db, scan_project
+from code_editor import code_editor
+import streamlit as st
+from APP_SUB_Janela_Explorer import Abrir_Arquivo_Select_Tabs
+from Banco_dados import gerar_auto_complete_EDITOR, checar_modulos_pip
+from APP_SUB_Controle_Driretorios import VENVE_DO_PROJETO, _DIRETORIO_PROJETO_ATUAL_
+
+def_from, def_predefinidos, from_predefinidos = gerar_auto_complete_EDITOR()
+
+
+def carregar_modulos_venv():
+    import sys
+    import pkgutil
+    _Python_exe, _Root_path, _Venv_path, _Prompt_venv = VENVE_DO_PROJETO()
+    site_packages = Path(_Venv_path) / "Lib" / "site-packages"
+    sys.path.insert(0, str(site_packages))
+    modulos = {}
+    for m in pkgutil.iter_modules([str(site_packages)]):
+        modulos[m.name] = [m.name]
+    for nome, dados in def_predefinidos.items():
+        modulos[nome] = os.path.basename(dados["caminho"])
+    outras_fontes = [{"nome": "filha", "valor": "isadora"}, {"nome": "amigo", "valor": "joao"}]
+    for item in outras_fontes:
+        modulos[item["nome"]] = item["valor"]
+    return modulos
+
+
+def Completar(st):
+    if "modulos_venv" not in st.session_state:
+        st.session_state.modulos_venv = carregar_modulos_venv()
+    completions = []
+    for nome, origem in st.session_state.modulos_venv.items():
+        completions.append({"caption": nome, "value": nome, "meta": origem, "name": nome, "score": 400})
+    return completions
+
+
+_ = st.session_state
+
+# ========================================
+# 🔥 DETECÇÃO IMEDIATA - PRIMEIRA COISA QUE RODA
+# ========================================
+caminho = Path(r"C:\Users\henri\ProjetoSteamIDE\HENRIQUE\main.py")
+nome_arq = os.path.basename(caminho)
+aba_id = 42
+
+# INICIALIZA SESSION STATE
+if f"file_hash_{aba_id}_{nome_arq}" not in _:
+    _[f"file_hash_{aba_id}_{nome_arq}"] = ""
+
+
+def calcular_hash_arquivo(caminho):
+    """Hash simples baseado em tamanho + modtime (IMEDIATO)"""
+    if not os.path.exists(caminho):
+        return ""
+    stat = os.stat(caminho)
+    return f"{stat.st_size}_{stat.st_mtime}"
+
+
+# CHECA MUDANÇA **SEMPRE PRIMEIRO**
+arquivo_hash_atual = calcular_hash_arquivo(caminho)
+hash_anterior = _[f"file_hash_{aba_id}_{nome_arq}"]
+
+
+# ========================================
+# AGORA CARREGA CONTEÚDO FRESH
+# ========================================
+conteudo_inicial = Abrir_Arquivo_Select_Tabs(st, caminho)
+conteudo_inicial_ou_modificado, faltando, logs = checar_modulos_locais(aba_id, caminho, conteudo_inicial)
+
+with st.popover(f':material/functions: Minhas Funçoes:'):
+    with st.container(border=True, height=200):
+        st.code("\n".join(logs), language="bash")
+        st.write(faltando)
+        st.code(conteudo_inicial_ou_modificado)
+
+# ========================================
+# EDITOR E AUTOSAVE (igual antes)
+# ========================================
+editor_key = f"editor_militar_{aba_id}_{nome_arq}"
+if 'codigo' not in _:
+    _.codigo =  conteudo_inicial_ou_modificado
+
+# Botão custom CORRIGIDO
+botoes = [{
+    "name": "ola_mundo",
+    "feather": "Smile",
+    "hasText": True,
+    "text": "Olá!",
+    "primary": True,
+    "commands": ["submit"],  # ← CORRIGIDO: faltava ["submit"]
+    "style": {"top": "0.5rem", "right": "1rem"}
+}]
+
+# Editor CORRIGIDO
+codigo = code_editor(
+    _.codigo,
+    lang='python',
+    height='300px',
+    shortcuts='vscode',
+    allow_reset=True,
+    completions=Completar(st),
+    response_mode=["blur"],
+    buttons=botoes,
+    key=editor_key
+)
+
+if codigo:
+    cursor_pos = codigo.get('cursor', '{}')
+    # garante que cursor seja dict
+    if isinstance(cursor_pos, str):
+        try:
+            cursor = json.loads(cursor_pos) if cursor_pos else {}
+        except Exception as e:
+            st.write('Erro ao ler cursor:', e)
+            cursor = {}
+    elif isinstance(cursor_pos, dict):
+        cursor = cursor_pos
+    else:
+        cursor = {}
+
+    row = cursor.get('row', 0)
+    col = cursor.get('column', 0)
+
+    st.write('cursor após leitura:', cursor)
+    st.write('row, col iniciais:', row, col)
+    st.write('texto atual do código:\n', codigo.get('text', ''))
+
+    if codigo.get('type') == 'submit':
+        linhas = codigo.get('text', '').split('\n')
+        while len(linhas) <= row:
+            linhas.append('')
+        st.write('linha antes da inserção:', linhas[row])
+
+        # insere o texto
+        linhas[row] = linhas[row][:col] + 'meu texto' + linhas[row][col:]
+        codigo['text'] = '\n'.join(linhas)
+
+        # atualiza cursor
+        cursor['row'] = row
+        cursor['column'] = col + len('meu texto')
+        codigo['cursor'] = cursor
+
+        # salva de volta no estado do editor
+        st.session_state['codigo'] = codigo['text']
+        st.session_state['cursor'] = codigo['cursor']
+
+        st.write('linha depois da inserção:', linhas[row])
+        st.write('cursor atualizado:', codigo['cursor'])
+        st.write('texto atualizado do código:\n', codigo['text'])
+
+
+novo_codigo = codigo.get('text', '') if isinstance(codigo, dict) else str(codigo) if codigo else ""
+st.code(f'Código:\n{novo_codigo}')
+
+# AUTOSAVE MILITAR
+if novo_codigo.strip() and novo_codigo != conteudo_inicial_ou_modificado and conteudo_inicial:
+    if arquivo_hash_atual != hash_anterior:
+        _[f"file_hash_{aba_id}_{arquivo_hash_atual}"] = arquivo_hash_atual
+        st.success(f"🔥 ARQUIVO MUDOU: {nome_arq} - RECARREGANDO!")
+
+
+    cache_key = f"cache_editor_{aba_id}_{nome_arq}"
+    _[cache_key] = novo_codigo
+    st.success("💾 AUTOSAVE: Cache OK")
+
+    try:
+        Path(caminho).parent.mkdir(parents=True, exist_ok=True)
+        backup_path = Path(caminho).with_suffix('.py.bak')
+        if Path(caminho).exists():
+            Path(caminho).rename(backup_path)
+        Path(caminho).write_text(novo_codigo, encoding='utf-8')
+        if backup_path.exists():
+            backup_path.unlink()
+        _['autosave_status'] = f"💾 {nome_arq}"
+        st.success("💾 AUTOSAVE: Disco OK")
+    except Exception as e:
+        emergencia_path = Path(_DIRETORIO_PROJETO_ATUAL_()) / f"EMERGENCIA_{nome_arq}.json"
+        emergencia_path.write_text(
+            json.dumps({"timestamp": time.time(), "codigo": novo_codigo, "erro": str(e)}, ensure_ascii=False, indent=2),
+            encoding='utf-8')
+        st.error(f"⚠️ EMERGÊNCIA: {e}")
+
+if st.button(f':material/lock_reset:', key=f"botao_restart_alt{aba_id}"):
+    reset_db()
+    scan_project()
+
+
+--------------------------- O BOTAO
+
+if 'codigo' not in _:
+    _.codigo =  conteudo_inicial_ou_modificado
+
+# ===================== ESTADO =====================
+if "cursor_pos" not in st.session_state:
+    st.session_state["cursor_pos"] = {"row": 0, "column": 0}
+
+if "codigo_texto" not in st.session_state:
+    st.session_state["codigo_texto"] = _.codigo
+
+--------------------------- O BOTAO SEGUE  na mesma linha
+top_px = row * 24
+right_px = max(1, 300 - col * 8)
+
+botoes = [{
+    "name": "ola_mundo",
+    "feather": "Smile",
+    "hasText": True,
+    "text": "Olá!",
+    "primary": True,
+    "commands": ["submit"],
+    "style": {
+        "top": f"{top_px}px",
+        "right": f"{right_px}px"
+    }
+}]
+
+# Editor CORRIGIDO
+codigo = code_editor(
+    _.codigo,
+    lang='python',
+    height='300px',
+    shortcuts='vscode',
+    allow_reset=True,
+    completions=Completar(st),
+    response_mode=["change", "blur", "debounce"],
+
+    buttons=botoes,
+    key=editor_key
+)
+-------------------------------------------------- FIM
+--------------------------- O BOTAO SEGUE  nO CURSOR
+top_px = row * 24          # altura da linha
+left_px = col * 20         # largura aproximada de cada caractere
+
+botoes = [{
+    "name": "ola_mundo",
+    "feather": "Smile",
+    "hasText": True,
+    "text": "Olá!",
+    "primary": True,
+    "commands": ["submit"],
+    "style": {
+        "top": f"{top_px}px",
+        "left": f"{left_px}px"   # agora usa left, não right
+    }
+}]
+
+----------------------------------------------- FIM
+if codigo:
+    cursor_pos = codigo.get('cursor', '{}')
+
+    # garante que cursor seja dict
+    if isinstance(cursor_pos, str):
+        try:
+            cursor = json.loads(cursor_pos) if cursor_pos else {}
+        except Exception as e:
+            st.write('Erro ao ler cursor:', e)
+            cursor = {}
+    elif isinstance(cursor_pos, dict):
+        cursor = cursor_pos
+    else:
+        cursor = {}
+
+    row = cursor.get('row', 0)
+    col = cursor.get('column', 0)
+
+    # salva no estado já como dict
+    st.session_state["cursor_pos"] = cursor
+    st.session_state["codigo_texto"] = codigo.get("text", "")
+
+    st.write('cursor BOTAO:', st.session_state["cursor_pos"])
+    st.write('cursor BOTAO:', st.session_state["codigo_texto"])
+    st.write('cursor após leitura:', cursor)
+    st.write('row, col iniciais:', row, col)
+    st.write('texto atual do código:\n', codigo.get('text', ''))
+
+    if codigo.get('type') == 'submit':
+        linhas = codigo.get('text', '').split('\n')
+        while len(linhas) <= row:
+            linhas.append('')
+        st.write('linha antes da inserção:', linhas[row])
+
+        # insere o texto
+        linhas[row] = linhas[row][:col] + 'meu texto' + linhas[row][col:]
+        codigo['text'] = '\n'.join(linhas)
+
+        # atualiza cursor
+        cursor['row'] = row
+        cursor['column'] = col + len('meu texto')
+        codigo['cursor'] = cursor
+
+        # salva de volta no estado do editor
+        st.session_state['codigo'] = codigo['text']
+        st.session_state['cursor'] = codigo['cursor']
+
+        st.write('linha depois da inserção:', linhas[row])
+        st.write('cursor atualizado:', codigo['cursor'])
+        st.write('texto atualizado do código:\n', codigo['text'])
+        st.rerun()
+

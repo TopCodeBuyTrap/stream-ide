@@ -1249,7 +1249,7 @@ def Cria_Projeto(st):
 
 
 def Cria_Projeto_pouppap(st):# só usado um unica vez quando inicia o programa pela primeira vez
-    from Banco_Predefinitions import listar_templates, salvar_template, carregar_template
+    from Banco_dados import listar_templates, salvar_template, carregar_template
     st.session_state.setdefault("dialog_criar_projeto", True)
     @st.dialog("Criar 1° Projeto ")
     def menu_principal():

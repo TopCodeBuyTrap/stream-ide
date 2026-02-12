@@ -1,24 +1,64 @@
+import json
+
 import streamlit
 from code_editor import code_editor
 import os, time, ast
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
+
 from APP_Editores_Auxiliares.SUB_Traduz_terminal import traduzir_saida
 from APP_SUB_Controle_Driretorios import _DIRETORIO_PROJETO_ATUAL_, VENVE_DO_PROJETO
 
-from Banco_dados import gerar_predefinidos_com_links
+from Banco_dados import gerar_auto_complete_EDITOR, checar_modulos_locais, checar_modulos_pip
+
+def mostrar_todos_imports(st,aba_id, codigo):
+
+    # ===== Exemplo de uso no editor =====
+    def_from, def_predefinidos, from_predefinidos = gerar_auto_complete_EDITOR()
+
+    tokens = set(codigo.strip().split())
+
+    # DEF
+    for token in tokens:
+        if token in def_predefinidos:
+            caminho = def_predefinidos[token]
+            with st.popover(f"def {token}"):
+                st.write(caminho)
+
+    # coleta
+    itens_import = []
+
+    for token in tokens:
+        if token in from_predefinidos:
+            dados = from_predefinidos[token]
+
+            itens_import.append({
+                "label": f"{token} / {os.path.basename(dados['caminho'])} "
+                         f"(linha {dados['linha']})",
+                "caminho": dados["caminho"]
+            })
+
+    # renderização
+    if itens_import:
+        with st.popover("import"):
+            for i, item in enumerate(itens_import):
+                if st.button(
+                        item["label"],
+                        width="stretch",
+                        type="tertiary",
+                        key=f"{aba_id}_{i}"
+                ):
+                    st.write(item["caminho"])
 
 
 # ===== Exemplo de uso no editor =====
-def_from, def_predefinidos, from_predefinidos = gerar_predefinidos_com_links()
-streamlit.write(def_from)
+def_from, def_predefinidos, from_predefinidos = gerar_auto_complete_EDITOR()
 
 def carregar_modulos_venv():
     import sys
     import pkgutil
     from pathlib import Path
-    streamlit.write(from_predefinidos)
     _Python_exe, _Root_path, _Venv_path, _Prompt_venv = VENVE_DO_PROJETO()
     site_packages = Path(_Venv_path) / "Lib" / "site-packages"
     sys.path.insert(0, str(site_packages))
@@ -29,8 +69,8 @@ def carregar_modulos_venv():
     for m in pkgutil.iter_modules([str(site_packages)]):
         modulos[m.name] = [m.name]
 
-    # módulos do projeto (def_from)
-    for nome, dados in def_from.items():
+    # módulos do projeto (def_predefinidos)
+    for nome, dados in def_predefinidos.items():
         modulos[nome] =  os.path.basename(dados["caminho"])
 
     # 3. Fontes personalizadas
@@ -185,73 +225,111 @@ def editor_props():
             "highlightGutterLine": True,  # destaca o número da linha atual
         },
 
-def editor_codigo_autosave(st, aba_id, caminho_arquivo, conteudo_inicial, linguagem, thema_editor, font_size, fonte, altura,lateral, backgroud=None):
+def Abrir_Arquivo_Select_Tabs(st,conteudo_inicial):
+    if not os.path.exists(conteudo_inicial):
+        st.warning(f"Arquivo não encontrado: {conteudo_inicial}")
+    if not os.path.isfile(conteudo_inicial):
+        st.warning( f"'{conteudo_inicial}' é uma pasta, não arquivo")
+
+    try:
+        # Tenta ajustar permissão (Windows/Linux)
+        os.chmod(conteudo_inicial, 0o666)
+        with open(conteudo_inicial, "r", encoding="utf-8") as f:
+            return f.read()
+    except PermissionError:
+        st.warning("Sem permissão. Feche outros apps ou rode como admin.")
+    except Exception as e:pass
+       # st.warning(f"Erro: {e}")
+
+def editor_codigo_autosave(st, aba_id,nome_arq, diretorio_arquivo,  linguagem, thema_editor, font_size, fonte, altura,Info_Col, backgroud):
+    # cache props para evitar recálculo)
     _ = st.session_state
 
-    # 🔐 CHAVES ÚNICAS MILITARES (IMPROVÁVEL COLIDIR)
-    nome_arq = os.path.basename(caminho_arquivo) if caminho_arquivo else f"aba_{aba_id}"
-    cache_key = f"autosave_cache_{aba_id}_{nome_arq}_{hash(caminho_arquivo or '')}"
-    save_key = f"autosave_saved_{aba_id}_{nome_arq}_{hash(caminho_arquivo or '')}"
+    conteudo_inicial = Abrir_Arquivo_Select_Tabs(st, diretorio_arquivo)
 
-    # 🛡️ CARREGA ESTADO ANTERIOR (persiste reloads)
-    codigo_anterior = _.get(cache_key, conteudo_inicial or "")
+    @st.cache_data(hash_funcs={str: hash}, ttl=30)  # Cache 30s para props pesados
+    def Marcadores_Anotatios(codigo_hash: str):
+        return {
+            "markers": Marcadores_Editor(codigo_hash),
+            "annotations": Anotations_Editor(codigo_hash)
+        }
 
-    # 📝 EDITOR COM KEY ÚNICA
+
+    with Info_Col.container(border=True):
+        st.subheader("Imports & Funções")
+        # 🔥 DETECTOR MÓDULOS FALTANDO (PREVIEW)
+
+
+        conteudo_inicial_ou_modificado = checar_modulos_locais(st, aba_id, diretorio_arquivo,conteudo_inicial)
+        mostrar_todos_imports(st,aba_id, conteudo_inicial_ou_modificado)
+
+        checar_modulos_pip(st, conteudo_inicial_ou_modificado)
+        st.write('novo_cod_import:',conteudo_inicial_ou_modificado)
+
+    # gerar key dinâmica baseada no hash do código atualizado
+    hash_codigo = hash(conteudo_inicial_ou_modificado)
+    editor_key = f"editor_militar_{aba_id}_{nome_arq}_{hash_codigo}"
+
     cod = code_editor(
-        codigo_anterior,  # ← CARREGA DO CACHE!
+        conteudo_inicial_ou_modificado,  # ← CARREGA DO CACHE!
         lang=linguagem.lower(),
         height=f'{altura}px',
         shortcuts='vscode',
         response_mode=["blur"],
         options=Opcoes_editor(font_size, thema_editor.lower(), fonte),
         keybindings=Atalhos(),
-        props={"markers": Marcadores_Editor(codigo_anterior), "annotations": Anotations_Editor(codigo_anterior)},
+        props=Marcadores_Anotatios(conteudo_inicial_ou_modificado),
         component_props=Component_props(),
         completions=Completar(st),
         editor_props=editor_props(),
         buttons=Botoes(),
-        key=f"editor_militar_{aba_id}_{nome_arq}"  # 🔐 ÚNICA!
+        key= editor_key # 🔐 ÚNICA!
     )
 
     # 📥 EXTRAI CÓDIGO ATUAL
     novo_codigo = cod.get('text', '') if isinstance(cod, dict) else str(cod) if cod else ""
     # ===== Exibe os links abaixo do editor =====
-    with lateral:
+    with Info_Col:
         erros = checar_erros(novo_codigo)
         if erros:
             avizo = "\n\n".join([f"Linha {e['line']}: {traduzir_saida(e['message'])}" for e in erros]).replace(">:",'\n')
-            st.warning(avizo)
+            with st.popover(f'{len(erros)} Erros'):
+                with st.container(border=True,height=200):
+                    st.warning(avizo)
 
     # 🔥 AUTOSAVE MILITAR (3 camadas)
-    if novo_codigo.strip() and novo_codigo != codigo_anterior and caminho_arquivo:
+    if novo_codigo.strip() and novo_codigo != conteudo_inicial_ou_modificado and conteudo_inicial:
 
-        # CAMADA 1: CACHE IMEDIATO (0.001s)
+        # ✅ CAMADA 1: CACHE IMEDIATO (0.001s) - SESSION STATE
+        cache_key = f"cache_editor_{aba_id}_{nome_arq}"
         _[cache_key] = novo_codigo
 
         # CAMADA 2: DISCO COM BACKUP (0.1s)
         try:
-            Path(caminho_arquivo).parent.mkdir(parents=True, exist_ok=True)
+            Path(conteudo_inicial).parent.mkdir(parents=True, exist_ok=True)
 
             # Backup temporal
-            backup_path = Path(caminho_arquivo).with_suffix('.py.bak')
-            Path(caminho_arquivo).write_text(novo_codigo, encoding='utf-8')
+            backup_path = Path(conteudo_inicial).with_suffix('.py.bak')
+            Path(conteudo_inicial).write_text(novo_codigo, encoding='utf-8')
 
             # Remove backup antigo se salvo com sucesso
             if backup_path.exists():
                 backup_path.unlink()
-
+            save_key = f"save_status_{aba_id}_{nome_arq}"
             _[save_key] = novo_codigo
             _['autosave_status'] = f"💾 {nome_arq}"
 
         except Exception as e:
             # CAMADA 3: EMERGÊNCIA (JSON no projeto)
             emergencia_path = Path(_DIRETORIO_PROJETO_ATUAL_()) / f"EMERGENCIA_{nome_arq}.json"
-            emergencia_path.write_text({
-                "timestamp": time.time(),
-                "codigo": novo_codigo,
-                "erro": str(e)
-            }, encoding='utf-8')
-            _['autosave_status'] = f"⚠️ Emergência {nome_arq}"
+            emergencia_path.write_text(
+                json.dumps({
+                    "timestamp": time.time(),
+                    "codigo": novo_codigo,
+                    "erro": str(e)
+                }, ensure_ascii=False, indent=2),
+                encoding='utf-8'
+            )
 
 
 
@@ -432,3 +510,5 @@ def Marcadores_Editor(codigo: str) -> List[Dict[str, Any]]:
                 })
 
     return markers
+
+
