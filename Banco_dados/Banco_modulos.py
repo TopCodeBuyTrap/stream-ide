@@ -1,5 +1,6 @@
 import os
 import pkgutil
+import re
 import sqlite3
 import ast
 import sys
@@ -431,7 +432,7 @@ def Quando_Abrir_APP_primeira():
 # _Python_exe já vem do VENVE_DO_PROJETO()
 # Exemplo: _Python_exe, _Root_path, _Venv_path, _Prompt_venv = VENVE_DO_PROJETO()
 
-def instalar_modulo(modulo):
+def instalar_modulo_(modulo):
     import subprocess
 
     try:
@@ -441,7 +442,7 @@ def instalar_modulo(modulo):
         return False
 
 
-def botoes_instalacao(modulos_faltando):
+def botoes_instalacao_(modulos_faltando):
 
     # Botões individuais
     for mod in modulos_faltando:
@@ -453,7 +454,7 @@ def botoes_instalacao(modulos_faltando):
                 else:
                     st.error(f"Falha ao instalar {mod}")
 
-def checar_modulos_pip(st,codigo):
+def checar_modulos_pip_(st,codigo):
     with st.popover(f':material/view_module: Pip Modulos Importados:'):
         with st.container(border=True, height=200):
             log_area = st.empty()
@@ -518,76 +519,6 @@ def checar_modulos_pip(st,codigo):
     log(f"Faltando: {sorted(modulos_faltando)}")
 
     botoes_instalacao(modulos_faltando)
-
-
-def checar_modulos_pip_(st,codigo):
-    with st.popover(f'checar_modulos_locais'):
-        with st.container(border=True, height=200):
-            log_area = st.empty()
-            logs = []
-
-            def log(msg):
-                logs.append(str(msg))
-                if len(logs) <= 50:  # limita quantidade exibida para não travar Streamlit
-                    log_area.code("\n".join(logs), language="bash")
-    #log(f"Código recebido:\n{codigo}")
-
-    log("==== INICIANDO CHECAGEM DE MÓDULOS ====")
-
-    # ===================== EXTRAIR IMPORTS VIA AST =====================
-    todos_modulos = set()
-    try:
-        tree = ast.parse(codigo)
-        for node in ast.walk(tree):
-            if isinstance(node, ast.Import):
-                todos_modulos.update(alias.name.split('.')[0] for alias in node.names)
-            elif isinstance(node, ast.ImportFrom) and node.module:
-                todos_modulos.add(node.module.split('.')[0])
-        log(f"Total de módulos encontrados: {len(todos_modulos)}")
-    except Exception as e:
-        log(f"ERRO AST: {e}")
-        return []
-
-    # ===================== CARREGAR IMPORTS IGNORADOS =====================
-    conn = get_conn()
-    c = conn.cursor()
-    c.execute("SELECT DISTINCT NOME FROM IMPORTS_IGNORADOS")
-    ignorados = {row[0].split('.')[0].lower() for row in c.fetchall()}
-    log(f"Ignorados no banco: {len(ignorados)}")
-
-    # ===================== CARREGAR ITENS DO ARQUIVO (módulos do projeto) ==========
-    c.execute("SELECT DISTINCT ONDE_IMPORTOU FROM ITENS_DO_ARQUIVO WHERE TIPO='import'")
-    modulos_projeto = {row[0].split('.')[0].lower() for row in c.fetchall()}
-    log(f"Itens do arquivo carregados: {len(modulos_projeto)}")
-    c.close()
-    conn.close()
-
-    # ===================== STD LIB =====================
-    stdlib_path = Path(sysconfig.get_paths()["stdlib"])
-    modulos_stdlib = {m.name for m in pkgutil.iter_modules([str(stdlib_path)])} | set(sys.builtin_module_names)
-    log(f"Stdlib carregada: {len(modulos_stdlib)} módulos")
-
-    # ===================== VENV =====================
-    site_packages = Path(_Venv_path) / "Lib" / "site-packages"
-    modulos_venv = {m.name for m in pkgutil.iter_modules([str(site_packages)])} if site_packages.exists() else set()
-    log(f"Venv encontrada: {len(modulos_venv)} módulos" if modulos_venv else "Venv não encontrada.")
-
-    # ===================== CLASSIFICAÇÃO =====================
-    modulos_faltando = {
-        mod for mod in todos_modulos
-        if mod.lower() not in ignorados
-        and mod.lower() not in modulos_stdlib
-        and mod.lower() not in modulos_venv
-        and mod.lower() not in modulos_projeto
-    }
-
-    log("==== FINALIZADO ====")
-    log(f"Faltando: {sorted(modulos_faltando)}")
-
-    botoes_instalacao(modulos_faltando)
-
-
-
 
 
 
@@ -1518,3 +1449,338 @@ def gerar_json_imports(caminho_saida):
 
     return caminho_saida
 
+
+
+
+
+
+
+
+
+def checar_modulos_pip(st, codigo):
+    with st.popover(f':material/view_module: Pip Modulos Importados:'):
+        with st.container(border=True, height=200):
+            log_area = st.empty()
+            logs = []
+
+            def log(msg):
+                logs.append(str(msg))
+                if len(logs) <= 50:  # limita quantidade exibida para não travar Streamlit
+                    log_area.code("\n".join(logs), language="bash")
+
+            log("==== INICIANDO CHECAGEM DE MÓDULOS ====")
+
+            # ===================== EXTRAIR IMPORTS VIA AST COM LINHAS =====================
+            modulos_por_linha = {}  # {linha: modulo}
+            try:
+                tree = ast.parse(codigo)
+                for node in ast.walk(tree):
+                    if isinstance(node, ast.Import):
+                        for alias in node.names:
+                            mod = alias.name.split('.')[0]
+                            modulos_por_linha[node.lineno] = mod  # Usa lineno do AST para a linha exata
+                    elif isinstance(node, ast.ImportFrom) and node.module:
+                        mod = node.module.split('.')[0]
+                        modulos_por_linha[node.lineno] = mod
+                log(f"Total de módulos encontrados: {len(modulos_por_linha)}")
+            except Exception as e:
+                log(f"ERRO AST: {e}")
+                return {}
+
+            # ===================== CARREGAR IMPORTS IGNORADOS =====================
+            conn = get_conn()
+            c = conn.cursor()
+            c.execute("SELECT DISTINCT NOME FROM IMPORTS_IGNORADOS")
+            ignorados = {row[0].split('.')[0].lower() for row in c.fetchall()}
+            log(f"Ignorados no banco: {len(ignorados)}")
+
+            # ===================== CARREGAR ITENS DO ARQUIVO (módulos do projeto) ==========
+            c.execute("SELECT DISTINCT ONDE_IMPORTOU FROM ITENS_DO_ARQUIVO WHERE TIPO='import'")
+            modulos_projeto = {row[0].split('.')[0].lower() for row in c.fetchall()}
+            log(f"Itens do arquivo carregados: {len(modulos_projeto)}")
+            c.close()
+            conn.close()
+
+            # ===================== CLASSIFICAÇÃO COM LINHAS =====================
+            modulos_faltando_por_linha = {}  # {linha: modulo} apenas para faltantes
+            for linha, mod in modulos_por_linha.items():
+                if mod.lower() not in ignorados and mod.lower() not in modulos_stdlib and mod.lower() not in modulos_venv and mod.lower() not in modulos_projeto:
+                    modulos_faltando_por_linha[linha] = mod
+
+            log("==== FINALIZADO ====")
+            log(f"Faltando: {list(modulos_faltando_por_linha.values())}")
+
+            return modulos_faltando_por_linha  # Retorna {linha: modulo} para posicionar buttons na linha exata
+
+
+def from_import_functions(faltando: list, codigo_entrada: str, key: str):
+    import ast
+    import streamlit as st
+
+    logs_btn = []
+
+    def log(msg):
+        logs_btn.append(str(msg))
+
+    if not faltando:
+        return codigo_entrada, logs_btn  # Retorna o código original se nada faltar
+
+    try:
+        linhas = codigo_entrada.splitlines(keepends=True)
+
+        modulo_por_nome = {}
+        for nome_faltando in faltando:
+            conn = get_conn()
+            c = conn.cursor()
+            c.execute("""
+                SELECT ONDE_IMPORTOU
+                FROM ITENS_DO_ARQUIVO
+                WHERE (FUNCAO_IMPORTADA = ? OR FUNCAO_COMPLETA LIKE ?)
+                  AND TIPO IN ('function', 'class')
+                  AND ONDE_IMPORTOU != ''
+                LIMIT 1
+            """, (nome_faltando, f"%{nome_faltando}%"))
+            resultado = c.fetchone()
+            c.close()
+            conn.close()
+
+            if resultado and resultado[0]:
+                modulo_por_nome[nome_faltando] = resultado[0]
+                log(f"✅ {nome_faltando} → {resultado[0]}")
+            else:
+                log(f"⚠️ {nome_faltando} sem módulo definido")
+
+        if not modulo_por_nome:
+            return codigo_entrada, logs_btn  # Retorna original se nenhum módulo
+
+        # Agrupa por módulo
+        modulos_agrupados = {}
+        for nome, modulo in modulo_por_nome.items():
+            modulos_agrupados.setdefault(modulo, set()).add(nome)
+
+        imports_montados = []
+
+        for modulo_base, nomes in modulos_agrupados.items():
+            nomes_existentes = set()
+
+            for linha in linhas:
+                linha_strip = linha.strip()
+                if linha_strip.startswith(f"from {modulo_base} import "):
+                    try:
+                        tree_linha = ast.parse(linha_strip)
+                        for node in ast.walk(tree_linha):
+                            if isinstance(node, ast.ImportFrom) and node.module == modulo_base:
+                                nomes_existentes.update(alias.name for alias in node.names)
+                    except Exception:
+                        pass
+
+            todos_nomes = sorted(nomes_existentes.union(nomes))
+            linha_import = f"from {modulo_base} import {', '.join(todos_nomes)}"
+            imports_montados.append(linha_import)
+
+            log(f"✅ Import montado: {linha_import}")
+
+        # Insere os imports no topo do código
+        if imports_montados:
+            linhas_codigo = codigo_entrada.splitlines(keepends=True)
+            linhas_codigo.insert(0, '\n'.join(imports_montados) + '\n\n')  # Topo com quebras
+            codigo_modificado = ''.join(linhas_codigo)
+            # Atualiza session_state
+            if "imports_adicionados" not in st.session_state:
+                st.session_state["imports_adicionados"] = set()
+            st.session_state["imports_adicionados"].update(faltando)
+            log(f"✅ Imports adicionados no topo: {imports_montados}")
+            return codigo_modificado, logs_btn
+        else:
+            return codigo_entrada, logs_btn
+
+    except Exception as e:
+        log(f"ERRO: ❌ {e}")
+        return codigo_entrada, logs_btn  # Retorna original em erro
+
+def detectar_problemas_codigo(codigo_entrada):
+    """
+    Função simples: retorna lista de logs SE tiver problemas, senão retorna lista vazia [].
+    """
+    logs_problemas = []
+
+    # 🔍 Checando indentação...
+    linhas = codigo_entrada.splitlines()
+    erros_indent = []
+
+    for i, linha in enumerate(linhas, 1):
+        linha_strip = linha.lstrip()
+        if linha_strip and linha_strip[0] in [' ', '\t']:
+            if '\t' in linha and ' ' in linha:
+                erros_indent.append(f"L{i}: Mistura tabs+espaços")
+                continue
+        espacos = len(linha) - len(linha.lstrip())
+        if espacos > 0 and espacos % 4 != 0 and '\t' not in linha:
+            erros_indent.append(f"L{i}: Indentação {espacos} espaços (deve ser 4)")
+
+    if erros_indent:
+        logs_problemas.append(f"❌ Indentação: {len(erros_indent)} erro(s)")
+        for erro in erros_indent[:5]:
+            logs_problemas.append(f"  {erro}")
+
+    # 🔍 Checando variáveis soltas...
+    variaveis_soltas = set()
+    for linha in linhas:
+        palavras = re.findall(r'\b([a-zA-Z_][a-zA-Z0-9_]*)\b', linha)
+        for palavra in palavras:
+            if (len(palavra) > 2 and palavra.islower() and
+                    palavra not in ['from', 'import', 'print'] and
+                    not re.search(r'\b' + palavra + r'\s*\$', linha) and
+                    palavra not in ['co', 'id']):
+                variaveis_soltas.add(palavra)
+
+    if variaveis_soltas:
+        logs_problemas.append(f"⚠️ Variáveis soltas: {variaveis_soltas}")
+
+    # 🔍 Checando sintaxe...
+    try:
+        ast.parse(codigo_entrada)
+    except SyntaxError:
+        logs_problemas.append("❌ Erro de sintaxe detectado!")
+
+    return logs_problemas  # VAZIO [] se tudo OK, CHEIO se tem problema
+
+def checar_organizar_codigo(key, codigo_entrada):
+    """
+    Função principal para organizar o código: primeiro detecta problemas, depois analisa imports,
+    consulta banco, detecta faltantes e organiza o código com imports.
+    Retorna: codigo_modificado, problemas, faltando, logs
+    """
+
+    problemas = detectar_problemas_codigo(codigo_entrada)  # Lista vazia [] se OK
+
+    # Agora, continua com o resto: análise de imports, etc.
+    if "imports_adicionados" not in st.session_state:
+        st.session_state["imports_adicionados"] = set()
+
+    falta_fuctions = []
+    imports_deste_arquivo = set()
+    nomes_usados = set()
+    funcoes_importadas_explicitamente = set()
+    imports_por_modulo = {}
+    modulos_com_wildcard = set()
+
+    # ================= AST OU FALLBACK =================
+    tree = None
+    try:
+        tree = ast.parse(codigo_entrada)
+    except:
+        pass  # Já checado em detectar_problemas_codigo
+
+    try:
+        if tree:
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Import):
+                    for alias in node.names:
+                        mod = alias.name.split(".")[0]
+                        imports_deste_arquivo.add(mod)
+                        imports_por_modulo.setdefault(mod, [])
+
+                elif isinstance(node, ast.ImportFrom) and node.module:
+                    mod = node.module.split(".")[0]
+                    imports_deste_arquivo.add(mod)
+                    imports_por_modulo.setdefault(mod, [])
+
+                    tem_wildcard = any(name.name == '*' for name in node.names)
+                    if tem_wildcard:
+                        modulos_com_wildcard.add(mod)
+                        imports_por_modulo[mod] = ['*']
+                    else:
+                        for alias in node.names:
+                            imports_por_modulo[mod].append(alias.name)
+                            funcoes_importadas_explicitamente.add(alias.name)
+
+                elif isinstance(node, ast.Name):
+                    nomes_usados.add(node.id)
+
+        else:
+            raise Exception("Forçando fallback")
+
+    except:
+        nomes_raw = re.findall(r'\b([a-zA-Z_][a-zA-Z0-9_]*)\b', codigo_entrada)
+        nomes_usados = set(nomes_raw)
+
+        padrao_import = r'from\s+([a-zA-Z_][a-zA-Z0-9_.]*?)\s+import\s+([a-zA-Z_][a-zA-Z0-9_,* ]*)'
+        matches = re.findall(padrao_import, codigo_entrada, re.IGNORECASE)
+        for modulo, funcs in matches:
+            mod_name = modulo.split('.')[0]
+            imports_deste_arquivo.add(mod_name)
+            imports_por_modulo.setdefault(mod_name, [])
+
+            if '*' in funcs:
+                modulos_com_wildcard.add(mod_name)
+                imports_por_modulo[mod_name] = ['*']
+            else:
+                funcs_lista = [f.strip() for f in funcs.replace(',', ' ').split() if f.strip()]
+                imports_por_modulo[mod_name].extend(funcs_lista)
+                funcoes_importadas_explicitamente.update(funcs_lista)
+
+    # ================= BANCO =================
+    try:
+        conn = get_conn()
+        c = conn.cursor()
+        c.execute("""
+            SELECT DISTINCT FUNCAO_IMPORTADA FROM ITENS_DO_ARQUIVO 
+            WHERE TIPO IN ('function', 'class', 'import')
+        """)
+        definicoes_brutas = [row[0] for row in c.fetchall()]
+
+        definicoes = set()
+        for nome in definicoes_brutas:
+            nome_limpo = nome.split("(")[0].strip()
+            definicoes.add(nome_limpo.lower())
+            if "." in nome_limpo:
+                definicoes.add(nome_limpo.split(".")[-1].lower())
+                definicoes.add(nome_limpo.split(".")[0].lower())
+
+        c.execute("SELECT DISTINCT NOME FROM IMPORTS_IGNORADOS")
+        ignorados = {row[0].split('.')[0].lower() for row in c.fetchall()}
+        c.close()
+        conn.close()
+
+    except Exception as e:
+        definicoes = set()
+        ignorados = set()
+
+    def existe_no_banco(nome, definicoes):
+        n = nome.lower()
+        return any(n in d or d.endswith("." + n) or n.endswith("." + d) for d in definicoes)
+
+    for nome in nomes_usados:
+        if (len(nome) < 6 or
+                nome.lower() in ['from', 'import', 'print'] or
+                (nome[0].islower() and len(nome) < 15)):
+            continue
+
+        n = nome.lower()
+        importado = False
+
+        for mod, funcs in imports_por_modulo.items():
+            if n in [f.lower() for f in funcs]:
+                importado = True
+                break
+
+        if not importado and modulos_com_wildcard:
+            if existe_no_banco(nome, definicoes):
+                importado = True
+
+        if importado:
+            continue
+
+        if n not in ignorados and existe_no_banco(nome, definicoes):
+            falta_fuctions.append(nome)
+
+    # Removido o filtro de session_state["imports_adicionados"] pra sempre detectar
+    falta_fuctions = sorted(set(falta_fuctions))
+
+    # Chama from_import_functions pra organizar e retornar o código com imports no topo
+    codigo_modificado, logs_btn = from_import_functions(falta_fuctions, codigo_entrada, key)
+
+    falta_modulo = checar_modulos_pip(st, codigo_entrada)
+
+    return codigo_modificado, problemas, falta_fuctions, falta_modulo

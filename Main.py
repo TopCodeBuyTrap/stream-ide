@@ -3,12 +3,12 @@ import os
 import time
 from pathlib import Path
 
-from APP_Editores_Auxiliares.EDITOR_Botao import botao_aplica
+from APP_Code_Editor.Botoes import botao_aplica_cursor, Botoes
 from Banco_dados import checar_modulos_locais, reset_db, scan_project
 from code_editor import code_editor
 import streamlit as st
 from APP_SUB_Janela_Explorer import Abrir_Arquivo_Select_Tabs
-from Banco_dados import gerar_auto_complete_EDITOR, checar_modulos_pip
+from Banco_dados import gerar_auto_complete_EDITOR
 from APP_SUB_Controle_Driretorios import VENVE_DO_PROJETO, _DIRETORIO_PROJETO_ATUAL_
 
 def_from, def_predefinidos, from_predefinidos = gerar_auto_complete_EDITOR()
@@ -75,6 +75,7 @@ if hash_atual != hash_anterior:
     _[chave_ultima_checagem] = 0  # Reset checagem
     st.rerun()  # ✅ Refresh TOTAL: Abrir_Arquivo_Select_Tabs roda de novo → editor atualiza![cite:1][web:15]
 
+
 # AGORA carrega o conteúdo (roda toda vez após rerun)
 conteudo_inicial = Abrir_Arquivo_Select_Tabs(st, caminho)  # Sua função original
 conteudo_inicial_ou_modificado, faltando, logs = checar_modulos_locais(aba_id, conteudo_inicial)
@@ -88,49 +89,40 @@ with st.popover(f':material/functions: Minhas Funçoes:'):
 # ========================================
 editor_key = f"editor_militar_{aba_id}_{nome_arq}"
 
+# Prepara dict pro fluxo do botao_aplica_cursor
+editor_dict = {
+    "text": conteudo_inicial,
+    "cursor": st.session_state.get("cursor_pos", {"row": 0, "column": 0}),
+    "type": "submit"
+}
 
-# ===================== ESTADO =====================
-_.setdefault('cursor_pos', {"row": 0, "column": 0})  #
+# Aplica o texto faltando no cursor
+editor_dict = botao_aplica_cursor(st,editor_dict,f'{"\n".join(conteudo_inicial_ou_modificado)}\n'
+)
 
-cursor = _["cursor_pos"]
-row = cursor.get("row", 0)
-col = cursor.get("column", 0)
+# Atualiza cursor na sessão
+st.session_state.cursor_pos = editor_dict.get("cursor", {"row": 0, "column": 0})
 
-#--------------------------- O BOTAO SEGUE  na mesma linha
-top_px = row * 24
-right_px = max(1, 300 - col * 8)
+# Pega texto atualizado
+novo_codigo = editor_dict.get("text", "")
 
-botoes = [{
-    "name": "Importar\n".join(faltando),
-    "feather": "Smile",
+st.write(True if len(faltando) > 0 else False)
 
-    "hasText": True,
-    "text": "Olá!",
-    "primary": True,
-    "commands": ["submit"],
-    "style": {
-        "top": f"{top_px}px",
-        "right": f"{right_px}px"
-    }
-}]
-st.write(True if len(faltando) > 0 else False,)
 # Editor CORRIGIDO
 codigo = code_editor(
-    conteudo_inicial,
+    novo_codigo,  # <- aqui vai o texto atualizado, não conteudo_inicial
     lang='python',
     height='300px',
     shortcuts='vscode',
     completions=Completar(st),
-    response_mode=[ "blur"],
+    response_mode=["blur"],
     allow_reset=True if len(faltando) > 0 else False,
-    buttons=botoes,
+    buttons=Botoes(faltando,'\n'.join(faltando),'True'),
     key=editor_key
 )
 
-# Resto da sua UI (status bar, checar_modulos_locais, etc.)
-st.success(f"Editor atualizado com hash: {hash_atual}")  # Feedback opcional
+codigo = botao_aplica_cursor(st,codigo,f'{"\n".join(conteudo_inicial_ou_modificado)}\n',)
 
-codigo = botao_aplica(st,codigo,f'{"\n".join(conteudo_inicial_ou_modificado)}\n',True)
 
 novo_codigo = codigo.get('text', '') if isinstance(codigo, dict) else str(codigo) if codigo else ""
 st.code(f'Código:\n{novo_codigo}')

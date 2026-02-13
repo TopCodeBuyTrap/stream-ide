@@ -1,0 +1,353 @@
+import json
+import os
+import time
+from pathlib import Path
+
+from APP_Editores_Auxiliares.EDITOR_Botao import botao_aplica
+from Banco_dados import checar_modulos_locais, reset_db, scan_project
+from code_editor import code_editor
+import streamlit as st
+from APP_SUB_Janela_Explorer import Abrir_Arquivo_Select_Tabs
+from Banco_dados import gerar_auto_complete_EDITOR, checar_modulos_pip
+from APP_SUB_Controle_Driretorios import VENVE_DO_PROJETO, _DIRETORIO_PROJETO_ATUAL_
+
+def_from, def_predefinidos, from_predefinidos = gerar_auto_complete_EDITOR()
+
+
+def carregar_modulos_venv():
+    import sys
+    import pkgutil
+    _Python_exe, _Root_path, _Venv_path, _Prompt_venv = VENVE_DO_PROJETO()
+    site_packages = Path(_Venv_path) / "Lib" / "site-packages"
+    sys.path.insert(0, str(site_packages))
+    modulos = {}
+    for m in pkgutil.iter_modules([str(site_packages)]):
+        modulos[m.name] = [m.name]
+    for nome, dados in def_predefinidos.items():
+        modulos[nome] = os.path.basename(dados["caminho"])
+    outras_fontes = [{"nome": "filha", "valor": "isadora"}, {"nome": "amigo", "valor": "joao"}]
+    for item in outras_fontes:
+        modulos[item["nome"]] = item["valor"]
+    return modulos
+
+
+def Completar(st):
+    if "modulos_venv" not in st.session_state:
+        st.session_state.modulos_venv = carregar_modulos_venv()
+    completions = []
+    for nome, origem in st.session_state.modulos_venv.items():
+        completions.append({"caption": nome, "value": nome, "meta": origem, "name": nome, "score": 400})
+    return completions
+
+
+_ = st.session_state
+
+# ========================================
+# 🔥 DETECÇÃO IMEDIATA - PRIMEIRA COISA QUE RODA
+# ========================================
+caminho = Path(r"C:\Users\henri\ProjetoSteamIDE\HENRIQUE\main.py")
+nome_arq = os.path.basename(caminho)
+aba_id = 42
+
+
+
+conteudo_inicial = Abrir_Arquivo_Select_Tabs(st, caminho)
+conteudo_inicial_ou_modificado, faltando, logs = checar_modulos_locais(aba_id, conteudo_inicial)
+
+with st.popover(f':material/functions: Minhas Funçoes:'):
+    with st.container(border=True, height=200):
+        st.code("\n".join(logs), language="bash")
+        st.write(faltando)
+        st.code(conteudo_inicial_ou_modificado)
+
+# ========================================
+editor_key = f"editor_militar_{aba_id}_{nome_arq}"
+
+
+# ===================== ESTADO =====================
+_.setdefault('cursor_pos', {"row": 0, "column": 0})  #
+
+cursor = _["cursor_pos"]
+row = cursor.get("row", 0)
+col = cursor.get("column", 0)
+
+#--------------------------- O BOTAO SEGUE  na mesma linha
+top_px = row * 24
+right_px = max(1, 300 - col * 8)
+
+botoes = [{
+    "name": "Importar\n".join(faltando),
+    "feather": "Smile",
+
+    "hasText": True,
+    "text": "Olá!",
+    "primary": True,
+    "commands": ["submit"],
+    "style": {
+        "top": f"{top_px}px",
+        "right": f"{right_px}px"
+    }
+}]
+st.write(True if len(faltando) > 0 else False,)
+# Editor CORRIGIDO
+codigo = code_editor(
+    conteudo_inicial,
+    lang='python',
+    height='300px',
+    shortcuts='vscode',
+    completions=Completar(st),
+    response_mode=[ "blur"],
+    allow_reset=True if len(faltando) > 0 else False,
+    buttons=botoes,
+    key=editor_key
+)
+
+
+codigo = botao_aplica(st,codigo,f'{"\n".join(conteudo_inicial_ou_modificado)}\n',True)
+
+novo_codigo = codigo.get('text', '') if isinstance(codigo, dict) else str(codigo) if codigo else ""
+st.code(f'Código:\n{novo_codigo}')
+
+# AUTOSAVE MILITAR
+if novo_codigo.strip() and novo_codigo != conteudo_inicial_ou_modificado and conteudo_inicial:
+    cache_key = f"cache_editor_{aba_id}_{nome_arq}"
+    _[cache_key] = novo_codigo
+    st.success("💾 AUTOSAVE: Cache OK")
+
+    try:
+        Path(caminho).parent.mkdir(parents=True, exist_ok=True)
+        backup_path = Path(caminho).with_suffix('.py.bak')
+        if Path(caminho).exists():
+            Path(caminho).rename(backup_path)
+        Path(caminho).write_text(novo_codigo, encoding='utf-8')
+        if backup_path.exists():
+            backup_path.unlink()
+        _['autosave_status'] = f"💾 {nome_arq}"
+        st.success("💾 AUTOSAVE: Disco OK")
+    except Exception as e:
+        emergencia_path = Path(_DIRETORIO_PROJETO_ATUAL_()) / f"EMERGENCIA_{nome_arq}.json"
+        emergencia_path.write_text(
+            json.dumps({"timestamp": time.time(), "codigo": novo_codigo, "erro": str(e)}, ensure_ascii=False, indent=2),
+            encoding='utf-8')
+        st.error(f"⚠️ EMERGÊNCIA: {e}")
+
+
+    # REPROCESSA ANALISE APÓS SALVAR
+    _, faltando, logs = checar_modulos_locais(
+        aba_id,
+        novo_codigo
+    )
+if st.button(f':material/lock_reset:', key=f"botao_restart_alt{aba_id}"):
+    reset_db()
+    scan_project()  ====  import json
+
+def botao_aplica(st, saida_editor, texto, aplicar_no_topo=False):
+    """
+    Insere 'texto' no editor.
+
+    aplicar_no_topo = True  -> insere em (0,0)
+    aplicar_no_topo = False -> insere na posição atual do cursor
+    """
+
+    # 🔒 Garante que o retorno sempre seja dict válido
+    if not isinstance(saida_editor, dict):
+        return {"text": str(saida_editor) if saida_editor else ""}
+
+    # Obtém posição do cursor enviada pelo editor
+    cursor_pos = saida_editor.get("cursor", {"row": 0, "column": 0})
+
+    # Se vier como string JSON, converte
+    if isinstance(cursor_pos, str):
+        try:
+            cursor = json.loads(cursor_pos) if cursor_pos else {}
+        except Exception:
+            cursor = {}
+    elif isinstance(cursor_pos, dict):
+        cursor = cursor_pos
+    else:
+        cursor = {}
+
+    # 🔥 Define onde vai aplicar o texto
+    if aplicar_no_topo:
+        row = 0
+        col = 0
+    else:
+        row = cursor.get("row", 0)
+        col = cursor.get("column", 0)
+
+    # Só executa se o botão do editor disparar submit
+    if saida_editor.get("type") == "submit":
+
+        # Quebra o código em linhas
+        linhas = saida_editor.get("text", "").split("\n")
+
+        # Garante que a linha exista
+        while len(linhas) <= row:
+            linhas.append("")
+
+        # Insere o texto na posição escolhida
+        linhas[row] = linhas[row][:col] + texto + linhas[row][col:]
+
+        # Junta tudo novamente
+        novo_texto = "\n".join(linhas)
+
+        # Atualiza cursor após inserção
+        novo_cursor = {
+            "row": row,
+            "column": col + len(texto)
+        }
+
+        # Atualiza objeto retornado pelo editor
+        saida_editor["text"] = novo_texto
+        saida_editor["cursor"] = novo_cursor
+
+
+        return saida_editor
+
+    # Se não for submit, retorna sem alterar
+    return saida_editor   Eu estou com um problema aqui no meu código, que é o seguinte. Primeiro eu vou explicar por que que o editor de código tem esse... esse Responsimod aí tabular. E ele tá desse jeito, porque se eu colocar ele pra ficar dando re-run a cada tecla que eu digito, atrapalha aqui meu código no StreamLit, entendeu? Então eu tenho que ficar desse jeito. E esse auto-reset aí, eu coloquei uma condição nele, dele ficar true ou false. Porque se ele ficar true, se eu clicar fora do... do editor de código, no caso ele salva, mas se eu clicar dentro de novo, ele pega e fica dando Ctrl Z, entendeu? Esse que é o problema, porque eu estou inserindo um texto via botão e ele só funciona se o reset tiver true. E se ele tiver falso, ele não funciona. E eu coloquei essa condição e mesmo assim tá dando esse problema. Ele insere o texto lá que eu estou mandando e salva, mas se eu clicar dentro dele de novo, ele reseta, entendeu? Então, tá canseiro isso aí.
+
+
+
+
+    ------------------------------------------
+    import json
+import os
+import time
+from pathlib import Path
+import streamlit as st
+from code_editor import code_editor
+
+# Configuração da página
+st.set_page_config(layout="wide")
+
+
+# ========================================
+# 🛠️ MOCKS E UTILITÁRIOS (Para substituir módulos locais que faltam)
+# ========================================
+
+# Simula o diretório do projeto
+def _DIRETORIO_PROJETO_ATUAL_():
+	return os.getcwd()
+
+
+# Define o arquivo alvo (substituindo o caminho do Windows)
+CAMINHO_ARQUIVO = Path("target_file.py")
+
+# Garante que o arquivo existe
+if not CAMINHO_ARQUIVO.exists():
+	CAMINHO_ARQUIVO.write_text("# Arquivo novo\n", encoding="utf-8")
+
+
+# ========================================
+# 📂 FUNÇÕES DE ARQUIVO
+# ========================================
+
+def ler_arquivo(caminho):
+	try:
+		return Path(caminho).read_text(encoding='utf-8')
+	except Exception as e:
+		st.error(f"Erro ao ler arquivo: {e}")
+		return ""
+
+
+def salvar_arquivo(caminho, conteudo):
+	try:
+		Path(caminho).write_text(conteudo, encoding='utf-8')
+		return True
+	except Exception as e:
+		st.error(f"Erro ao salvar: {e}")
+		return False
+
+
+# ========================================
+# 🤖 SIMULAÇÃO DA FUNÇÃO EXTERNA
+# ========================================
+
+def add_ao_codigo(codigo_atual):
+	"""
+	Simula a função que analisa o código e sugere/adiciona algo.
+	Neste exemplo, adiciona um import se não existir.
+	"""
+	import_line = "from outros.modulo_funcao import ler_A_CONTROLE_ABSOLUTO"
+
+	# Lógica simples: se o código não tiver o import, retorna o import para ser adicionado
+	if import_line not in codigo_atual:
+		return f"\n{import_line}\n"
+	return ""
+
+
+# ========================================
+# 🚀 APLICAÇÃO PRINCIPAL
+# ========================================
+
+st.title("Editor de Código Python 🐍")
+
+# Inicializa estado se necessário
+if 'codigo_atual' not in st.session_state:
+	st.session_state['codigo_atual'] = ler_arquivo(CAMINHO_ARQUIVO)
+if 'last_save' not in st.session_state:
+	st.session_state['last_save'] = 0
+
+conteudo_inicial = st.session_state['codigo_atual']
+
+# Configuração dos botões personalizados do editor (opcional)
+btn_settings = [{
+	"name": "Save",
+	"feather": "Save",
+	"primary": True,
+	"hasText": True,
+	"alwaysOn": True,
+	"commands": ["save-state", ["response", "saved"]]
+}]
+
+# --- COMPONENTE EDITOR ---
+# O response_mode='blur' envia o código quando o editor perde foco
+# Adicionamos botões para permitir salvar explicitamente
+response_dict = code_editor(
+	conteudo_inicial,
+	lang="python",
+	height="400px",
+	shortcuts="vscode",
+	buttons=btn_settings,
+	key=f"editor_{CAMINHO_ARQUIVO.name}"
+)
+
+# --- PROCESSAMENTO DO RETORNO ---
+# O code_editor retorna um dict com 'text' (código atual) e 'type' (evento que disparou)
+
+if response_dict:
+	novo_codigo = response_dict.get('text', "")
+	evento_tipo = response_dict.get('type', "")
+
+	# Se houve alteração no texto
+	if novo_codigo != st.session_state['codigo_atual']:
+		st.session_state['codigo_atual'] = novo_codigo
+
+		# --- AQUI ENTRA A LÓGICA DE INJEÇÃO (add_ao_codigo) ---
+		# Exemplo: Injetar automaticamente algo (CUIDADO com loops)
+		# Para evitar loops, só injetamos sob certas condições ou via botão
+
+		# Vamos simular o que você pediu: "Outro script adiciona ao código"
+		to_add = add_ao_codigo(novo_codigo)
+		if to_add:
+			st.info(f"🤖 Injeção automática detectada: {to_add.strip()}")
+		# Se quiser aplicar automaticamente:
+		# novo_codigo += to_add
+		# st.session_state['codigo_atual'] = novo_codigo
+		# st.rerun() # Recarrega para mostrar o novo código no editor
+
+		# --- AUTOSAVE ---
+		if novo_codigo.strip():
+			salvou = salvar_arquivo(CAMINHO_ARQUIVO, novo_codigo)
+			if salvou:
+				st.toast(f"💾 Salvo automaticamente: {CAMINHO_ARQUIVO.name}")
+				st.session_state['last_save'] = time.time()
+
+	# Feedback visual
+	if evento_tipo == "saved":
+		st.success("Salvo manualmente via botão!")
+
+# Exibe o conteúdo atual para debug
+with st.expander("Ver código em disco (Read-Only)"):
+	st.code(ler_arquivo(CAMINHO_ARQUIVO), language='python')

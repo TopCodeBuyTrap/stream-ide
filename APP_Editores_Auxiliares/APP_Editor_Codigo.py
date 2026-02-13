@@ -260,7 +260,13 @@ def editor_codigo_autosave(st, aba_id,nome_arq, diretorio_arquivo,  linguagem, t
         # 🔥 DETECTOR MÓDULOS FALTANDO (PREVIEW)
 
 
-        conteudo_inicial_ou_modificado = checar_modulos_locais(st, aba_id, diretorio_arquivo,conteudo_inicial)
+        conteudo_inicial_ou_modificado, faltando, logs = checar_modulos_locais(aba_id, conteudo_inicial)
+        with st.popover(f':material/functions: Minhas Funçoes:'):
+            with st.container(border=True, height=200):
+                st.code("\n".join(logs), language="bash")
+                st.write(faltando)
+                st.code(conteudo_inicial_ou_modificado)
+
         mostrar_todos_imports(st,aba_id, conteudo_inicial_ou_modificado)
 
         checar_modulos_pip(st, conteudo_inicial_ou_modificado)
