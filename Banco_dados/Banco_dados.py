@@ -7,10 +7,10 @@ import  streamlit as st
 
 
 def get_conn():
-    return sqlite3.connect("Banco_dados/Base_Dados.db", check_same_thread=False)  # ← ADICIONE , check_same_thread=False
+    return sqlite3.connect("Banco_dados/Base_Dados.db", check_same_thread=False)
 
 @st.cache_data
-def init_db():
+def init_Banco_dados_db():
 	conn = get_conn()
 	c = conn.cursor()
 
@@ -529,7 +529,7 @@ def ler_CUSTOMIZATION_TODOS():
 
 
 # Inicialização padrão de CUSTOMIZATION
-init_db()
+init_Banco_dados_db()
 
 
 

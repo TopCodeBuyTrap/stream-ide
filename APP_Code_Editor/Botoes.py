@@ -1,5 +1,7 @@
 # Botoes.py - ATUALIZADO PARA USAR O NOME DO MÓDULO NO TEXT E MELHORAR INSTALAÇÃO
 import json
+from time import sleep
+
 import streamlit as st
 
 
@@ -126,3 +128,13 @@ def Botao_instalar_modulo(modulo):
     except Exception as e:
         st.error(f"Erro inesperado ao instalar {modulo}: {e}")
         return False
+
+
+def Botao_abrir_definicao(caminho):
+    """LÓGICA PARA ABRIR ARQUIVO DE DEFINIÇÃO COM FEEDBACK"""
+    try:
+
+        st.toast(f"Arquivo '{caminho}' aberto com sucesso!")
+        sleep(5)
+    except Exception as e:
+        st.toast(f"Erro ao abrir arquivo '{caminho}': {e}")

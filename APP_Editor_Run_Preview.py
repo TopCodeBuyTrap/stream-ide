@@ -17,7 +17,7 @@ from APP_Editores_Auxiliares.SUB_Run_servidores import netstat_streamlit, run_st
     run_flex_process, extract_flask_config, find_port_by_pid, stop_flex, stop_process_by_port, is_django_code, \
     extract_django_config
 from APP_Editores_Auxiliares.SUB_Traduz_terminal import traduzir_saida
-from Banco_dados import scan_project, reset_db, checar_modulos_locais, checar_modulos_pip, gerar_auto_complete_EDITOR
+from Banco_dados import reset_db, scan_project
 
 # 🔥 USA A FUNÇÃO MESTRE - ZERO Path()
 _Python_exe, _Root_path, _Venv_path, _Prompt_venv = VENVE_DO_PROJETO()
