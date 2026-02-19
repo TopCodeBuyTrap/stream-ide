@@ -5,9 +5,18 @@ import time
 import streamlit
 import  streamlit as st
 
+# Define o diretório base do projeto
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DB_FOLDER = os.path.join(BASE_DIR, "Banco_dados")
+DB_PATH = os.path.join(DB_FOLDER, "Base_Dados.db")
+
 
 def get_conn():
-    return sqlite3.connect("Banco_dados/Base_Dados.db", check_same_thread=False)
+	"""Retorna conexão com o banco de dados"""
+	# Garante que a pasta existe
+	os.makedirs(DB_FOLDER, exist_ok=True)
+
+	return sqlite3.connect(DB_PATH, check_same_thread=False)
 
 @st.cache_data
 def init_Banco_dados_db():

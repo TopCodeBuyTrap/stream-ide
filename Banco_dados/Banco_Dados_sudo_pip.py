@@ -21,10 +21,20 @@ TABELA: tabelas_modulos (nome, install_cmd, uninstall_cmd, upgrade_cmd, tipo)
 """
 import streamlit as st
 import sqlite3
+import os
+
+# Define o diretório base do projeto
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DB_FOLDER = os.path.join(BASE_DIR, "Banco_dados")
+DB_PATH = os.path.join(DB_FOLDER, "Banco_Dados_sudo_pip.db")
 
 
 def get_conn():
-	return sqlite3.connect("Banco_dados/Banco_Dados_sudo_pip.db", check_same_thread=False)
+	"""Retorna conexão com o banco de dados"""
+	# Garante que a pasta existe
+	os.makedirs(DB_FOLDER, exist_ok=True)
+
+	return sqlite3.connect(DB_PATH, check_same_thread=False)
 
 @st.cache_data
 def init_db_modulos():

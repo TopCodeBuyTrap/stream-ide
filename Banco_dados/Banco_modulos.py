@@ -366,6 +366,7 @@ import pandas as pd
 
 @st.cache_data
 def obter_dados_gerais():
+    init_Controle_Stream_db()
     """Obtém dados brutos de todas as tabelas (cacheado)."""
     conn = get_conn()
     c = conn.cursor()
