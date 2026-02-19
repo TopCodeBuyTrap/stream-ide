@@ -92,6 +92,8 @@ def init_Controle_Stream_db():
 
 
 def reset_db():
+    init_Controle_Stream_db()
+
     """Apaga todos os dados das tabelas, mantendo a estrutura"""
     conn = get_conn()
     c = conn.cursor()
@@ -112,7 +114,6 @@ def reset_db():
     c.close()
     conn.close()
 
-    init_Controle_Stream_db()
 
 
 def esc_CONTROLE_ARQUIVOS_ABERTOS(caminho, conteudo, obs):
@@ -356,6 +357,85 @@ def contar_imports_detalhado():
     }
 
     return resultado
+
+
+import streamlit as st
+from collections import defaultdict
+import pandas as pd
+
+
+@st.cache_data
+def obter_dados_gerais():
+    """Obtém dados brutos de todas as tabelas (cacheado)."""
+    conn = get_conn()
+    c = conn.cursor()
+
+    # Imports gerais
+    c.execute("SELECT ARQUIVO_CAMINHO, NOME, LINHA, STATUS FROM IMPORTS_GERAIS")
+    imports = c.fetchall()
+
+    # Funções/classes criadas
+    c.execute(
+        "SELECT ARQUIVO_CAMINHO, TIPO, FUNCAO_IMPORTADA, ONDE_IMPORTOU, FUNCAO_COMPLETA, LINHA FROM FUNCTIONS_CRIADAS")
+    funcoes = c.fetchall()
+
+    # Módulos PIP (ignorados)
+    c.execute("SELECT ARQUIVO_CAMINHO, NOME, LINHA, MOTIVO FROM PIP_MODS_PYTHON")
+    pip_mods = c.fetchall()
+
+    c.close()
+    conn.close()
+
+    return {
+        "imports": imports,
+        "funcoes": funcoes,
+        "pip_mods": pip_mods
+    }
+
+
+def exibir_resumo_simples():
+    """Exibe resumo simples com totais e tops."""
+    dados = obter_dados_gerais()
+
+    df_imports = pd.DataFrame(dados["imports"], columns=["arquivo", "nome", "linha", "status"])
+    df_imports["pacote_base"] = df_imports["nome"].apply(lambda x: x.split(".")[0] if x else "")
+
+    df_funcoes = pd.DataFrame(dados["funcoes"], columns=["arquivo", "tipo", "funcao", "onde", "completa", "linha"])
+
+    df_pip = pd.DataFrame(dados["pip_mods"], columns=["arquivo", "nome", "linha", "motivo"])
+
+    with st.popover("Top pacotes importados:"):
+        top_pacotes = df_imports["pacote_base"].value_counts().head(10)
+        for pacote, count in top_pacotes.items():
+            st.write(f"{pacote}: {count} vezes")
+
+    with st.popover("Tipos mais criados:"):
+        top_tipos = df_funcoes["tipo"].value_counts().head(10)
+        for tipo, count in top_tipos.items():
+            st.write(f"{tipo}: {count}")
+
+    with st.popover("Top módulos ignorados:"):
+        top_pip_mods = df_pip["nome"].value_counts().head(10)
+        for mod, count in top_pip_mods.items():
+            st.write(f"{mod}: {count} vezes")
+
+def exibir_resumo_simples_top():
+    """Exibe resumo simples com totais e tops."""
+    dados = obter_dados_gerais()
+
+    df_imports = pd.DataFrame(dados["imports"], columns=["arquivo", "nome", "linha", "status"])
+    df_imports["pacote_base"] = df_imports["nome"].apply(lambda x: x.split(".")[0] if x else "")
+
+    df_funcoes = pd.DataFrame(dados["funcoes"], columns=["arquivo", "tipo", "funcao", "onde", "completa", "linha"])
+
+    df_pip = pd.DataFrame(dados["pip_mods"], columns=["arquivo", "nome", "linha", "motivo"])
+
+    total_imports = len(df_imports)
+    total_funcoes_classes = len(df_funcoes[df_funcoes["tipo"].isin(["function", "class"])])
+    total_pip = len(df_pip)
+
+
+    return  total_imports, total_funcoes_classes, total_pip
 
 @st.cache_data
 def Quando_Abrir_APP_primeira():
@@ -987,3 +1067,5 @@ def extrair_elementos_codigo(codigo: str) -> List[Dict[str, Any]]:
             "mensagem": str(e)
         })
     return elementos
+
+

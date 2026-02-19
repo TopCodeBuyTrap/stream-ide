@@ -594,7 +594,7 @@ def carregar_imagem_segura(caminho_relativo: str, titulo: str = ""):
         return None
 
 
-def _LOGS_popover(st,titulo,logs):
+def _LOGS_popover(st, titulo, logs):
     """
     Cria uma área de log em um popover com container limitado.
     Retorna uma função 'log' para adicionar mensagens.
@@ -607,7 +607,6 @@ def _LOGS_popover(st,titulo,logs):
                 if len(logs) <= 50:  # Limita a 50 logs para não travar o Streamlit
                     log_area.code("\n".join(logs), language="bash")
             return log
-
 
 def escreve(texto):
     import  streamlit as st

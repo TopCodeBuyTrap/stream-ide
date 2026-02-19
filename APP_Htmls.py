@@ -2,7 +2,7 @@ import json
 
 from APP_SUB_Controle_Driretorios import _DIRETORIO_PROJETO_ATUAL_
 from APP_SUB_Funcitons import saudacao_por_hora_sistema, cor_semelhante
-from Banco_dados import  ler_B_ARQUIVOS_RECENTES
+from Banco_dados import ler_B_ARQUIVOS_RECENTES, exibir_resumo_simples_top
 import base64
 
 
@@ -498,8 +498,9 @@ def Carregamento_BancoDados_Temas(st):
 		
 		top: -1.5% !important;
 		z-index: 99999 !important;
-		display: flex !important;
-    border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important;
+        border-radius: 0px !important;
+		display: flex !important; 
+        border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important;
 
 
     }} 
@@ -644,7 +645,8 @@ def Carregamento_BancoDados_Temas(st):
 
 	}}
     div[data-testid="stVerticalBlock"][class*="st-key-menu_lado_sidebar"] {{
-
+    margin-top: -1% !important;
+    border-radius: 0px !important;
     background-color: {THEMA_APP1} !important;
     border: {BORDA}px {BORDA_STIL} {COR_CAMPO} !important;
 
@@ -659,6 +661,8 @@ def Carregamento_BancoDados_Temas(st):
 		def resumo_dict_para_html():
 			Pasta_Projeto_Atual = _DIRETORIO_PROJETO_ATUAL_()
 			dados_str = ler_B_ARQUIVOS_RECENTES(Pasta_Projeto_Atual)[0][0]
+			total_imports, total_funcoes_classes, total_pip = exibir_resumo_simples_top()
+
 			import ast
 			import os
 			from datetime import datetime
@@ -761,7 +765,18 @@ def Carregamento_BancoDados_Temas(st):
 		<span style="opacity:0.3;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
 		<span style="color:{COR_MENU};font-family: {FONTE_MENU}; font-size: {TAM_MENU}px; opacity:0.85;">:material/dynamic_feed:&nbsp;</span>
 		<span>{extensoes_str.lower().replace('/','&nbsp;')}</span>
-	
+
+		<span style="opacity:0.3;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
+		<span>{total_imports}</span>
+		<span style="color:{COR_MENU};font-family: {FONTE_MENU}; font-size: {TAM_MENU}px; opacity:0.85;">Imports&nbsp;</span>
+		
+		<span style="opacity:0.3;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
+		<span>{total_funcoes_classes}</span>
+		<span style="color:{COR_MENU};font-family: {FONTE_MENU}; font-size: {TAM_MENU}px; opacity:0.85;">Criadas&nbsp;</span>
+		
+		<span style="opacity:0.3;">&nbsp;&nbsp; | &nbsp;&nbsp;</span>
+		<span>{total_pip}</span>
+		<span style="color:{COR_MENU};font-family: {FONTE_MENU}; font-size: {TAM_MENU}px; opacity:0.85;">pip&nbsp;</span>
 	
 		"""
 			except Exception:
@@ -773,14 +788,9 @@ def Carregamento_BancoDados_Temas(st):
 		<style>
 		.footer {{
 			top: 0% !important;
-			left: 1% !important;
-			padding-left: 2% !important;
-			right: 0 !important;
 			z-index: 9!important;
 			display: flex !important;
-			align-items: left !important;
 			padding-bottom: 0px !important;
-			color: white !important;
 			white-space: nowrap !important;
 		    
 		}}

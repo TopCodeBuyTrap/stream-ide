@@ -3,7 +3,7 @@ from pathlib import Path
 import streamlit as st
 import threading
 import queue
-import os, time, re, sys, ast
+import os, time, re, sys
 
 from APP_Editores_Auxiliares.APP_Catalogo import arquivo_ja_catalogado
 from APP_Editores_Auxiliares.APP_Editor_Codigo import editor_codigo_autosave
@@ -17,12 +17,11 @@ from APP_Editores_Auxiliares.SUB_Run_servidores import netstat_streamlit, run_st
     run_flex_process, extract_flask_config, find_port_by_pid, stop_flex, stop_process_by_port, is_django_code, \
     extract_django_config
 from APP_Editores_Auxiliares.SUB_Traduz_terminal import traduzir_saida
-from Banco_dados import reset_db, scan_project
+from Banco_dados import reset_db, scan_project, exibir_resumo_simples
+from Banco_dados.autosave_manager import ler_ENTRADA_Ativos, gerenciar_versionamento_completo
 
 # 🔥 USA A FUNÇÃO MESTRE - ZERO Path()
 _Python_exe, _Root_path, _Venv_path, _Prompt_venv = VENVE_DO_PROJETO()
-
-
 
 def scrl(val):
     if val == False:
@@ -31,15 +30,9 @@ section[data-testid="stMain"] { /* REMOVER SCROLL */
     overflow: hidden !important
 </style>"""
         st.markdown(sc,unsafe_allow_html=True)
-def status_bar_pro(
-    state,
-    linguagem,
-    cod,
-    linha_atual=1,
-    coluna_atual=1,
-    arquivo_path=None,
-    readonly=False,
-):
+
+
+def status_bar_pro(state, linguagem, cod,linha_atual=1, coluna_atual=1, arquivo_path=None,readonly=False):
     if not isinstance(cod, str):
         cod = ""
 
@@ -67,111 +60,45 @@ def status_bar_pro(
 
 
 
+# 🔥 AUTOSAVE MILITAR - LIMPEZA AUTOMÁTICA
+def limpar_autosave_velho():
+    """Limpa autosave sem quebrar session_state"""
+    session_state = st.session_state  # ✅ REFERÊNCIA SEGURA!
+
+    agora = time.time()
+    chaves_para_limpar = []
+
+    # ✅ sÓ executa se session_state é dict
+    if isinstance(session_state, dict):
+        for key in list(session_state.keys()):
+            if key.startswith(('autosave_cache_', 'autosave_saved_')):
+                if agora - session_state.get(key + '_timestamp', 0) > 3600:
+                    chaves_para_limpar.append(key)
+
+        for key in chaves_para_limpar:
+            if key in session_state:
+                del session_state[key]
+            timestamp_key = key + '_timestamp'
+            if timestamp_key in session_state:
+                del session_state[timestamp_key]
 
 
-def Editor_Simples(Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE, colStop, ColunaRun,CorBACK):
-    msg_fim_cod = "🏁 Fim do Codigo!"
-    Most_Logs = False
+def nome_curto(nome, limite=20):
+    base, ext = os.path.splitext(nome)
+    if ext:
+        return (base[:limite - len(ext)] + ext) if len(base) > limite else nome
+    return nome[:limite]
 
 
-    # Função para nome curto (mantida)
-    def nome_curto(nome, limite=20):
-        base, ext = os.path.splitext(nome)
-        if ext:
-            return (base[:limite - len(ext)] + ext) if len(base) > limite else nome
-        return nome[:limite]
 
-    _ = st.session_state
-    # ===== ESTADO DO SISTEMA - CORRIGIDO PARA MÚLTIPLAS ABAS =====
+def Abas_Editores(THEMA_EDITOR, EDITOR_TAM_MENU, FONTE, altura, CorBACK, menuserv):
+    Diretorio = {}
+    Conteudo = {}
+    CAMINHHOS = []
+    _ = st.session_state  # ✅ LOCAL na função - OK!
 
-    _.setdefault("output", "")
-    _.setdefault("output_queue", queue.Queue())
-    _.setdefault("input_queue", queue.Queue())
-    _.setdefault("codigo_para_executar", None)
-    _.setdefault("thread_running", False)
-    _.setdefault("id_aba_ativa", 0)
-    _.setdefault("Diretorio", {})
-    _.setdefault("Conteudo", {})
-
-    Nome_Aba = ''
-
-    with st.container(border=True,key='MenuServidor'):
-        MS1,MS2,MS3 = st.columns([8,1.5,1.2])
-        with MS2:
-            altura = controlar_altura_horiz(st, "Preview", altura_inicial=700, passo=50, maximo=900, minimo=200)
-
-        with MS3:
-            scrl(st.toggle('|'))
-
-        menuserv = MS1.expander('Menu Servidor')
-
-    def run_code_thread(codigo, input_q, output_q, caminho_sectbox):
-
-        # 🔥 LOGS DE DEBUG
-
-        output_q.put("🔍 [DEBUG] Thread iniciada\n") if Most_Logs == True else ''
-
-        script_path = Path(caminho_sectbox).resolve()
-        project_dir = script_path.parent
-
-        output_q.put(f"🔍 [DEBUG] Script: {script_path}\n") if Most_Logs == True else ''
-        output_q.put(f"🔍 [DEBUG] Pasta: {project_dir}\n") if Most_Logs == True else ''
-        output_q.put(f"🔍 [DEBUG] sys.path ANTES: {sys.path[0]}\n") if Most_Logs == True else ''
-
-        # sys.path (SEM chdir)
-        if str(project_dir) not in sys.path:
-            sys.path.insert(0, str(project_dir))
-            output_q.put(f"✅ [DEBUG] Pasta adicionada: {project_dir}\n") if Most_Logs == True else ''
-        output_q.put(f"🔍 [DEBUG] sys.path DEPOIS: {sys.path[0]}\n") if Most_Logs == True else ''
-
-        # VENV
-        try:
-            if Path(_Venv_path).exists():
-                site_packages = Path(_Venv_path) / "Lib" / "site-packages"
-                if site_packages.exists():
-                    sys.path.insert(0, str(site_packages))
-                    output_q.put(f"✅ [DEBUG] VENV adicionado: {site_packages}\n") if Most_Logs == True else ''
-        except:
-            output_q.put("⚠️ [DEBUG] VENV não encontrado\n") if Most_Logs == True else ''
-
-        output_q.put("🚀 [DEBUG] Iniciando exec...\n") if Most_Logs == True else ''
-        output_q.put(f"📝 [DEBUG] Código: {codigo[:100]}...\n") if Most_Logs == True else ''
-
-        def custom_input(prompt=""):
-            if prompt:
-                output_q.put(prompt)
-            return input_q.get()
-
-        class CustomStdout:
-            def write(self, s):
-                if s and s.strip():
-                    output_q.put(s)
-
-            def flush(self):
-                pass
-
-        old_stdout = sys.stdout
-        sys.stdout = CustomStdout()
-
-        try:
-            exec(codigo, {
-                '__name__': '__main__',
-                '__file__': str(script_path),
-                'input': custom_input,
-                'print': lambda *args: output_q.put(" ".join(map(str, args)) + "\n"),
-                'time': time,
-                'sleep': time.sleep,
-                'st': st
-            })
-            output_q.put("✅ PROGRAM_FINISHED\n")
-        except Exception as e:
-            output_q.put(f"\n❌ ERRO: {str(e)}\n")
-            output_q.put(f"❌ TRACEBACK: {str(e.__traceback__)}\n")
-            output_q.put("❌ PROGRAM_FINISHED\n")
-        finally:
-            sys.stdout = old_stdout
-            output_q.put("🔍 [DEBUG] Thread finalizada\n") if Most_Logs == True else ''
-
+    for i in ler_ENTRADA_Ativos('ATIVO', 'Sim'):
+        CAMINHHOS.append(i[0])
     nomes_arquivos = [os.path.basename(c) for c in CAMINHHOS]
     nomes_completos = []
     for caminho in CAMINHHOS:
@@ -183,100 +110,156 @@ def Editor_Simples(Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE, colSt
         nomes_completos.append(nome_formatado)
 
     abas = st.tabs(nomes_completos)
-
-    # *** CORREÇÃO: INICIALIZA 'cod' COMO None ANTES DO LOOP ***
     cod = None
+    linguagem = None  # ✅ Inicializa linguagem
     midia_exts = {
-        '.mp3', '.wav', '.ogg', '.flac',  # áudio
-        '.mp4', '.avi', '.mkv', '.webm',  # vídeo
-        '.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp', '.tiff',  # imagens
-        '.pdf',  # pdf
-        '.zip', '.rar', '.7z', '.exe', '.dll'  # binários genéricos
+        '.mp3', '.wav', '.ogg', '.flac',
+        '.mp4', '.avi', '.mkv', '.webm',
+        '.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp', '.tiff',
+        '.pdf',
+        '.zip', '.rar', '.7z', '.exe', '.dll'
     }
 
-    # *** LOOP PRINCIPAL DAS TABS - CORRIGIDO ***
     for I, aba in enumerate(abas):
         with aba:
-            EDIT_COL, INFO_COL  = st.columns([8,2])
-
-            # Salva estado da aba ATUAL
-            _.Diretorio[I] = CAMINHHOS[I]
-
+            EDIT_COL, INFO_ = st.columns([8, 2])
+            Diretorio[I] = CAMINHHOS[I]
             caminho = CAMINHHOS[I]
             nome_arquivo = os.path.basename(caminho)
-            Nome_Aba = nomes_arquivos
+            nome_arq = nomes_arquivos[I]
             linguagem = Identificar_linguagem(CAMINHHOS[I])
-
             conteudo_inicial = Abrir_Arquivo_Select_Tabs(st, CAMINHHOS[I])
-
-            # ===== NOVA VERIFICAÇÃO DE TIPO DE ARQUIVO =====
             extensao = os.path.splitext(nome_arquivo)[1].lower()
+
+            INFO_COL = INFO_.container(border=True)
+            with INFO_COL:
+                st.subheader("Sá Cúme", text_alignment='center')
+                APG, RST = st.columns([9, 2])
+                if APG.button(f':material/delete_forever:  Apagar: {nome_arquivo}', key=f"botao_apagar_arquivos{I}",
+                              type='primary', help='Than! Nojento..', width='stretch'):
+                    Apagar_Arq(st, nome_arquivo, caminho)
+
+                if RST.button(f':material/lock_reset:', key=f"botao_restart_alt{I}",
+                              help='Resetar e Atualizar Historico de Funções e Imports', width='stretch'):
+                    reset_db()
+                    scan_project()
+
+                # ✅ Passa session_state LOCAL pra função que PRECISA
+                gerenciar_versionamento_completo(st, I, nome_arq, CAMINHHOS[I], INFO_COL,
+                                                 f'conteudo_editor_militar_{I}_{nome_arq}',
+                                                 f'version_{I}_{nome_arq}', _)
+                exibir_resumo_simples()
+
+                if len(nomes_arquivos) > 0:
+                    status_bar_pro(_, linguagem, cod)
+
             try:
                 with EDIT_COL:
-                    # *** st_ace RETORNA o código ATUALIZADO da aba ***
-                    cod = editor_codigo_autosave(st,I,Nome_Aba,_.Diretorio[I],linguagem,THEMA_EDITOR,EDITOR_TAM_MENU,FONTE, altura, INFO_COL, CorBACK)
+                    cod = editor_codigo_autosave(st, I, nome_arq, Diretorio[I], linguagem, THEMA_EDITOR,
+                                                 EDITOR_TAM_MENU, FONTE, altura, INFO_COL, CorBACK)
 
                 with menuserv:
                     if is_streamlit_code(cod):
                         st.code(f'streamlit run {nome_arquivo}')
                     if is_flask_code(cod):
                         st.code(f'python {nome_arquivo} # flask')
-
-
-                # Salva no session_state por aba
-                # 🔥 FIX LINHAS VAZIAS
                 cod = cod.rstrip('\n')
                 while cod.endswith('\n\n'):
                     cod = cod[:-2]
-
-                _.Conteudo[I] = cod
-                with INFO_COL:
-                    APG,RST =st.columns([9,1])
-                    if APG.button(f':material/delete_forever:  Apagar: {nome_arquivo}', key=f"botao_apagar_arquivos{I}",type='primary'):
-                        Apagar_Arq(st, nome_arquivo, caminho)
-                    if RST.button(f':material/lock_reset:', key=f"botao_restart_alt{I}"):
-                            reset_db()
-                            scan_project()
-
-
-
-
-                    # CHAMA STATUS BAR (só na aba ativa)
-                    if len(nomes_arquivos) > 0:
-                        status_bar_pro(_, linguagem, cod)
+                Conteudo[I] = cod
 
             except AttributeError:
-                with st.container(border=True,height=altura):
-                    if extensao in midia_exts or not conteudo_inicial or '�' in conteudo_inicial[:100]:
-                        tp1, tp2 = st.columns([1, 1])
-                        bot1, bot2, bot3 = st.columns(3)
-                        # VISUALIZAÇÃO POR TIPO
-                        if extensao in {'.png', '.jpg', '.jpeg', '.gif', '.bmp'}:
-                            tp1.image(caminho,width=600)
-                            if bot1.button(f'🗑️Apagar: {nome_arquivo}', key=f"botao_apagar_arquivos{I}"):
-                                Apagar_Arq(st, nome_arquivo, caminho)
-                        elif extensao == '.pdf':
-                            with open(caminho, 'rb') as f:
-                                tp1.download_button("📥 Download PDF", f.read(), nome_arquivo)
-                            if bot1.button(f'🗑️Apagar: {nome_arquivo}', key=f"botao_apagar_arquivos{I}"):
-                                Apagar_Arq(st, nome_arquivo, caminho)
-                        elif extensao in {'.mp3', '.wav', '.ogg'}:
-                            tp1.audio(caminho)
-                            if bot1.button(f'🗑️Apagar: {nome_arquivo}', key=f"botao_apagar_arquivos{I}"):
-                                Apagar_Arq(st, nome_arquivo, caminho)
-                        elif extensao in {'.mp4', '.avi', '.mkv'}:
-                            tp1.video(caminho,width=300)
-                            if bot1.button(f'🗑️Apagar: {nome_arquivo}', key=f"botao_apagar_arquivos{I}"):
-                                Apagar_Arq(st, nome_arquivo, caminho)
-                        else:  # Binários genéricos
-                            with open(caminho, 'rb') as f:
-                                tp2.download_button("📥 Download", f.read(), nome_arquivo,
-                                                   mime="application/octet-stream")
-                                if bot1.button(f'🗑️Apagar: {nome_arquivo}', key=f"botao_apagar_arquivos{I}"):
-                                    Apagar_Arq(st, nome_arquivo, caminho)
+                cod = Outros_doc(I, nome_arquivo, caminho, extensao, midia_exts, conteudo_inicial, altura)
 
-                    # *** CORREÇÃO: Define 'cod' como string vazia para arquivos de mídia ***
-                    cod = ""
+    return nomes_arquivos, linguagem, Diretorio, Conteudo
+
+def run_code_thread(codigo, input_q, output_q, caminho_sectbox,Most_Logs):
+    if Most_Logs:
+        output_q.put("🔍 [DEBUG] Thread iniciada\n")
+    script_path = Path(caminho_sectbox).resolve()
+    project_dir = script_path.parent
+    if Most_Logs:
+        output_q.put(f"🔍 [DEBUG] Script: {script_path}\n")
+        output_q.put(f"🔍 [DEBUG] Pasta: {project_dir}\n")
+        output_q.put(f"🔍 [DEBUG] sys.path ANTES: {sys.path[0]}\n")
+    if str(project_dir) not in sys.path:
+        sys.path.insert(0, str(project_dir))
+        if Most_Logs:
+            output_q.put(f"✅ [DEBUG] Pasta adicionada: {project_dir}\n")
+    if Most_Logs:
+        output_q.put(f"🔍 [DEBUG] sys.path DEPOIS: {sys.path[0]}\n")
+    try:
+        if Path(_Venv_path).exists():
+            site_packages = Path(_Venv_path) / "Lib" / "site-packages"
+            if site_packages.exists():
+                sys.path.insert(0, str(site_packages))
+                if Most_Logs:
+                    output_q.put(f"✅ [DEBUG] VENV adicionado: {site_packages}\n")
+    except:
+        if Most_Logs:
+            output_q.put("⚠️ [DEBUG] VENV não encontrado\n")
+    if Most_Logs:
+        output_q.put("🚀 [DEBUG] Iniciando exec...\n")
+        output_q.put(f"📝 [DEBUG] Código: {codigo[:100]}...\n")
+
+    def custom_input(prompt=""):
+        if prompt:
+            output_q.put(prompt)
+        return input_q.get()
+
+    class CustomStdout:
+        def write(self, s):
+            if s and s.strip():
+                output_q.put(s)
+
+        def flush(self):
+            pass
+
+    old_stdout = sys.stdout
+    sys.stdout = CustomStdout()
+
+    try:
+        exec(codigo, {
+            '__name__': '__main__',
+            '__file__': str(script_path),
+            'input': custom_input,
+            'print': lambda *args: output_q.put(" ".join(map(str, args)) + "\n"),
+            'time': time,
+            'sleep': time.sleep,
+            'st': st
+        })
+        output_q.put("✅ PROGRAM_FINISHED\n")
+    except Exception as e:
+        output_q.put(f"\n❌ ERRO: {str(e)}\n")
+        output_q.put(f"❌ TRACEBACK: {str(e.__traceback__)}\n")
+        output_q.put("❌ PROGRAM_FINISHED\n")
+    finally:
+        sys.stdout = old_stdout
+        if Most_Logs:
+            output_q.put("🔍 [DEBUG] Thread finalizada\n")
+
+def Editor_Simples(Select, THEMA_EDITOR, EDITOR_TAM_MENU, FONTE, colStop, ColunaRun, CorBACK):
+    msg_fim_cod = "🏁 Fim do Codigo!"
+    Most_Logs = True
+    _ = st.session_state
+    _.setdefault("output", "")
+    _.setdefault("output_queue", queue.Queue())
+    _.setdefault("input_queue", queue.Queue())
+    _.setdefault("codigo_para_executar", None)
+    _.setdefault("thread_running", False)
+    _.setdefault("id_aba_ativa", 0)
+    _.setdefault("Diretorio", {})
+    _.setdefault("Conteudo", {})
+
+    with st.container(border=True, key='MenuServidor'):
+        MS1, MS2, MS3 = st.columns([8, 1.5, 1.2])
+        with MS2:
+            altura = controlar_altura_horiz(st, "Preview", altura_inicial=700, passo=50, maximo=900, minimo=200)
+        with MS3:
+            scrl(st.toggle('|'))
+        menuserv = MS1.expander('Menu Servidor')
+
+    nomes_arquivos, linguagem, _.Diretorio, _.Conteudo = Abas_Editores(THEMA_EDITOR, EDITOR_TAM_MENU, FONTE, altura,CorBACK, menuserv)
 
     # ✅ VALIDAÇÃO SEGURA ANTES DO SELECTBOX
     if len(nomes_arquivos) == 0:
@@ -297,19 +280,11 @@ def Editor_Simples(Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE, colSt
     caminho_sectbox = _.Diretorio.get(id_aba_ativa, "")
     codigo_sectbox = _.Conteudo.get(id_aba_ativa, "")
 
-    #st.write('nome_arquivo_sectbox>',nome_arquivo_sectbox)
-    #st.write('caminho_sectbox>',caminho_sectbox)
-    #st.write('codigo>',codigo_sectbox)
 
-
-    # INICIALIZA output
-    if 'streamlit_output' not in _:
-        _['streamlit_output'] = []
-
+       # INICIALIZA output
+    _.setdefault("streamlit_output", [])
     _.setdefault("flask_port", [])
-
-    if 'django_port' not in _:
-        _['django_port'] = []
+    _.setdefault("django_port", [])
 
     # EXECUÇÃO - usa 'codigo' da aba ativa
     if ColunaRun.button("▶️", key="executar_aba_ativa", shortcut='Ctrl+Enter',width="stretch"):
@@ -447,7 +422,7 @@ def Editor_Simples(Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE, colSt
             # Thread
             thread = threading.Thread(
                 target=run_code_thread,
-                args=(codigo_sectbox, _.input_queue, _.output_queue, caminho_sectbox),
+                args=(codigo_sectbox, _.input_queue, _.output_queue, caminho_sectbox,Most_Logs),
                 daemon=True
             )
             thread.start()
@@ -511,12 +486,23 @@ def Editor_Simples(Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE, colSt
                     st.rerun()
                 except Exception as e:
                     st.error(f"Erro ao tentar parar a porta {porta}: {e}")
+
+
+
+
+    render_additional_panels(st, _, linguagem, msg_fim_cod, nome_arquivo_sectbox, caminho_sectbox, codigo_sectbox)
+
+    limpar_autosave_velho()  # Executa sempre
+
+def render_additional_panels(st, _, linguagem, msg_fim_cod, nome_arquivo_sectbox, caminho_sectbox, codigo_sectbox):
+    """
+    Função para renderizar os painéis adicionais: Preview, Explorer Jason, Api IA e Catalogar scripts.
+    """
     # -------------------------------------------------------------------- TERMINAL Preview
     with st.container(border=True, key='Preview'):
         with st.expander(f':material/directions_bike: **{nome_arquivo_sectbox}**'):
-        #if Button_Nao_Fecha(f':material/directions_bike: **{nome_arquivo_sectbox}**', f':material/directions_bike: ' f'**{nome_arquivo_sectbox}**','BtnPreview'):
+            # if Button_Nao_Fecha(f':material/directions_bike: **{nome_arquivo_sectbox}**', f':material/directions_bike: ' f'**{nome_arquivo_sectbox}**','BtnPreview'):
             from APP_Editores_Auxiliares.APP_Preview import Previews
-
             Previews(st, _, linguagem, msg_fim_cod)
         # Auto-refresh enquanto rodando
         if _.thread_running:
@@ -528,14 +514,14 @@ def Editor_Simples(Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE, colSt
 
     with st.container(border=True, key='Preview_Jason'):
         with st.expander(f':material/data_object: Explorer Jason'):
-            #if Button_Nao_Fecha(f':material/data_object: Explorer Jason', f':material/data_object: Explorer Jason','BtnJson'):
+            # if Button_Nao_Fecha(f':material/data_object: Explorer Jason', f':material/data_object: Explorer Jason','BtnJson'):
             from APP_Editores_Auxiliares.APP_Json import Jsnon
             Jsnon(st, saida_preview)
 
     # -------------------------------------------------------------------- Api IA
     with st.container(border=True, key='Api_IA'):
         with st.expander(f':material/psychology: Chat IA'):
-            #if Button_Nao_Fecha(f':material/psychology: Chat IA', f':material/psychology: Chat IA','BtnChat'):
+            # if Button_Nao_Fecha(f':material/psychology: Chat IA', f':material/psychology: Chat IA','BtnChat'):
             from APP_Editores_Auxiliares.APP_Api_IAs import IA_openrouter
             IA_openrouter(st, codigo_sectbox, saida_preview, linguagem)
 
@@ -543,9 +529,8 @@ def Editor_Simples(Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE, colSt
     with st.container(border=True, key='Catalogar_scripts'):
         from APP_Editores_Auxiliares.APP_Catalogo import catalogar_arquivo_ia
         with st.expander(f':material/inventory: Catalogar: {nome_arquivo_sectbox}'):
-
-            #if Button_Nao_Fecha(f':material/inventory: Catalogar: {nome_arquivo_sectbox}', f':material/inventory_2: Catalogar: {nome_arquivo_sectbox}', 'BtnCatalogar'):
-           # aqui começa a porro das chamada desse codogo
+            # if Button_Nao_Fecha(f':material/inventory: Catalogar: {nome_arquivo_sectbox}', f':material/inventory_2: Catalogar: {nome_arquivo_sectbox}', 'BtnCatalogar'):
+            # aqui começa a porro das chamada desse codogo
             try:
                 catalogar_arquivo_ia(nome_arquivo_sectbox, caminho_sectbox, codigo_sectbox, linguagem)
             except TypeError as e:
@@ -553,29 +538,33 @@ def Editor_Simples(Select, CAMINHHOS, THEMA_EDITOR, EDITOR_TAM_MENU,FONTE, colSt
             st.write('')
             st.write('')
 
-    # 🔥 AUTOSAVE MILITAR - LIMPEZA AUTOMÁTICA
-    def limpar_autosave_velho():
-        """Limpa autosave sem quebrar session_state"""
-        session_state = st.session_state  # ✅ REFERÊNCIA SEGURA!
-
-        agora = time.time()
-        chaves_para_limpar = []
-
-        # ✅ sÓ executa se session_state é dict
-        if isinstance(session_state, dict):
-            for key in list(session_state.keys()):
-                if key.startswith(('autosave_cache_', 'autosave_saved_')):
-                    if agora - session_state.get(key + '_timestamp', 0) > 3600:
-                        chaves_para_limpar.append(key)
-
-            for key in chaves_para_limpar:
-                if key in session_state:
-                    del session_state[key]
-                timestamp_key = key + '_timestamp'
-                if timestamp_key in session_state:
-                    del session_state[timestamp_key]
 
 
+def Outros_doc(I,nome_arquivo,caminho,extensao,midia_exts,conteudo_inicial,altura):
+    with st.container(border=True, height=altura):
+        if extensao in midia_exts or not conteudo_inicial or '�' in conteudo_inicial[:100]:
+            tp1, tp2 = st.columns([1, 1])
+            bot1, bot2, bot3 = st.columns(3)
+            # VISUALIZAÇÃO POR TIPO
+            if extensao in {'.png', '.jpg', '.jpeg', '.gif', '.bmp'}:
+                tp1.image(caminho, width=600)
+                if bot1.button(f'🗑️Apagar: {nome_arquivo}', key=f"botao_apagar_arquivos{I}"):
+                    Apagar_Arq(st, nome_arquivo, caminho)
+            elif extensao == '.pdf':
+                with open(caminho, 'rb') as f:
+                    tp1.download_button("📥 Download PDF", f.read(), nome_arquivo)
+                if bot1.button(f'🗑️Apagar: {nome_arquivo}', key=f"botao_apagar_arquivos{I}"):
+                    Apagar_Arq(st, nome_arquivo, caminho)
+            elif extensao in {'.mp3', '.wav', '.ogg'}:
+                tp1.audio(caminho)
+                if bot1.button(f'🗑️Apagar: {nome_arquivo}', key=f"botao_apagar_arquivos{I}"):
+                    Apagar_Arq(st, nome_arquivo, caminho)
+            elif extensao in {'.mp4', '.avi', '.mkv'}:
+                tp1.video(caminho, width=300)
+                if bot1.button(f'🗑️Apagar: {nome_arquivo}', key=f"botao_apagar_arquivos{I}"):
+                    Apagar_Arq(st, nome_arquivo, caminho)
+            else:
+                pass
 
-    limpar_autosave_velho()  # Executa sempre
+        return ''
 

@@ -10,9 +10,11 @@ from code_editor import code_editor
 from APP_SUB_Funcitons import Criar_Arquivo_TEXTO, data_sistema, resumo_pasta, Button_Nao_Fecha, Alerta, \
     Sinbolos
 from APP_SUB_Janela_Explorer import listar_pythons_windows, Apagar_Arquivos, Janela_PESQUIZA
-from Banco_dados import salvar_modulo, listar_modulos, carregar_comando_modulo, ler_CUSTOMIZATION, ler_cut, ATUAL_CUSTOMIZATION_nome, \
-    esc_CONTROLE_ARQUIVOS, esc_A_CONTROLE_PROJETOS, ler_A_CONT_ABS_unico
+from Banco_dados import salvar_modulo, listar_modulos, carregar_comando_modulo, ler_CUSTOMIZATION, ler_cut, \
+    ATUAL_CUSTOMIZATION_nome, \
+    esc_CONTROLE_ARQUIVOS, esc_A_CONTROLE_PROJETOS, ler_A_CONT_ABS_unico, reset_db, scan_project
 from APP_SUB_Controle_Driretorios import _DIRETORIO_EXECUTAVEL_, _DIRETORIO_PROJETO_ATUAL_, _DIRETORIO_PROJETOS_
+from Banco_dados.autosave_manager import Del_ENTRADA, Del_CONTEUDO
 
 # Pega a pasta Downloads do usuário
 default_download = os.path.join(os.path.expanduser("~"), "Downloads")
@@ -1459,5 +1461,10 @@ def Apagar_Arq(st,nome,diretorio):
 
             sleep(1.5)
             st.session_state["botao_apagar_arquivos_state"] = False
+            Del_ENTRADA(diretorio)
+            Del_CONTEUDO(diretorio)
+            reset_db()
+            scan_project()
+
             st.rerun()
     menu_principal()

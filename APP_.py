@@ -160,7 +160,7 @@ def app():
                     from APP_SUB_Funcitons import limpar_CASH
                     limpar_CASH()
 
-        Tab1, Tab2 = st.columns([2, 8])
+        Tab1, Tab2 = st.columns([1.5,8.5])
 
 
 
@@ -200,15 +200,17 @@ def app():
             ignores = ['.idea', '.venv', 'build', 'dist','.virto_stream','.gitignore']
             MINUTOS_ATUALIZAR = 60
             BAKCUP(st,MINUTOS_ATUALIZAR, Path(caminho_completo), os.path.join(_DIRETORIO_EXECUTAVEL_('backup'),nome_pasta), ignores)
-
-
+            if st.button(f':material/lock_reset:'):
+                reset_db()
+                scan_project()
 
         if len(Arq_Selec_Diretorios) > 0:
             from APP_Editor_Run_Preview import Editor_Simples
 
             try:
                 with Tab2:
-                    Editor_Simples(Tt2,Arq_Selec_Diretorios,THEMA_EDITOR, EDITOR_TAM_MENU,FONTE_CAMPO,Ttp2,Ttp1,FUNDO_EDTOR)
+                    #Editor_Simples(Tt2,Arq_Selec_Diretorios,THEMA_EDITOR, EDITOR_TAM_MENU,FONTE_CAMPO,Ttp2,Ttp1,FUNDO_EDTOR)
+                    Editor_Simples(Tt2, THEMA_EDITOR, EDITOR_TAM_MENU, FONTE_CAMPO, Ttp2, Ttp1, FUNDO_EDTOR)
 
             except UnicodeDecodeError:
                 Alerta(st,'Arquivo não Reconhecido GmeOver!')
@@ -234,8 +236,9 @@ if __name__ == "__main__":
     Button_Nao_Fecha, data_sistema, carregar_imagem_segura
     from APP_SUB_Janela_Explorer import listar_arquivos_e_pastas
     from APP_Sidebar import Sidebar_Diretorios
-    from Banco_dados import ler_A_CONTROLE_PROJETOS, ler_B_ARQUIVOS_RECENTES, se_B_ARQUIVOS_RECENTES, esc_B_ARQUIVOS_RECENTES, Del_B_ARQUIVOS_RECENTES, ler_A_CONTROLE_ABSOLUTO, \
-        Del_CUSTOMIZATION, esc_A_CONTROLE_PROJETOS
+    from Banco_dados import ler_A_CONTROLE_PROJETOS, ler_B_ARQUIVOS_RECENTES, se_B_ARQUIVOS_RECENTES, \
+    esc_B_ARQUIVOS_RECENTES, Del_B_ARQUIVOS_RECENTES, ler_A_CONTROLE_ABSOLUTO, \
+    Del_CUSTOMIZATION, esc_A_CONTROLE_PROJETOS, reset_db, scan_project
     from APP_SUB_Controle_Driretorios import _DIRETORIO_EXECUTAVEL_, _DIRETORIO_PROJETOS_
 
     import os

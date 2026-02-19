@@ -4,6 +4,7 @@ from APP_Menus import Cria_Arq_loc
 from APP_SUB_Funcitons import sincronizar_estrutura, Sinbolos
 from APP_SUB_Janela_Explorer import listar_arquivos_e_pastas, Open_Explorer
 from Banco_dados import ler_CONTROLE_ARQUIVOS, Del_CONTROLE_ARQUIVOS, se_CONTROLE_ARQUIVOS
+from Banco_dados.autosave_manager import se_ENTRADA, esc_ENTRADA, ATUAL_ENTRADA
 
 
 # com pills
@@ -197,7 +198,7 @@ def Sidebar_Diretorios__(st, lista_projeto, qt_col):
 	return Arquivo_Selecionado_Nomes, Arquivo_Selecionado_Completo
 
 
-def Sidebar_Diretorios(st, lista_projeto,  caminho_completo,nome_pasta):
+def Sidebar_Diretorios___(st, lista_projeto,  caminho_completo,nome_pasta):
 	"""Sidebar: Projeto + Banco NUM MESMO LUGAR - VERSÃO SIMPLES QUE FUNCIONA"""
 	qt_col = 7
 	if 'expanders_abertos_sidebar' not in st.session_state:
@@ -302,7 +303,7 @@ def Sidebar_Diretorios(st, lista_projeto,  caminho_completo,nome_pasta):
 
 	return Arquivo_Selecionado_Nomes, Arquivo_Selecionado_Completo
 
-def Sidebar_Diretorios___(st, lista_projeto,  caminho_completo,nome_pasta):
+def Sidebar_Diretorios(st, lista_projeto,  caminho_completo,nome_pasta):
 	"""Sidebar: Projeto + Banco NUM MESMO LUGAR - VERSÃO SIMPLES QUE FUNCIONA"""
 	qt_col = 7
 	if 'expanders_abertos_sidebar' not in st.session_state:
@@ -352,20 +353,24 @@ def Sidebar_Diretorios___(st, lista_projeto,  caminho_completo,nome_pasta):
 				st.session_state.expanders_abertos_sidebar.discard(pasta_id)
 		else:
 			em = Sinbolos(nome_item)
-			status = st.button(f'{em}{nome_item}',
-			                     key=f"chk_{caminho_item.replace('/', '_').replace('\\\\', '_')}")
+			# Para cada item na lista (assumindo que você tem um loop sobre itens)
+			Diretorio = caminho_item.replace('/', '_').replace('\\\\', '_')
+
+			# Verificar status atual no banco (inicializar com base no que está salvo)
+			valor_inicial = se_ENTRADA(Diretorio, 'ATIVO', 'Sim')  # True se ATIVO='Sim', False caso contrário
+
+			status = st.checkbox(f'{em}{nome_item}', value=valor_inicial, key=f"chk_{Diretorio}")
+
 			if status:
-				from Banco_modulos import init_db, scan_project
+				Entrada = se_ENTRADA(Diretorio)
+				if Entrada:
+					ATUAL_ENTRADA(Diretorio, 'ATIVO', 'Sim', SOMAR=False)
+				else:
+					esc_ENTRADA(Diretorio, nome_item, 'Sim', 'Entrou')
+				abertos_locais.append((nome_item, caminho_item, "projeto"))
+			else:
+				ATUAL_ENTRADA(Diretorio, 'ATIVO', 'Não', SOMAR=False)
 
-				# ================================= INICIALIZAÇÃO =================================
-				init_db()
-
-				# ================================= EXEMPLO DE CHAMADA =================================
-				# Primeira abertura: vasculha a pasta .virto_stream (apenas uma vez)
-				#scan_virtuestream()
-
-				# Vasculha o restante do projeto (atualizável dinamicamente)
-				scan_project()
 		return abertos_locais
 
 	# Processa projetos
@@ -415,3 +420,4 @@ def Sidebar_Diretorios___(st, lista_projeto,  caminho_completo,nome_pasta):
 						st.rerun()
 
 	return Arquivo_Selecionado_Nomes, Arquivo_Selecionado_Completo
+

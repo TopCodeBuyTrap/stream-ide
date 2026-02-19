@@ -5,13 +5,13 @@ meu_codigo.py
 APP_Chats_IA.py
 Banco_dados/Base_Dados.db
 Base_Dados.sqbpro
-
+.idea
 Banco_dados/Base_Dados_PreDefinidos.db
 Base_Dados_PreDefinidos.sqbpro
 .virto_stream
 Banco_dados/Banco_Dados_sudo_pip.db
 Banco_Dados_sudo_pip.sqbpro
-
+Backup_APP_Editor_RunPrev
 _testes_chates_ias.py
 version.txt
 updater.py

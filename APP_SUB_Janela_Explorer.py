@@ -5,6 +5,9 @@ import requests
 from PIL import Image
 from io import BytesIO
 
+from Banco_dados.autosave_manager import Del_ENTRADA, Del_CONTEUDO
+
+
 # ===============================
 # UTIL
 # ===============================
@@ -99,6 +102,8 @@ def Abrir_Arquivo_Select_Tabs_(st, caminho_arquivo):
     # AGORA é string válida - faz verificações originais
     if not os.path.exists(caminho_arquivo):
         st.warning(f"Arquivo não encontrado: {caminho_arquivo}")
+        Del_ENTRADA(caminho_arquivo)
+        Del_CONTEUDO(caminho_arquivo)
         return "ERRO", ""
 
     if not os.path.isfile(caminho_arquivo):
@@ -140,6 +145,8 @@ def Abrir_Arquivo_Select_Tabs_(st, caminho_arquivo):
 def Abrir_Arquivo_Select_Tabs(st,caminho_arquivo):
     if not os.path.exists(caminho_arquivo):
         st.warning(f"Arquivo não encontrado: {caminho_arquivo}")
+        Del_ENTRADA(caminho_arquivo)
+        Del_CONTEUDO(caminho_arquivo)
     if not os.path.isfile(caminho_arquivo):
         st.warning( f"'{caminho_arquivo}' é uma pasta, não arquivo")
 
@@ -157,6 +164,8 @@ def Abrir_Arquivo_Select_Tabs(st,caminho_arquivo):
 def Abrir_Arquivo_Select_Tabs_novo(st,caminho_arquivo):
     if not os.path.exists(caminho_arquivo):
         st.warning(f"Arquivo não encontrado: {caminho_arquivo}")
+        Del_ENTRADA(caminho_arquivo)
+        Del_CONTEUDO(caminho_arquivo)
     if not os.path.isfile(caminho_arquivo):
         st.warning( f"'{caminho_arquivo}' é uma pasta, não arquivo")
 

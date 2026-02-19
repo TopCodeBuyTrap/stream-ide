@@ -80,22 +80,37 @@ def ler_{NOME_TABELA.upper()}_colunas(COLUNA): # ler TODA COLUNA expecificada.
     return result
 
 
-def se_{NOME_TABELA.upper()}({NOME_ID}, COLUNA=None, VALOR=None):  # Verifica se registro existe se True ou False, vazio ou cheio
+def se_{NOME_TABELA.upper()}({NOME_ID}, COLUNA=None, VALOR=None):  # Verifica se registro existe
     conn = get_conn()
     c = conn.cursor()
     try:
-        if COLUNA is None and VALOR is None:   # 1. Só ID existe?
-            c.execute(f"SELECT 1 FROM {NOME_TABELA} WHERE {NOME_ID} = ?", ({NOME_ID},))
-        else:  # 2. ID + Coluna + Valor existem?
-            c.execute(f"SELECT 1 FROM {NOME_TABELA} WHERE {NOME_ID} = ? AND {{COLUNA}} = ?", ({NOME_ID}, VALOR))
-        
-        if c.fetchone() is not None:  # True se encontrou, False se não
-            return True
-        else:
-            return False
+        if COLUNA is None and VALOR is None:   # 1. Só ID
+            query = f"SELECT 1 FROM {NOME_TABELA} WHERE {NOME_ID} = ?"
+            c.execute(query, ({NOME_ID},))
+
+        else:  # 2. ID + Coluna + Valor
+            if COLUNA is None:
+                raise ValueError("COLUNA não pode ser None quando VALOR for informado")
+
+            if not COLUNA.isidentifier():
+                raise ValueError("Nome de coluna inválido")
+
+            query = f"SELECT 1 FROM {NOME_TABELA} WHERE {NOME_ID} = ? AND {{COLUNA}} = ?"
+            c.execute(query, ({NOME_ID}, VALOR))
+
+        return c.fetchone() is not None
+
     finally:
         c.close()
         conn.close()
+    
+    '''
+    # Apenas ID
+    existe = se_USUARIO(10)
+    
+    # ID + coluna + valor
+    existe = se_USUARIO(10, COLUNA="status", VALOR="ativo")
+    '''
 
 
 def ATUAL_{NOME_TABELA.upper()}({NOME_ID},COLUNA,CONTEUDO,SOMAR=False):
@@ -276,6 +291,10 @@ Pasta_Projeto = Path(os.path.dirname(__file__))
 # Pasta específica: De_Bancos (relativa à pasta atual)
 pasta_banco = Pasta_Projeto / '{PASTA_BANCO}'
 
+pasta_banco = Pasta_Projeto / '{PASTA_BANCO}'
+if not pasta_banco.exists():
+    pasta_banco.mkdir(parents=True)
+    
 # Conecta ao banco de dados com o caminho completo
 def get_conn():
     return sqlite3.connect(pasta_banco / '{NOME_BANCO.replace(' ','_')}.db', check_same_thread=False)
