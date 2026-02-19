@@ -48,26 +48,26 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Python.APP_CodeLLama.executor": "Run",
-    "Python.APP_Editor_Run_Preview.executor": "Debug",
-    "Python.APP_SUB_Backup.executor": "Run",
-    "Python.Banco_dados.executor": "Run",
-    "Python.Banco_modulos.executor": "Run",
-    "Python.IA.executor": "Run",
-    "Python.Main.executor": "Run",
-    "Python._Criar_Exec.executor": "Run",
-    "Python.autosave_manager.executor": "Run",
-    "Python.run_app.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "main",
-    "last_opened_file_path": "C:/Users/henri/PycharmProjects/GERENCIADOR_CODIGOS_ac",
-    "run.code.analysis.last.selected.profile": "aDefault",
-    "settings.editor.selected.configurable": "preferences.pluginManager"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.APP_CodeLLama.executor&quot;: &quot;Run&quot;,
+    &quot;Python.APP_Editor_Run_Preview.executor&quot;: &quot;Debug&quot;,
+    &quot;Python.APP_SUB_Backup.executor&quot;: &quot;Run&quot;,
+    &quot;Python.Banco_dados.executor&quot;: &quot;Run&quot;,
+    &quot;Python.Banco_modulos.executor&quot;: &quot;Run&quot;,
+    &quot;Python.IA.executor&quot;: &quot;Run&quot;,
+    &quot;Python.Main.executor&quot;: &quot;Run&quot;,
+    &quot;Python._Criar_Exec.executor&quot;: &quot;Run&quot;,
+    &quot;Python.autosave_manager.executor&quot;: &quot;Run&quot;,
+    &quot;Python.run_app.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/henri/PycharmProjects/GERENCIADOR_CODIGOS_ac&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;aDefault&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\henri\PycharmProjects\Stream-IDE\Banco_dados" />
